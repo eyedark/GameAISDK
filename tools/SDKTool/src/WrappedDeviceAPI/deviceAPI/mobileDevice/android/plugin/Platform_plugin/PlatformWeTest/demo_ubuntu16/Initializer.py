@@ -19,6 +19,7 @@ class Initializer:
         self.__thread_pool = ThreadPoolExecutor(max_workers=2)
         self.__touch_future = None
         self.__cloudscreen_futrue = None
+        self._nopie = False
 
     def __get_abi_sdk(self):
         abi = self.__adb.cmd('shell',
@@ -52,18 +53,26 @@ class Initializer:
         try:
             logger.info("Install cloud screen...")
             abi, sdk = self.__get_abi_sdk()
+            # abi = "armeabi-v7a"
             so_path = "{}/cloudscreen/libs/android-{}/{}/cloudscreen.so".format(self.__resource_dir, sdk, abi)
             if not pathlib.Path(so_path).is_file():
                 raise FileNotFoundError("cloudscreen.so is not exsit")
             self.__adb.cmd_wait('push', so_path, '/data/local/tmp')
 
-            binary_path = "{}/cloudscreen/binary/{}/cloudscreen".format(self.__resource_dir, abi)
+            if self._nopie == True:
+                binary_path = "{}/cloudscreen/binary/{}/cloudscreen-nopie".format(self.__resource_dir, abi)
+            else:
+                binary_path = "{}/cloudscreen/binary/{}/cloudscreen".format(self.__resource_dir, abi)
+
             if not pathlib.Path(binary_path).is_file():
                 raise FileNotFoundError("cloudscreen.so is not exsit")
 
             logger.info("Push touch server to device")
             self.__adb.cmd_wait('push', binary_path, '/data/local/tmp')
-            self.__adb.cmd_wait('shell', 'chmod', '0755', '/data/local/tmp/cloudscreen')
+            if self._nopie == True:
+                self.__adb.cmd_wait('shell', 'chmod', '0755', '/data/local/tmp/cloudscreen-nopie')
+            else:
+                self.__adb.cmd_wait('shell', 'chmod', '0755', '/data/local/tmp/cloudscreen')
 
             logger.info("Install cloud screen complete")
         except Exception as e:
@@ -85,7 +94,11 @@ class Initializer:
     def __launch_cloudscreen(self):
         try:
             logger.info("cloudscreen run begin...")
-            self.__adb.cmd_wait("shell", "LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/cloudscreen")
+            if self._nopie == True:
+                self.__adb.cmd_wait("shell", "LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/cloudscreen-nopie")
+            else:
+                self.__adb.cmd_wait("shell", "LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/cloudscreen")
+
             logger.error("cloudscreen run over")
         except Exception as e:
             logger.error('launch cloudscreen exception', exc_info=True)

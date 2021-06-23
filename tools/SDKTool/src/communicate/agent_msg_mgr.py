@@ -60,7 +60,7 @@ class MsgMgr(object):
     """
     message manager implement
     """
-    def __init__(self, cfg_path='../cfg/bus.ini', index=1):
+    def __init__(self, cfg_path='../../cfg/bus.ini', index=1):
         self.__self_addr = None
         self.__game_reg_addr = None
         self.__uirecognize_addr = None
