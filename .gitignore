@@ -19,3 +19,5 @@ src/ImgProc/Projects/Windows/UIRecognize/packages
 !tools/SDKTool/*
 !tools/AIClient/*
 !tools/AIClient_ubuntu16/*
+tools/SDKTool/log/*.log*
+tools/SDKTool/src/WrappedDeviceAPI/log/*
