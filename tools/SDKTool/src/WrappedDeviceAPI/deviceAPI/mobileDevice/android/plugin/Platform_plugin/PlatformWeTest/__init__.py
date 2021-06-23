@@ -16,6 +16,7 @@ if __is_windows_system:
     from .demo_windows.common.AdbTool import AdbTool
 elif __is_linux_system:
     from .demo_ubuntu16.PlatformWeTest import PlatformWeTest
+
     from .demo_ubuntu16.common.AdbTool import AdbTool
 else:
     raise Exception('system is not support!')
