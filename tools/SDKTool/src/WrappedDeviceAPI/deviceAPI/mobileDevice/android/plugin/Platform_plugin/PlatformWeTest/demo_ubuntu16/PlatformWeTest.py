@@ -43,7 +43,7 @@ def setup_logging(default_path='logging.json', default_level=logging.INFO, env_k
 
 class PlatformWeTest(IPlatformProxy):
     def __init__(self, host='127.0.0.1', touch_port=Initializer.TOUCH_SEVER_PORT,
-                 cloudscreen_port=Initializer.CLOUD_SCREEN_PORT, force_orientation=True):
+                 cloudscreen_port=Initializer.CLOUD_SCREEN_PORT, force_orientation=False):
         IPlatformProxy.__init__(self)
         self.__deviceInfo = DeviceInfo()
         self.__touch_handler = None
@@ -178,18 +178,21 @@ class PlatformWeTest(IPlatformProxy):
             return 0, image
 
     def touch_down(self, x, y, contact, pressure=50):
-        touch = self.__trans_xy2(x, y)
+        # print("touch_down : ", x, y)
+        
         if self.__enable_notify:
+            touch = self.__trans_xy2(x, y)
             Notify.post_touch(*touch)
 
         _x, _y = self.__trans_xy(x, y)
+        
         self.__inject_touch_event(TOUCH_TOUCH_DOWN, _x, _y, contact, pressure)
         self.__touch_commit()
 
     def touch_move(self, x, y, contact, pressure=50):
-        touch = self.__trans_xy2(x, y)
-
+        # print("touch_move : ", x, y)
         if self.__enable_notify:
+            touch = self.__trans_xy2(x, y)
             Notify.post_touch(*touch)
 
         _x, _y = self.__trans_xy(x, y)
@@ -290,6 +293,7 @@ class PlatformWeTest(IPlatformProxy):
             recv_info = packet.body.screenCaptureFrameNotify
             # update device's orientation
             self.__orientation = int(recv_info.orientation)
+            # print("Huong ne: " , recv_info.orientation)
             return 0, dict(result=recv_info.result,
                         index=recv_info.index,
                         width=recv_info.width,
@@ -352,7 +356,8 @@ class PlatformWeTest(IPlatformProxy):
             if orientation == SCREEN_ORIENTATION_0:
                 nx, ny = x, y
             elif orientation == SCREEN_ORIENTATION_90:   # counter-clockwise 90
-                nx, ny = self.__game_height - y, x
+                # nx, ny = self.__game_height - y, x
+                nx, ny = self.__game_width - y, x
             elif orientation == SCREEN_ORIENTATION_180:
                 nx, ny = self.__game_width - y, x
             elif orientation == SCREEN_ORIENTATION_270:  # clockwise 90
@@ -361,6 +366,7 @@ class PlatformWeTest(IPlatformProxy):
                 nx, ny = x, y
 
         # _x, _y = int(nx / self.__scale), int(ny / self.__scale)
+        print("game size", self.__game_height, self.__game_width)
         if self.__game_width > self.__game_height:
             _touch_scale_x = nx / self.__game_height
             _touch_scale_y = ny / self.__game_width
