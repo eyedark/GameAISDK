@@ -31,4 +31,4 @@ Modules/Json/lib/Linux/*.so.*
 src/ImgProc/autom4te.cache/*
 *.deps/*
 *.dirstamp
-src/ImgProc/GameRecognize/src/TaskMgr/.deps/TaskDataDeal.Po
+bin/GameReg

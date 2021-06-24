@@ -9,11 +9,11 @@ AM_CXXFLAGS=-fPIC  -fpermissive -g -O0 -std=c++11 -Wl,-E \
             -I  ../../../Modules/Lua/include \
             -I  ../../../Modules/tbus/libtbus/include \
             -I  ../Comm/ImgReg/Recognizer \
-            -I  /usr/include/python3.5 \
-            -L  /usr/lib/python3.5/config-3.5m-x86_64-linux-gnu \
+            -I  /usr/include/python3.7m \
+            -L  /usr/lib/python3.7/config-3.7m-x86_64-linux-gnu/ \
             -L  ../../../Modules/Json/jsoncpp-master/build/release/src/lib_json \
             -I  ../ \
-            -L  /usr/local/lib \
+            -L  /usr/local/lib64 \
             -L ../GameRecognize/Lib\
             -D USE_HOG_PREDICTION \
             -D LINUX \
@@ -59,4 +59,4 @@ UIRecognize_SOURCES=../Comm/Utils/TqcCommon.cpp \
                     ../Protobuf/gameregProtoc.pb.cc
 
 
-LIBS=$(UIRECOGNIZELIBFLAG) $(LIBDARKNET) -ljsoncpp -lpython3.5 -Wl,-Bdynamic
+LIBS=-L/usr/local/lib64 $(UIRECOGNIZELIBFLAG) $(LIBDARKNET) -ljsoncpp -L/usr/lib64 -lpython3.7m -lcrypt -lpthread -ldl  -lutil -lm -Wl,-Bdynamic

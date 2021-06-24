@@ -9,8 +9,8 @@ fi
 
 cd ../src/ImgProc
 
-export CPATH=$CPATH:/usr/local/opencv3.4.2/include
-export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opencv3.4.2/lib
+export CPATH=$CPATH:/usr/local/include:/usr/include/python3.7m
+export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib
 
 if [ $# -gt 0 ]; then
     param=""

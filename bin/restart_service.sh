@@ -2,7 +2,7 @@
 
 PWD=`pwd`
 export PATH=$PATH:$PWD/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib:/usr/local/lib64
 
 echo "Restart services"
 

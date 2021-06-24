@@ -255,7 +255,7 @@ INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LDFLAGS = 
 LIBDARKNET = -ldarknetV3_GPU
 LIBOBJS = 
-LIBS = $(UIRECOGNIZELIBFLAG) $(LIBDARKNET) -ljsoncpp -lpython3.5 -Wl,-Bdynamic
+LIBS = -L/usr/local/lib64 $(UIRECOGNIZELIBFLAG) $(LIBDARKNET) -ljsoncpp -L/usr/lib64 -lpython3.7m -lcrypt -lpthread -ldl  -lutil -lm -Wl,-Bdynamic
 LTLIBOBJS = 
 MAKEINFO = ${SHELL} /home/xdien/workspace/GameAISDK/src/ImgProc/missing makeinfo
 MKDIR_P = /bin/mkdir -p
@@ -328,8 +328,8 @@ AM_CXXFLAGS = -fPIC  -fpermissive -g -O0 -std=c++11 -Wl,-E \
             -I  ../../../Modules/Lua/include \
             -I  ../../../Modules/tbus/libtbus/include \
             -I  ../Comm/ImgReg/Recognizer \
-            -I  /usr/include/python3.5 \
-            -L  /usr/lib/python3.5/config-3.5m-x86_64-linux-gnu \
+            -I  /usr/include/python3.7m \
+            -L  /usr/lib/python3.7/config-3.7m-x86_64-linux-gnu/ \
             -L  ../../../Modules/Json/jsoncpp-master/build/release/src/lib_json \
             -I  ../ \
             -L  /usr/local/lib \
