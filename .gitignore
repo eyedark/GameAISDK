@@ -14,6 +14,7 @@ src/ImgProc/Projects/Windows/UIRecognize/packages
 *.swp
 *.dylib
 *.o
+*.a
 *.pb.cc
 *.pb.h
 !tools/SDKTool/*
@@ -21,3 +22,13 @@ src/ImgProc/Projects/Windows/UIRecognize/packages
 !tools/AIClient_ubuntu16/*
 tools/SDKTool/log/*.log*
 tools/SDKTool/src/WrappedDeviceAPI/log/*
+bin/*.so.*
+src/ImgProc/Comm/ImgReg/ImgProcess/.deps/*
+src/opencv-3.4.14/*
+bin/UIRecognize
+src/ImgProc/Comm/ImgReg/ImgProcess/.dirstamp
+Modules/Json/lib/Linux/*.so.*
+src/ImgProc/autom4te.cache/*
+*.deps/*
+*.dirstamp
+src/ImgProc/GameRecognize/src/TaskMgr/.deps/TaskDataDeal.Po
