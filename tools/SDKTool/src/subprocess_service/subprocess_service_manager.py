@@ -73,7 +73,7 @@ def generate_subproces_params(param_type):
             }
         else:
             raise ValueError('subprocess param type error:{}'.format(param_type))
-        os.system('ipcs | awk \'{if($6==0) printf "ipcrm shm %d",$2}\'| sh')
+        os.system('ipcs | awk \'{if($6==0) printf \"ipcrm shm %d\\n\",$2}\'| sh')
     return params
 
 
