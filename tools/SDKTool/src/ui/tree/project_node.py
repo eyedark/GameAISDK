@@ -27,7 +27,7 @@ from ...common.tool_timer import ToolTimer
 from ...context.app_context import g_app_context
 from ..canvas.data_source import DataSource
 from ..dialog.tip_dialog import show_warning_tips, show_critical_tips
-from .project_data_manager import g_project_data_mgr, MediaSourceNode
+from .project_data_manager import ProjectDataManager, g_project_data_mgr, MediaSourceNode
 from .ai_tree.ai_tree import AITree
 from .scene_tree.scene_tree import SceneTree
 from .tree_manager import tree_mgr
@@ -41,6 +41,7 @@ from ...project.project_manager import g_project_manager
 from ..tree.applications_tree.apps_tree import AppTree
 from ...subprocess_service.subprocess_service_manager import backend_service_manager as bsa
 from ...WrappedDeviceAPI.wrappedDeviceConfig import Platform, DeviceType
+import pathlib
 
 IS_WINDOWS_SYSTEM = platform.platform().lower().startswith('win')
 if IS_WINDOWS_SYSTEM:
@@ -300,6 +301,10 @@ class ProjectNode(metaclass=Singleton):
         if len(file_path) == 0:
             logger.info("give up select project file")
             return
+            
+        existGDBPath = pathlib.Path(file_path)
+        wkspFldr = existGDBPath.parent
+        ProjectDataManager().set_full_path_project_loaded(wkspFldr)
         self._load_project(file_path)
 
     def _load_project_node(self):

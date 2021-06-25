@@ -211,7 +211,9 @@ class ActionSampler(object):
         return 0
 
     def _debug(self, frame, actionResultSet, points):
+        # print("chay im show ",self.__actionsContextList)
         for actionId, actionContext in self.__actionsContextList.items():
+            # print("Thong rin action ne, ",action_context)
             actionType = actionContext.get('type')
             if actionType == ACTION_TYPE_JOY_STICK:
                 startx = actionContext.get('startX')
@@ -245,7 +247,7 @@ class ActionSampler(object):
 
         for p in points:
             cv2.circle(frame, (p.x, p.y), 15, COLOR_RED, thickness=4)
-        cv2.imshow('frame', frame)
+        cv2.imshow('frame_debug', frame)
         cv2.waitKey(1)
 
     def _show_window(self, frame, evts):
@@ -257,6 +259,7 @@ class ActionSampler(object):
                 y1 = action_context.get('regionY1')
                 x2 = action_context.get('regionX2')
                 y2 = action_context.get('regionY2')
+                
                 if action_id in self.__actionResultSet:
                     color = COLOR_RED
                     if action_type == ACTION_TYPE_SIMULATOR_KEY:
@@ -283,7 +286,7 @@ class ActionSampler(object):
         cv2.putText(frame, str(self.__frameCount), (0, 30),
                     cv2.FONT_HERSHEY_COMPLEX, 1, COLOR_GREEN, 2)
 
-        cv2.imshow('frame', frame)
+        cv2.imshow('frame_record', frame)
         cv2.waitKey(1)
 
     def _output_result(self, frame, actionResultSet):
@@ -593,7 +596,8 @@ class ActionSampler(object):
                         # 下面都是用于debug显示的信息
                         context['actionRegionEdge'] = angleImageEdgeList[i]  # 区域轮廓
                         result = np.argwhere(context['actionRegion'] == 255)[:, 1]
-                        if result:
+                        # print("go loi res ",result)
+                        if result.all():
                             media_x = np.median(result)
                             if np.isnan(media_x):
                                 context['x'] = np.nan_to_num(media_x)

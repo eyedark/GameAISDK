@@ -204,7 +204,7 @@ class ServiceManager(object):
             logger.error('some process encounter exception when stopping, %s, %s', err, error_process)
             return False, 'some process encounter exception when stopping, {}, {}'.format(err, error_process)
         # wait start completely
-        time.sleep(5)
+        time.sleep(7)
         for process_obj in process_info:
             pro_name = process_obj.get('run_program')
             pro = process_obj.get('process')

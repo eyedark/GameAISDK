@@ -20,6 +20,8 @@ from ....ui.tree.project_data_manager import ProjectDataManager
 from ....common.define import RECORD_CONFIG_FILE, ACTION_SAMPLE_CFG_PATH, BASE_ACTION_CFG_PATH, \
     AI_ACTION_TYPES, ACTION_SAMPLE_GAME_ACTION_CFG_PATH
 from ...dialog.tip_dialog import show_warning_tips
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 logger = logging.getLogger("sdktool")
 
@@ -28,6 +30,7 @@ class TrainData(object):
     def __init__(self):
         # 记录显示在界面上的数据
         self.__record_param = None
+        
 
     def load_record_data(self):
         if self.__record_param is None:
@@ -46,6 +49,7 @@ class TrainData(object):
         return self.__record_param
 
     def save_record_data(self, in_param=None):
+        self._full_path_project_dir = ProjectDataManager().get_full_path_project_loaded()
         """ 保存录制的配置参数
 
         :param in_param: 录制参数
@@ -85,6 +89,7 @@ class TrainData(object):
                 action_sample_param['FrameHeight'] = network['inputHeight']
                 action_sample_param['FrameWidth'] = network['inputWidth']
             action_sample_param["GameName"] = 'output'
+            
             self._save_project_data(action_sample_param)
             with open(ACTION_SAMPLE_CFG_PATH, "w") as f:  # 保存到cfg/cfg.json中
                 json.dump(action_sample_param, f, indent=4, separators=(',', ':'))
@@ -225,16 +230,16 @@ class TrainData(object):
         action_portrait_count = 0
         action_count = len(actions)
         for action in actions:
+            
             action_id, _ = action
             in_param = game_action.get(action_id)
             action_region = in_param.get('actionRegion')
-
+            
             width, height = 0, 0
             if action_region:
                 # 判断参考文件是否存在
                 image_path = action_region.get('path')
-                project_path = ProjectDataManager().get_project_path()
-                image_path = os.path.join(project_path, image_path)
+                image_path = os.path.join(self._full_path_project_dir, image_path)
                 if not os.path.exists(image_path):
                     logger.error("file %s not exist", image_path)
                     continue
@@ -296,7 +301,7 @@ class TrainData(object):
                 out_config['screenHeight'] = long_edge
         else:
             show_warning_tips('所有动作的横竖屏不一致')
-
+        # logger.info("Save cfg sample to ", out_config)
         with open(ACTION_SAMPLE_GAME_ACTION_CFG_PATH, "w") as f:
             json.dump(out_config, f, indent=4, separators=(',', ':'))
 

@@ -82,6 +82,7 @@ class ProjectDataManager(metaclass=Singleton):
         self.__media_source = None
         self.__run_type = None
         self.__process_log_level = None
+        self.__full_path_project_loaded = None
         self._init()
 
     def _init(self):
@@ -101,6 +102,8 @@ class ProjectDataManager(metaclass=Singleton):
 
     def clear(self):
         self._init()
+    def set_full_path_project_loaded(self, path):
+        self.__full_path_project_loaded = path
 
     def set_name(self, name: str):
         self.__name = name
@@ -236,6 +239,9 @@ class ProjectDataManager(metaclass=Singleton):
 
     def set_log_level(self, log_level):
         self.__process_log_level = log_level
+    
+    def get_full_path_project_loaded(self):
+        return self.__full_path_project_loaded
 
 
 g_project_data_mgr = ProjectDataManager()
