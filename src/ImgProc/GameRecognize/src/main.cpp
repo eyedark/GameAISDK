@@ -24,8 +24,8 @@ using namespace std;
 
 // LockFree::LockFreeQueue<CTaskResult> g_oTaskResultQueue;
 ThreadSafeQueue<CTaskResult> g_oTaskResultQueue;
-std::string                  g_strBaseDir = "../";
-std::string                  g_userCfgPath = "../tools/SDKTool/project/TTKP";
+std::string                  g_strBaseDir = "/home/xdien/workspace/GameAISDK/";
+std::string                  g_userCfgPath = "../tools/SDKTool/project/LQ/";
 std::string                  g_userCfgFilePath = "";
 
 int                          g_nMaxResultSize = 5;

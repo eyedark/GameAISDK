@@ -73,7 +73,7 @@ def generate_subproces_params(param_type):
             }
         else:
             raise ValueError('subprocess param type error:{}'.format(param_type))
-        os.system('ipcs | awk \'{if($6==0) printf "ipcrm shm %d\n",$2}\'| sh')
+        os.system('ipcs | awk \'{if($6==0) printf "ipcrm shm %d",$2}\'| sh')
     return params
 
 
@@ -187,7 +187,7 @@ class ServiceManager(object):
                 error_process.append({'run_program': program.get('run_program'),
                                       'process': program})
                 continue
-            logger.error('stop process %s success', program.get('run_program'))
+            logger.info('stop process %s success', program.get('run_program'))
         return error_process
 
     def _start_process(self, service_name, run_programs, process_type=1):
@@ -279,7 +279,7 @@ class ServiceManager(object):
 
         cur_internal = self.service_extend_info[service_name].get('start_internal') - \
                        (time.time() - self.service_extend_info[service_name].get('created_time'))
-        if cur_internal > 0:
+        if cur_internal > 5:
             logger.error('stop internal is too short, please wait %s (s) to stop', cur_internal)
             return False, 'please wait {} (s) to stop'.format(cur_internal)
 

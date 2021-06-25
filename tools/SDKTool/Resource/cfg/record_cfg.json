@@ -2,5 +2,7 @@
     "Debug": true,
     "FrameFPS": 10,
     "OutputAsVideo": false,
-    "LogTimestamp": false
+    "LogTimestamp": false,
+    "inputHeight" : 720,
+    "inputWidth":1280
 }

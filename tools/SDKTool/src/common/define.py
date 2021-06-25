@@ -419,7 +419,7 @@ SDK_BIN_PATH = SDK_PATH + '/bin/'
 DEBUG_UI_CMD = 'UIRecognize mode SDKTool'
 DEBUG_GAME_REG_CMD = 'GameReg mode SDKTool'
 
-TBUS_PATH = "cfg/bus.ini"
+TBUS_PATH = "/home/xdien/workspace/GameAISDK/tools/SDKTool/cfg/bus.ini"
 
 
 AI_NAME = "AI"
@@ -737,7 +737,7 @@ LOG_LEVEL = \
         "DEBUG"
     ]
 
-RECORD_CONFIG_FILE = 'Resource/cfg/record_cfg.json'
+RECORD_CONFIG_FILE = '/home/xdien//workspace/GameAISDK/tools/SDKTool/Resource/cfg/record_cfg.json'
 RECORD_ANDROID_GUIDANCE_IMG = 'Resource/Sample_Record.PNG'
 RECORD_WINDOWS_GUIDANCE_IMG = 'Resource/Sample_Record2.PNG'
 

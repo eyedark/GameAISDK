@@ -623,7 +623,7 @@ bool CTaskManager::ProcessConfTask(tagCmdMsg *pCmdMsg) {
     if (pMsg->strVecConfName.size() == 2) {
         strReferName = pMsg->strVecConfName[1];
     } else {
-        LOGW("can not load refer name");
+        LOGW("can not load refer name %s", pMsg->strVecConfName);
     }
 
     std::map<int, CTaskParam> mpTaskParam;

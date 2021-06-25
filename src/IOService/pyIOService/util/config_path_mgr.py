@@ -11,4 +11,4 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 SYS_CONFIG_DIR = '../'
 
 # user config dir, default ./tools/SDKTool/project/TTKP
-DEFAULT_USER_CONFIG_DIR = '../tools/SDKTool/project/TTKP'
+DEFAULT_USER_CONFIG_DIR = '../tools/SDKTool/project/LQ'

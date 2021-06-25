@@ -708,6 +708,7 @@ bool CUIFrameWork::LoadTaskConfig(const char *pszRootPath) {
 
     char szPath[TQC_PATH_STR_LEN] = { 0 };
     SNPRINTF(szPath, TQC_PATH_STR_LEN, "%s/%s", pszRootPath, UI_TASK_CFG_FILE);
+    // SNPRINTF(szPath, TQC_PATH_STR_LEN, "%s%s", pszRootPath, UI_TASK_CFG_FILE);
 
     // 检查游戏UI配置文件是否存在
     if (!IsFileExist(szPath)) {

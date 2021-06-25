@@ -10,19 +10,22 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 
 import logging
 import os
+import sys
 import shutil
 import cv2
 import random
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras import regularizers
-from tensorflow.python.keras.applications.resnet50 import conv_block, identity_block
-from tensorflow.python.keras.layers import Convolution2D, ZeroPadding2D
-from tensorflow.python.keras.layers import Input, Activation, BatchNormalization, Flatten, Conv2D
-from tensorflow.python.keras.layers import MaxPooling2D, Dense, GlobalAveragePooling2D, PReLU, LSTM
-from tensorflow.python.keras.models import Model
+from tensorflow_core.python.keras import backend as K
+from tensorflow_core.python.keras import regularizers
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(__dir__)
+from .resnet_delare import conv_block, identity_block
+from tensorflow_core.python.keras.layers import Convolution2D, ZeroPadding2D
+from tensorflow_core.python.keras.layers import Input, Activation, BatchNormalization, Flatten, Conv2D
+from tensorflow_core.python.keras.layers import MaxPooling2D, Dense, GlobalAveragePooling2D, PReLU, LSTM
+from tensorflow_core.python.keras.models import Model
 from util.util import ConvertToSDKFilePath
 
 from .ProgressReport import ProgressReport
@@ -532,6 +535,7 @@ class Network(object):
         Load weights of CNN and LSTM
         """
         self.kerasModel = self.KerasModel()
+        logging.info(self.modelPath + 'my_model_weights.h5')
         self.kerasModel.load_weights(self.modelPath + 'my_model_weights.h5')
         self.kerasModelExtFea = Model(inputs=self.kerasModel.input,
                                       outputs=self.kerasModel.get_layer('fc_feature').output)

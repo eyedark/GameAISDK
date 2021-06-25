@@ -9,7 +9,10 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
 import os
+import sys
 import logging
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(__dir__)
 
 from .CfgParse import CfgParse
 from .GenerateImageSamples import GenerateImageSamples

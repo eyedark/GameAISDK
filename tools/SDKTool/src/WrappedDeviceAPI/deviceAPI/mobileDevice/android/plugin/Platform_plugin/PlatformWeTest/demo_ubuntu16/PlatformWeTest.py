@@ -18,7 +18,7 @@ sys.path.append(__dir__)
 import Notify
 
 from .Initializer import Initializer
-from deviceAPI.mobileDevice.android.devicePlatform.IPlatformProxy import *
+from .IPlatformProxy import *
 from .TcpSocketHandler import TouchSocketHandler, CloudscreenSocketHandler
 
 from .pb.touch.TouchPkgPB_pb2 import *

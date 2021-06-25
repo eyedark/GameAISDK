@@ -332,7 +332,7 @@ AM_CXXFLAGS = -fPIC  -fpermissive -g -O0 -std=c++11 -Wl,-E \
             -L  /usr/lib/python3.7/config-3.7m-x86_64-linux-gnu/ \
             -L  ../../../Modules/Json/jsoncpp-master/build/release/src/lib_json \
             -I  ../ \
-            -L  /usr/local/lib \
+            -L  /usr/local/lib64 \
             -L ../GameRecognize/Lib\
             -D USE_HOG_PREDICTION \
             -D LINUX \
