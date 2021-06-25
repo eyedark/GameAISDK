@@ -32,3 +32,5 @@ src/ImgProc/autom4te.cache/*
 *.deps/*
 *.dirstamp
 bin/GameReg
+**.Po
+.vscode/settings.json
