@@ -263,7 +263,7 @@ class GenerateImageSamples(object):
         for taskIndex in self.taskList:
             taskActionList = self.taskActionDict[taskIndex]
             actionName = self.actionNameDict[taskIndex]
-            noneLabel = None
+            noneLabel = -1
             for _, taskAction in enumerate(taskActionList):
                 if taskAction["name"] == "None" or \
                    taskAction["name"] == "none":

@@ -85,7 +85,10 @@ def obtain_angle_image(radiusBig, radiusSmall, angleNum):
 
 def draw_angle(img, angleImg, color):
     for ch in range(3):
-        img[:, :, ch][angleImg == 255] = color[ch]
+        #TODO: fix this
+        # img[:, :, ch][angleImg == 255] = color[ch]
+        img[:, :, ch]= color[ch]
+        
 
 
 def get_angle_image(radiusBig, radiusSmall, angleNum):

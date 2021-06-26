@@ -25,7 +25,7 @@ if [ $# -gt 0 ]; then
     autoheader
     automake --add-missing
     ./configure ${param} || exit 4
-    make || exit 5
+    make -j12 || exit 5
 
     mv UI/UIRecognize ../../bin/ || exit 6
     mv GameRecognize/GameReg ../../bin/ || exit 7

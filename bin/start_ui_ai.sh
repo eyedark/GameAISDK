@@ -3,6 +3,8 @@
 PWD=`pwd`
 export PATH=$PATH:$PWD/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib/
+export AI_SDK_PROJECT_FILE_PATH=/home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/TTKP.prj
+
 
 echo "Run UI+AI Service"
 
@@ -44,7 +46,7 @@ fi
 
 
 #Start UIRecognize process
-./UIRecognize >/dev/null 2>&1 &
+./UIRecognize mode SDKTool cfgpath /home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/ >/dev/null 2>&1 &
 sleep 1
 
 #Check UIRecognize process

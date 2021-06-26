@@ -1,10 +1,10 @@
 {
     "Debug":true,
     "GameName":"output",
-    "SavePath":".\\project\\im1/",
+    "SavePath":"/home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/",
     "FrameFPS":10,
-    "FrameHeight":360,
-    "FrameWidth":640,
+    "FrameHeight":720,
+    "FrameWidth":1280,
     "ActionCfgFile":"cfg/action.json",
     "OutputAsVideo":false,
     "LogTimestamp":false
