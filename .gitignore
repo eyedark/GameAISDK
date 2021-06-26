@@ -34,3 +34,5 @@ src/ImgProc/autom4te.cache/*
 bin/GameReg
 **.Po
 .vscode/settings.json
+tools/SDKTool/src/modules/action_sampler/cfg/action.json
+tools/SDKTool/project/LQ/data/ImitationModel/*.h5
