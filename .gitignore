@@ -36,3 +36,7 @@ bin/GameReg
 .vscode/settings.json
 tools/SDKTool/src/modules/action_sampler/cfg/action.json
 tools/SDKTool/project/LQ/data/ImitationModel/*.h5
+Class_valid/
+Class_train/
+output/
+project/

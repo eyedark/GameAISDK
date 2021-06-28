@@ -32,7 +32,7 @@ def sig_handle(sig_num, _):
 
 
 if __name__ == "__main__":
-    logging.config.fileConfig("cfg/log.ini")
+    logging.config.fileConfig("{}/cfg/log.ini".format(__current_dir))
     LOG = logging.getLogger('sdktool')
     LOG.setLevel(logging.DEBUG)
     signal.signal(signal.SIGINT, sig_handle)
