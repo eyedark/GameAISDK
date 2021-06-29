@@ -9,12 +9,16 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
 import os
+import sys
 import signal
 import subprocess
 import time
 import logging
 
 import psutil
+
+__current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(__current_dir)
 
 from .subprocess_utils import get_sys_platform
 from .threading_lock import thread_lock
@@ -115,9 +119,10 @@ class SubprocessManager(object):
 
     def exist_process(self):
         try:
-            p_children = psutil.Process(self.process.pid).children()
-            if len(p_children) > 0:
-                return True
+            return psutil.pid_exists(self.process.pid)
+            # p_children = psutil.Process(self.process.pid).children(recursive=False)
+            # if len(p_children) > 0:
+            #     return True
         except (RuntimeError, psutil.NoSuchProcess) as err:
             logger.error("exist process exception: %s", err)
             return False
@@ -279,7 +284,7 @@ class ServiceManager(object):
 
         cur_internal = self.service_extend_info[service_name].get('start_internal') - \
                        (time.time() - self.service_extend_info[service_name].get('created_time'))
-        if cur_internal > 0:
+        if cur_internal > 5:
             logger.error('stop internal is too short, please wait %s (s) to stop', cur_internal)
             return False, 'please wait {} (s) to stop'.format(cur_internal)
 
@@ -325,11 +330,14 @@ class ServiceManager(object):
         return pids
 
     def exist_process(self, service_name):
+        
         if not self.service_info_dict.__contains__(service_name):
+            logging.info("Not in service_info_dict %s", service_name)
             return False
         process_info = self.service_info_dict[service_name]
         for program in process_info:
             pro = program.get('process')
+            logging.info("Chay vong lap for exist_process %s", service_name)
             if not pro.exist_process():
                 return False
         return True

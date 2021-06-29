@@ -6,6 +6,7 @@
 # Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/Initializer.py
 # Compiled at: 2020-12-29 09:26:44
 # Size of source mod 2**32: 7754 bytes
+from distutils.spawn import find_executable
 import time, logging, pathlib
 from .common.AdbTool import AdbTool
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -42,7 +43,7 @@ class Initializer:
             abi, _ = self._Initializer__get_abi_sdk()
             file_path = '{}/touchserver/binary/{}/touchserver'.format(self._Initializer__resource_dir, abi)
             if not pathlib.Path(file_path).is_file():
-                raise Exception('touchserver is not exsit')
+                raise Exception('touchserver is not exsit {}'.format(file_path))
             logger.info('Push touch server to device')
             self._Initializer__adb.cmd_wait('push', file_path, '/data/local/tmp/wetest')
             self._Initializer__adb.cmd_wait('shell', 'chmod', '0755', '/data/local/tmp/wetest/touchserver')

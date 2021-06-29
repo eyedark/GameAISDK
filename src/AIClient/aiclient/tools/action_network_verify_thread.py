@@ -28,10 +28,12 @@ class ActionNetworkVerifyThread(threading.Thread):
             if msg is None:
                 time.sleep(0.01)
                 continue
+            else:
                 msg_id = msg.get('msg_id', -1)
                 if msg_id == -1:
                     self.network_logger.error('msg_id error:{}'.format(msg))
                     continue
+                else:
                     if msg_id == define.MSG_AI_ACTION:
                         self.network_logger.warning('AI action process function in AI part, msg:{}'.format(msg))
                     else:

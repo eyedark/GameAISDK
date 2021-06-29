@@ -104,6 +104,7 @@ class ProjectDataManager(metaclass=Singleton):
         self._init()
     def set_full_path_project_loaded(self, path):
         self.__full_path_project_loaded = path
+        os.environ['AI_SDK_PROJECT_FULL_PATH'] = str(path)
 
     def set_name(self, name: str):
         self.__name = name

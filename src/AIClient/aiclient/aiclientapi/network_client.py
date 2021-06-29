@@ -274,8 +274,7 @@ class NetworkClient(object):
         ret = self.resource_apply_inst.recycle_resource_by_taskid(task_id)
         if not ret:
             self.MAIN_THREAD_LOGGER.error('recycle_resource_by_taskid')
-            return (
-             False, 'recycle_resource_by_taskid, task_id: {}'.format(task_id))
+            return (False, 'recycle_resource_by_taskid, task_id: {}'.format(task_id))
         return (True, '')
 
     def on_service_over(self):

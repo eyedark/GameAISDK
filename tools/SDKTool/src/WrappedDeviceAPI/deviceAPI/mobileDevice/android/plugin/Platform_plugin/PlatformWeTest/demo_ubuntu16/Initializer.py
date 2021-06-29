@@ -38,7 +38,7 @@ class Initializer:
 
             file_path = "{}/touchserver/binary/{}/touchserver".format(self.__resource_dir, abi)
             if not pathlib.Path(file_path).is_file():
-                raise FileNotFoundError("touchserver is not exsit")
+                raise FileNotFoundError("touchserver is not exsit {}".format(file_path))
 
             logger.info("Push touch server to device")
             self.__adb.cmd_wait('push', file_path, '/data/local/tmp')

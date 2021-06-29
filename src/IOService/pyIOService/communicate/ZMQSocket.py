@@ -22,7 +22,7 @@ class ZMQSocket(object):
     """
     Socket implementation based on ZMQ
     """
-    def __init__(self, port, pattern, ip='*', sendLastMsg=False):
+    def __init__(self, port, pattern, ip='127.0.0.1', sendLastMsg=False):
         self.__context = zmq.Context()
         self.__zmqSocket = self.__context.socket(pattern)
         if sendLastMsg:

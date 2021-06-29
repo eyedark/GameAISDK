@@ -7,6 +7,7 @@
 # Compiled at: 2020-12-29 09:25:42
 # Size of source mod 2**32: 12402 bytes
 import configparser, logging, os, threading, time, traceback, cv2, json
+from math import e
 from .aiclientapi.network_client import NetworkClient
 from .aiclientapi.tool_manage import communicate_config as com_config
 from .device_remote_interaction.action_threads.action_execute_thread import ActionExecuteThread
@@ -218,13 +219,14 @@ class ActionExecute(object):
         st = time.time()
         while 1:
             ct = time.time()
-            if ct - st > 30:
+            if ct - st > 50:
                 break
             self.ai_client.send_source_info_request()
             if network_check.source_info is None or len(network_check.source_info) == 0:
                 time.sleep(0.1)
-            continue
-        return network_check.source_info
+                continue
+            else:        
+                return network_check.source_info
 
     def start_device(self):
         try:

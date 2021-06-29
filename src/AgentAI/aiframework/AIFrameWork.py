@@ -204,14 +204,14 @@ class AIFrameWork(object):
         return msgID
 
     def _send_resource_info(self):
-        self.__logger.info('send source info to mc, project_path:%s'.format(os.environ.get('AI_SDK_PROJECT_FILE_PATH')))
+        self.__logger.info('send source info to mc, project_path: {}'.format(os.environ.get('AI_SDK_PROJECT_FILE_PATH')))
         project_config_path = os.environ.get('AI_SDK_PROJECT_FILE_PATH')
         if not project_config_path:
             raise Exception('environ var(AI_SDK_PROJECT_FILE_PATH) is invalid')
 
         content = util.get_configure(project_config_path)
         if not content:
-            self.__logger.warning("failed to get project config content, file:%s".format(project_config_path))
+            self.__logger.warning("failed to get project config content, file: {}".format(project_config_path))
             return False
 
         if not content.get('source'):

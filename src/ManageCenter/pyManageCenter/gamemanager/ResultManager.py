@@ -265,7 +265,7 @@ class ResultThread(threading.Thread):
             return False
 
         try:
-            actionData = msgpack.unpackb(actionBuff, object_hook=mn.decode, encoding='utf-8')
+            actionData = msgpack.unpackb(actionBuff, object_hook=mn.decode)
             actionData['video_frame_seq'] = self.__frameSeqList.index(frameSeq)
         except ValueError:
             LOG.error('Wrong action frameSeq[{}]'.format(frameSeq))

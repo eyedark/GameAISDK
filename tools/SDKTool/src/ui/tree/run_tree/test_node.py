@@ -451,7 +451,7 @@ class TestNode(QObject):
     def clear_shm():
         if sys.platform == 'win32':
             return
-        os.system('ipcs | awk \'{if($6==0) printf "ipcrm shm %d\n",$2}\'| sh')
+        os.system('ipcs | awk \'{if($6==0) printf \"ipcrm shm %d\\n\",$2}\'| sh')
 
     def is_testing(self):
         return self.__sdk_running

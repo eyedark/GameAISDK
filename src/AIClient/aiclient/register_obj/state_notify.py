@@ -114,6 +114,7 @@ class StateNotify(object):
         """this function will be called when restore actions execution"""
         if self.obj_is_none():
             return
+        else:
             try:
                 self.obj_inst.on_resume(task_id=self.task_id)
                 self.MAIN_THREAD_LOGGER.debug('call on_restore successfully')
@@ -124,6 +125,7 @@ class StateNotify(object):
         """this function will be called when stop actions execution"""
         if self.obj_is_none():
             return
+        else:
             try:
                 self.obj_inst.on_pause(task_id=self.task_id)
                 self.MAIN_THREAD_LOGGER.debug('call on_pause successfully')
@@ -134,6 +136,7 @@ class StateNotify(object):
         """this function will be called when current round detect game over"""
         if self.obj_is_none():
             return
+        else:
             try:
                 self.obj_inst.on_stop(task_id=self.task_id)
                 self.MAIN_THREAD_LOGGER.debug('call on_stop successfully')
@@ -144,6 +147,7 @@ class StateNotify(object):
         """this function will be called when all the service over"""
         if self.obj_is_none():
             return
+        else:
             try:
                 self.obj_inst.on_service_over(task_id=self.task_id)
                 self.MAIN_THREAD_LOGGER.debug('call on_service_over successfully')
@@ -154,6 +158,7 @@ class StateNotify(object):
         """notify ai-sdk service state, -1 ai-sdk service is abnormal, 0 ai-sdk service is ok"""
         if self.obj_is_none():
             return
+        else:
             try:
                 if state == com_config.AI_SERVICE_ABNORMAL:
                     self.MAIN_THREAD_LOGGER.error('call on_ai_service_state error, state:{}'.format(state))
@@ -172,6 +177,7 @@ class StateNotify(object):
         """
         if self.obj_is_none():
             return
+        else:
             try:
                 if state == com_config.RESOURCE_APPLY_FAILURE:
                     self.MAIN_THREAD_LOGGER.error('call on_resource_apply_state error, resource apply failure, state:{}'.format(state))
@@ -193,6 +199,7 @@ class StateNotify(object):
     def on_exception(self, exception_type, description):
         if self.obj_is_none():
             return
+        else:
             try:
                 self.obj_inst.on_exception(exception_type=exception_type, description=description, task_id=self.task_id)
                 self.MAIN_THREAD_LOGGER.error('call on_exception notify error, exception_type:{}, description: {}'.format(exception_type, description))

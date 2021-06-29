@@ -411,7 +411,7 @@ ACTION_SAMPLE_GAME_ACTION_CFG_PATH = "{}/{}".format(ACTION_SAMPLE_PATH, BASE_ACT
 
 BIN_PATH = '{}/../../../../bin'.format(__file_path)
 
-AICLIENT_PATH = 'AIClient' if sys.platform.startswith("win") else 'AIClient_ubuntu16'
+AICLIENT_PATH = 'AIClient' if sys.platform.startswith("win") else 'AIClient'
 PHONE_CLIENT_PATH = '{}/tools/{}/'.format(SDK_PATH, AICLIENT_PATH)
 
 AI_SDK_DATA_PATH = SDK_PATH + 'data'

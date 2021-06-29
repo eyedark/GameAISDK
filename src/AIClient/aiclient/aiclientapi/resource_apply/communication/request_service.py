@@ -33,8 +33,7 @@ class RequestService(object):
         self.MAIN_THREAD_LOGGER.debug('post spent time: %3.2f' % (end_post_time - start_post_time))
         if resp.status_code == 200:
             self.MAIN_THREAD_LOGGER.debug('post {} success data: {}'.format(url, data))
-            return (
-             True, json.loads(resp.text))
+            return (True, json.loads(resp.text))
         else:
             self.MAIN_THREAD_LOGGER.error('post {} failed data:{} text:{}'.format(url, data, resp.text))
             return (False, resp.text)
@@ -46,8 +45,7 @@ class RequestService(object):
             result = self.parse_ai_service(result['data'])
             if result is not None:
                 self.MAIN_THREAD_LOGGER.info('ai service result:{}'.format(result))
-                return (
-                 True, result)
+                return (True, result)
         self.MAIN_THREAD_LOGGER.error('create ai-service request error:{}'.format(result))
         return (False, result)
 

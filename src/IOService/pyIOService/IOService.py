@@ -74,21 +74,26 @@ class IOService(object):
 
         # Construct sub modules
         self.__clientSocket = SocketServer()
+        logging.info("Init HttpServer")
         self.__httpServer = HttpServer()
+        logging.info("Init HTTPClient")
         self.__controlSocket = HTTPClient()
+        logging.info("Init TBUSMgr")
         self.__commMgr = TBUSMgr()
+        logging.info("Init MsgHandler")
         self.__msgHandler = MsgHandler(self.__commMgr,
                                        self.__clientSocket,
                                        self.__httpServer,
                                        self.__controlSocket)
-
+                    
+        logging.info("Init sub TBUSMgr")
         # Initialize sub modules
         tbus_cfg_path = os.path.join(SYS_CONFIG_DIR, TBUS_CFG_PATH)
         if not self.__commMgr.Initialize(tbus_cfg_path):
             LOG.error('TBUSMgr Initialize failed.')
             return False
-
-        if IO_SERVICE_CONTEXT['io_service_type'] == 'HTTP':
+        # logging.info("Init sub Http server ",IO_SERVICE_CONTEXT['io_service_type'])
+        if IO_SERVICE_CONTEXT['io_service_type'] == 'HTTP':#curent zmq
             if not self.__httpServer.Initialize(self.__clientCfg):
                 LOG.error('Http Server Initialize failed!')
                 return False
@@ -96,12 +101,12 @@ class IOService(object):
             if not self.__clientSocket.Initialize(self.__clientCfg):
                 LOG.error('Client Socket Initialize failed!')
                 return False
-
+        logging.info("Init sub Control Socket ")
         if not self.__controlSocket.Initialize(self.__controlCfg) or not self.__msgHandler.Initialize():
             LOG.error('Control Socket Initialize failed! or MsgHandler Initialize failed!')
             return False
         return True
-
+    #TODO fix error http request
     def Run(self):
         """
         Run this module

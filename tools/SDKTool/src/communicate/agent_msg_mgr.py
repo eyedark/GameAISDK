@@ -274,7 +274,7 @@ class MsgMgr(object):
             agent_action_info = dict()
             action_data = msgPB.stAIAction.byAIActionBuff
 
-            action_dict = msgpack.unpackb(action_data, object_hook=msgpack_numpy.decode, encoding='utf-8')
+            action_dict = msgpack.unpackb(action_data, object_hook=msgpack_numpy.decode)
 
             action_id = action_dict['action_id']
             if self.__device_type == DeviceType.Android.value:

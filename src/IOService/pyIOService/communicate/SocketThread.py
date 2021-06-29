@@ -37,7 +37,7 @@ class RecvThread(threading.Thread):
                 time.sleep(0.001)
                 continue
 
-            data = msgpack.unpackb(buff, object_hook=mn.decode, encoding='utf-8')
+            data = msgpack.unpackb(buff, object_hook=mn.decode)
             self.__recvQueue.put_nowait(data)
             time.sleep(0.001)
 

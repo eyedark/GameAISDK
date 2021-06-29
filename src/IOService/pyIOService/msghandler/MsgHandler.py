@@ -475,7 +475,7 @@ class MsgHandler(object):
 
         msg_data = dict()
         msg_data['msg_id'] = MSG_ID_CLIENT_REP
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if key == int(IO_SERVICE_CONTEXT['seesion_key']):
             msg_data['code'] = CLIENT_REP_CODE_OK
             if not isinstance(testID, str):
                 LOG.error('testID[%s] is not str', testID)
@@ -489,7 +489,7 @@ class MsgHandler(object):
                 self.__commMgr.SendToMC(msgBuff)
         else:
             msg_data['code'] = CLIENT_REP_CODE_INVALID_KEY
-            LOG.warning('Recv invalid req, wrong key[%s]', key)
+            LOG.warning('Recv invalid req, wrong key[%s] server key: %s', key, IO_SERVICE_CONTEXT['seesion_key'])
         LOG.info("send the response to the ai client, msg_data:%s", msg_data)
         self.__clientSocket.Send(msg_data)
 

@@ -43,7 +43,7 @@ def main():
 
     os.environ['AI_SDK_PROJECT_PATH'] = os.path.dirname(args.cfgpath) if args.cfgpath else DEFAULT_USER_CONFIG_DIR
 
-    task_cfg_path = os.path.join(os.environ.get('AI_SDK_PROJECT_PATH'), IO_TASK_CFG_FILE)
+    task_cfg_path = os.path.join(os.environ.get('AI_SDK_PROJECT_FULL_PATH'), IO_TASK_CFG_FILE)
     platform_cfg_path = os.path.join(SYS_CONFIG_DIR, IO_CFG_FILE)
     log_cfg_path = os.path.join(SYS_CONFIG_DIR, IO_LOF_CFG_FILE)
 
