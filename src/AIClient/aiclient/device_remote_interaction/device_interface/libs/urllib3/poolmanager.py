@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/poolmanager.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 13092 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\poolmanager.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 13459 bytes
 from __future__ import absolute_import
 import collections, functools, logging
 try:
@@ -58,10 +58,10 @@ def _default_key_normalizer(key_class, request_context):
     return key_class(**context)
 
 
-key_fn_by_scheme = {'http': functools.partial(_default_key_normalizer, HTTPPoolKey), 
- 'https': functools.partial(_default_key_normalizer, HTTPSPoolKey)}
-pool_classes_by_scheme = {'http': HTTPConnectionPool, 
- 'https': HTTPSConnectionPool}
+key_fn_by_scheme = {'http':functools.partial(_default_key_normalizer, HTTPPoolKey), 
+ 'https':functools.partial(_default_key_normalizer, HTTPSPoolKey)}
+pool_classes_by_scheme = {'http':HTTPConnectionPool, 
+ 'https':HTTPSConnectionPool}
 
 class PoolManager(RequestMethods):
     __doc__ = "\n    Allows for arbitrary requests while transparently keeping track of\n    necessary connection pools for you.\n\n    :param num_pools:\n        Number of connection pools to cache before discarding the least\n        recently used pool.\n\n    :param headers:\n        Headers to include with all requests, unless other headers are given\n        explicitly.\n\n    :param \\**connection_pool_kw:\n        Additional parameters are used to create fresh\n        :class:`urllib3.connectionpool.ConnectionPool` instances.\n\n    Example::\n\n        >>> manager = PoolManager(num_pools=2)\n        >>> r = manager.request('GET', 'http://google.com/')\n        >>> r = manager.request('GET', 'http://google.com/mail')\n        >>> r = manager.request('GET', 'http://yahoo.com/')\n        >>> len(manager.pools)\n        2\n\n    "
@@ -70,7 +70,7 @@ class PoolManager(RequestMethods):
     def __init__(self, num_pools=10, headers=None, **connection_pool_kw):
         RequestMethods.__init__(self, headers)
         self.connection_pool_kw = connection_pool_kw
-        self.pools = RecentlyUsedContainer(num_pools, dispose_func=lambda p: p.close())
+        self.pools = RecentlyUsedContainer(num_pools, dispose_func=(lambda p: p.close()))
         self.pool_classes_by_scheme = pool_classes_by_scheme
         self.key_fn_by_scheme = key_fn_by_scheme.copy()
 
@@ -162,7 +162,7 @@ class PoolManager(RequestMethods):
         constructor.
         """
         u = parse_url(url)
-        return self.connection_from_host(u.host, port=u.port, scheme=u.scheme)
+        return self.connection_from_host((u.host), port=(u.port), scheme=(u.scheme))
 
     def urlopen(self, method, url, redirect=True, **kw):
         """
@@ -174,15 +174,15 @@ class PoolManager(RequestMethods):
         :class:`urllib3.connectionpool.ConnectionPool` can be chosen for it.
         """
         u = parse_url(url)
-        conn = self.connection_from_host(u.host, port=u.port, scheme=u.scheme)
+        conn = self.connection_from_host((u.host), port=(u.port), scheme=(u.scheme))
         kw['assert_same_host'] = False
         kw['redirect'] = False
         if 'headers' not in kw:
             kw['headers'] = self.headers
-        if self.proxy is not None and u.scheme == 'http':
-            response = conn.urlopen(method, url, **kw)
+        elif self.proxy is not None and u.scheme == 'http':
+            response = (conn.urlopen)(method, url, **kw)
         else:
-            response = conn.urlopen(method, u.request_uri, **kw)
+            response = (conn.urlopen)(method, (u.request_uri), **kw)
         redirect_location = redirect and response.get_redirect_location()
         if not redirect_location:
             return response
@@ -198,11 +198,11 @@ class PoolManager(RequestMethods):
             if retries.raise_on_redirect:
                 raise
             return response
-
-        kw['retries'] = retries
-        kw['redirect'] = redirect
-        log.info('Redirecting %s -> %s', url, redirect_location)
-        return self.urlopen(method, redirect_location, **kw)
+        else:
+            kw['retries'] = retries
+            kw['redirect'] = redirect
+            log.info('Redirecting %s -> %s', url, redirect_location)
+            return (self.urlopen)(method, redirect_location, **kw)
 
 
 class ProxyManager(PoolManager):
@@ -212,22 +212,25 @@ class ProxyManager(PoolManager):
         if isinstance(proxy_url, HTTPConnectionPool):
             proxy_url = '%s://%s:%i' % (proxy_url.scheme, proxy_url.host,
              proxy_url.port)
-        proxy = parse_url(proxy_url)
-        if not proxy.port:
-            port = port_by_scheme.get(proxy.scheme, 80)
-            proxy = proxy._replace(port=port)
-        if proxy.scheme not in ('http', 'https'):
-            raise ProxySchemeUnknown(proxy.scheme)
+        else:
+            proxy = parse_url(proxy_url)
+            if not proxy.port:
+                port = port_by_scheme.get(proxy.scheme, 80)
+                proxy = proxy._replace(port=port)
+            if proxy.scheme not in ('http', 'https'):
+                raise ProxySchemeUnknown(proxy.scheme)
         self.proxy = proxy
         self.proxy_headers = proxy_headers or {}
         connection_pool_kw['_proxy'] = self.proxy
         connection_pool_kw['_proxy_headers'] = self.proxy_headers
-        super(ProxyManager, self).__init__(num_pools, headers, **connection_pool_kw)
+        (super(ProxyManager, self).__init__)(
+         num_pools, headers, **connection_pool_kw)
 
     def connection_from_host(self, host, port=None, scheme='http'):
         if scheme == 'https':
             return super(ProxyManager, self).connection_from_host(host, port, scheme)
-        return super(ProxyManager, self).connection_from_host(self.proxy.host, self.proxy.port, self.proxy.scheme)
+        else:
+            return super(ProxyManager, self).connection_from_host(self.proxy.host, self.proxy.port, self.proxy.scheme)
 
     def _set_proxy_headers(self, url, headers=None):
         """
@@ -248,7 +251,7 @@ class ProxyManager(PoolManager):
         if u.scheme == 'http':
             headers = kw.get('headers', self.headers)
             kw['headers'] = self._set_proxy_headers(url, headers)
-        return super(ProxyManager, self).urlopen(method, url, redirect=redirect, **kw)
+        return (super(ProxyManager, self).urlopen)(method, url, redirect=redirect, **kw)
 
 
 def proxy_from_url(url, **kw):

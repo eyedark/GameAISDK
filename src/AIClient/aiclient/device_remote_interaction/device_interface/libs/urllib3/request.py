@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/request.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 5988 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\request.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 6139 bytes
 from __future__ import absolute_import
 try:
     from urllib.parse import urlencode
@@ -39,9 +39,9 @@ class RequestMethods(object):
         """
         method = method.upper()
         if method in self._encode_url_methods:
-            return self.request_encode_url(method, url, fields=fields, headers=headers, **urlopen_kw)
+            return (self.request_encode_url)(method, url, fields=fields, headers=headers, **urlopen_kw)
         else:
-            return self.request_encode_body(method, url, fields=fields, headers=headers, **urlopen_kw)
+            return (self.request_encode_body)(method, url, fields=fields, headers=headers, **urlopen_kw)
 
     def request_encode_url(self, method, url, fields=None, headers=None, **urlopen_kw):
         """
@@ -54,7 +54,7 @@ class RequestMethods(object):
         extra_kw.update(urlopen_kw)
         if fields:
             url += '?' + urlencode(fields)
-        return self.urlopen(method, url, **extra_kw)
+        return (self.urlopen)(method, url, **extra_kw)
 
     def request_encode_body(self, method, url, fields=None, headers=None, encode_multipart=True, multipart_boundary=None, **urlopen_kw):
         """
@@ -98,12 +98,13 @@ class RequestMethods(object):
         if fields:
             if 'body' in urlopen_kw:
                 raise TypeError("request got values for both 'fields' and 'body', can only specify one.")
-            if encode_multipart:
-                body, content_type = encode_multipart_formdata(fields, boundary=multipart_boundary)
             else:
-                body, content_type = urlencode(fields), 'application/x-www-form-urlencoded'
+                if encode_multipart:
+                    body, content_type = encode_multipart_formdata(fields, boundary=multipart_boundary)
+                else:
+                    body, content_type = urlencode(fields), 'application/x-www-form-urlencoded'
             extra_kw['body'] = body
             extra_kw['headers'] = {'Content-Type': content_type}
         extra_kw['headers'].update(headers)
         extra_kw.update(urlopen_kw)
-        return self.urlopen(method, url, **extra_kw)
+        return (self.urlopen)(method, url, **extra_kw)

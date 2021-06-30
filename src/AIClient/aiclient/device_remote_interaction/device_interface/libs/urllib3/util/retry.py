@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/util/retry.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 10664 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\util\retry.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 10964 bytes
 from __future__ import absolute_import
 import time, logging
 from ..exceptions import ConnectTimeoutError, MaxRetryError, ProtocolError, ReadTimeoutError, ResponseError
@@ -34,9 +34,18 @@ class Retry(object):
         self._observed_errors = _observed_errors
 
     def new(self, **kw):
-        params = dict(total=self.total, connect=self.connect, read=self.read, redirect=self.redirect, method_whitelist=self.method_whitelist, status_forcelist=self.status_forcelist, backoff_factor=self.backoff_factor, raise_on_redirect=self.raise_on_redirect, raise_on_status=self.raise_on_status, _observed_errors=self._observed_errors)
+        params = dict(total=(self.total),
+          connect=(self.connect),
+          read=(self.read),
+          redirect=(self.redirect),
+          method_whitelist=(self.method_whitelist),
+          status_forcelist=(self.status_forcelist),
+          backoff_factor=(self.backoff_factor),
+          raise_on_redirect=(self.raise_on_redirect),
+          raise_on_status=(self.raise_on_status),
+          _observed_errors=(self._observed_errors))
         params.update(kw)
-        return type(self)(**params)
+        return (type(self))(**params)
 
     @classmethod
     def from_int(cls, retries, redirect=True, default=None):
@@ -45,10 +54,11 @@ class Retry(object):
             retries = default if default is not None else cls.DEFAULT
         if isinstance(retries, Retry):
             return retries
-        redirect = bool(redirect) and None
-        new_retries = cls(retries, redirect=redirect)
-        log.debug('Converted retries value: %r -> %r', retries, new_retries)
-        return new_retries
+        else:
+            redirect = bool(redirect) and None
+            new_retries = cls(retries, redirect=redirect)
+            log.debug('Converted retries value: %r -> %r', retries, new_retries)
+            return new_retries
 
     def get_backoff_time(self):
         """ Formula for computing the current backoff
@@ -57,8 +67,9 @@ class Retry(object):
         """
         if self._observed_errors <= 1:
             return 0
-        backoff_value = self.backoff_factor * 2 ** (self._observed_errors - 1)
-        return min(self.BACKOFF_MAX, backoff_value)
+        else:
+            backoff_value = self.backoff_factor * 2 ** (self._observed_errors - 1)
+            return min(self.BACKOFF_MAX, backoff_value)
 
     def sleep(self):
         """ Sleep between retry attempts using an exponential backoff.
@@ -86,8 +97,9 @@ class Retry(object):
     def is_forced_retry(self, method, status_code):
         """ Is this method/status code retryable? (Based on method/codes whitelists)
         """
-        if self.method_whitelist and method.upper() not in self.method_whitelist:
-            return False
+        if self.method_whitelist:
+            if method.upper() not in self.method_whitelist:
+                return False
         return self.status_forcelist and status_code in self.status_forcelist
 
     def is_exhausted(self):
@@ -97,7 +109,8 @@ class Retry(object):
         retry_counts = list(filter(None, retry_counts))
         if not retry_counts:
             return False
-        return min(retry_counts) < 0
+        else:
+            return min(retry_counts) < 0
 
     def increment(self, method=None, url=None, response=None, error=None, _pool=None, _stacktrace=None):
         """ Return a new Retry object with incremented retry counters.
@@ -110,47 +123,56 @@ class Retry(object):
 
         :return: A new ``Retry`` object.
         """
-        if self.total is False and error:
-            raise six.reraise(type(error), error, _stacktrace)
-        total = self.total
-        if total is not None:
-            total -= 1
-        _observed_errors = self._observed_errors
-        connect = self.connect
-        read = self.read
-        redirect = self.redirect
-        cause = 'unknown'
-        if error and self._is_connection_error(error):
-            if connect is False:
+        if self.total is False:
+            if error:
                 raise six.reraise(type(error), error, _stacktrace)
-            elif connect is not None:
-                connect -= 1
-            _observed_errors += 1
-        else:
+            else:
+                total = self.total
+                if total is not None:
+                    total -= 1
+                _observed_errors = self._observed_errors
+                connect = self.connect
+                read = self.read
+                redirect = self.redirect
+                cause = 'unknown'
+                if error and self._is_connection_error(error):
+                    if connect is False:
+                        raise six.reraise(type(error), error, _stacktrace)
+                    else:
+                        if connect is not None:
+                            connect -= 1
+                    _observed_errors += 1
             if error and self._is_read_error(error):
                 if read is False:
                     raise six.reraise(type(error), error, _stacktrace)
-                elif read is not None:
-                    read -= 1
-                _observed_errors += 1
-            else:
-                if response and response.get_redirect_location():
-                    if redirect is not None:
-                        redirect -= 1
-                    cause = 'too many redirects'
                 else:
-                    _observed_errors += 1
-                    cause = ResponseError.GENERIC_ERROR
-        if response and response.status:
-            cause = ResponseError.SPECIFIC_ERROR.format(status_code=response.status)
-        new_retry = self.new(total=total, connect=connect, read=read, redirect=redirect, _observed_errors=_observed_errors)
-        if new_retry.is_exhausted():
-            raise MaxRetryError(_pool, url, error or ResponseError(cause))
+                    if read is not None:
+                        read -= 1
+                _observed_errors += 1
+        else:
+            if response and response.get_redirect_location():
+                if redirect is not None:
+                    redirect -= 1
+                cause = 'too many redirects'
+            else:
+                _observed_errors += 1
+                cause = ResponseError.GENERIC_ERROR
+                if response:
+                    if response.status:
+                        cause = ResponseError.SPECIFIC_ERROR.format(status_code=(response.status))
+            new_retry = self.new(total=total,
+              connect=connect,
+              read=read,
+              redirect=redirect,
+              _observed_errors=_observed_errors)
+            if new_retry.is_exhausted():
+                raise MaxRetryError(_pool, url, error or ResponseError(cause))
         log.debug("Incremented Retry for (url='%s'): %r", url, new_retry)
         return new_retry
 
     def __repr__(self):
-        return '{cls.__name__}(total={self.total}, connect={self.connect}, read={self.read}, redirect={self.redirect})'.format(cls=type(self), self=self)
+        return '{cls.__name__}(total={self.total}, connect={self.connect}, read={self.read}, redirect={self.redirect})'.format(cls=(type(self)),
+          self=self)
 
 
 Retry.DEFAULT = Retry(3)

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/contrib/ntlmpool.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 4531 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\contrib\ntlmpool.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 4646 bytes
 """
 NTLM authenticating pool, contributed by erikcederstran
 
@@ -27,12 +27,7 @@ class NTLMConnectionPool(HTTPSConnectionPool):
     scheme = 'https'
 
     def __init__(self, user, pw, authurl, *args, **kwargs):
-        r"""
-        authurl is a random URL on the server that is protected by NTLM.
-        user is the Windows user, probably in the DOMAIN\username format.
-        pw is the password for the user.
-        """
-        super(NTLMConnectionPool, self).__init__(*args, **kwargs)
+        (super(NTLMConnectionPool, self).__init__)(*args, **kwargs)
         self.authurl = authurl
         self.rawuser = user
         user_parts = user.split('\\', 1)
@@ -47,7 +42,7 @@ class NTLMConnectionPool(HTTPSConnectionPool):
         headers['Connection'] = 'Keep-Alive'
         req_header = 'Authorization'
         resp_header = 'www-authenticate'
-        conn = HTTPSConnection(host=self.host, port=self.port)
+        conn = HTTPSConnection(host=(self.host), port=(self.port))
         headers[req_header] = 'NTLM %s' % ntlm.create_NTLM_NEGOTIATE_MESSAGE(self.rawuser)
         log.debug('Request headers: %s', headers)
         conn.request('GET', self.authurl, None, headers)

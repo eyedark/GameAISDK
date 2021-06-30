@@ -3,7 +3,7 @@
 PWD=`pwd`
 export PATH=$PATH:$PWD/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/opencv3.4.2/lib
-
+export AI_SDK_PROJECT_FILE_PATH=/home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/LQ.prj
 if [ $# -gt 0 ]; then
     if [ $1 = AI ]; then
         ./start_ai.sh

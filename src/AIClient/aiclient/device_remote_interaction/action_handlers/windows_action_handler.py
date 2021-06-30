@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/action_handlers/windows_action_handler.py
-# Compiled at: 2021-02-23 15:21:06
-# Size of source mod 2**32: 10911 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\action_handlers\windows_action_handler.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 11173 bytes
 import threading, time, os, configparser, logging
 from ..device_interface.device_api import get_device_api_instance
 from ..common.action_check import action_excute_check_inst
@@ -64,14 +64,16 @@ class WindowsActionHandler(threading.Thread, IActionHandler):
         ret, err = self.load_parameter(DEVICE_CFG_PATH)
         if not ret:
             self.MAIN_THREAD_LOGGER.error('load_parameter error: {}'.format(err))
-            return (False, err)
-        try:
-            self.device_api_inst = get_device_api_instance()
-        except Exception as err:
-            self.MAIN_THREAD_LOGGER.error('get device instance failed')
-            return (False, err)
+            return (
+             False, err)
+        else:
+            try:
+                self.device_api_inst = get_device_api_instance()
+            except Exception as err:
+                self.MAIN_THREAD_LOGGER.error('get device instance failed')
+                return (False, err)
 
-        return (True, '')
+            return (True, '')
 
     def do_action(self, msg):
         op_code = msg.get('action_id')
@@ -105,17 +107,18 @@ class WindowsActionHandler(threading.Thread, IActionHandler):
             self.DEVICE_DRIVER_LOGGER.error('op mouse_up exception:{}'.format(err))
 
     def op_mouse_move(self, msg):
-        if 'px' in msg and 'py' in msg:
-            px = msg['px']
-            py = msg['py']
-            try:
-                start_time = time.time()
-                self.DEVICE_DRIVER_LOGGER.debug('op_code=mouse_move')
-                self.device_api_inst.do_action(aType='mouse_move', px=px, py=py)
-                end_time = time.time()
-                action_excute_check_inst.add_action(OP_MOUSE_MOVE, end_time - start_time)
-            except Exception as err:
-                self.DEVICE_DRIVER_LOGGER.error('op mouse_move exception:{}'.format(err))
+        if 'px' in msg:
+            if 'py' in msg:
+                px = msg['px']
+                py = msg['py']
+                try:
+                    start_time = time.time()
+                    self.DEVICE_DRIVER_LOGGER.debug('op_code=mouse_move')
+                    self.device_api_inst.do_action(aType='mouse_move', px=px, py=py)
+                    end_time = time.time()
+                    action_excute_check_inst.add_action(OP_MOUSE_MOVE, end_time - start_time)
+                except Exception as err:
+                    self.DEVICE_DRIVER_LOGGER.error('op mouse_move exception:{}'.format(err))
 
     def op_mouse_click(self, msg):
         px = msg['px']

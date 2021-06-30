@@ -1,27 +1,30 @@
 # -*- coding: utf-8 -*-
-# uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
-# Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
-# [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/WrappedDeviceAPI/deviceAPI/mobileDevice/iMobileDeviceAPI.py
-# Compiled at: 2020-12-29 09:26:39
-# Size of source mod 2**32: 2848 bytes
+"""
+Tencent is pleased to support the open source community by making GameAISDK available.
+
+This source code file is licensed under the GNU General Public License Version 3.
+For full details, please refer to the file "LICENSE.txt" which is provided as part of this source code package.
+
+Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
+"""
+
 from abc import ABCMeta, abstractmethod
+
 
 class IMobileDeviceAPI(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, platform):
+    def __init__(self, platform_type):
         """
-        :param platform:
+        :param platform_type:
                     'local': 在本地运行  (必须实现)
                     'wetest': 在wetest运行 (不是必须实现)
         :excetption: 错误信息以异常的形式返回
         """
-        self.platform = platform
+        self._platform_type = platform_type
 
     @abstractmethod
-    def Initialize(self, **kwargs):
+    def Initialize(self, device_serial, long_edge, **kwargs):
         raise NotImplementedError()
 
     @abstractmethod
@@ -33,44 +36,44 @@ class IMobileDeviceAPI(object):
         raise NotImplementedError()
 
     @abstractmethod
-    def InstallAPP(self, **kwargs):
+    def InstallAPP(self, app_path):
         raise NotImplementedError()
 
     @abstractmethod
-    def LaunchAPP(self, **kwargs):
+    def LaunchAPP(self, package_name, activity_name=None):
         raise NotImplementedError()
 
     @abstractmethod
-    def ExitAPP(self, **kwargs):
+    def ExitAPP(self, package_name):
         raise NotImplementedError()
 
     @abstractmethod
-    def Click(self, **kwargs):
+    def Click(self, px, py, contact=0, durationMS=-1, wait_time=0):
         raise NotImplementedError()
 
-    @abstractmethod
-    def Down(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def Down(self, **kwargs):
+    #     raise NotImplementedError()
+    #
+    # @abstractmethod
+    # def Up(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def Up(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def Swipe(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def Swipe(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def Move(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def Move(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def Key(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def Key(self, **kwargs):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def Text(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def Text(self, **kwargs):
+    #     raise NotImplementedError()
 
     @abstractmethod
     def Wake(self):
@@ -80,46 +83,46 @@ class IMobileDeviceAPI(object):
     def Sleep(self):
         raise NotImplementedError()
 
-    @abstractmethod
-    def LoginQQ(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def LoginQQ(self, **kwargs):
+    #     raise NotImplementedError()
 
     @abstractmethod
     def WMSize(self):
         raise NotImplementedError()
 
-    @abstractmethod
-    def BindRotation(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def BindRotation(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def CurrentApp(self):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def CurrentApp(self):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def ClearAppData(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def ClearAppData(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def TakeScreenshot(self, **kwargs):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def TakeScreenshot(self, **kwargs):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def DeviceInfo(self):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def DeviceInfo(self):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def PerfStatsInit(self):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def PerfStatsInit(self):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def PerfStatsData(self):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def PerfStatsData(self):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def PerfStatsFinish(self):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def PerfStatsFinish(self):
+    #     raise NotImplementedError()
 
-    @abstractmethod
-    def GetScreenOri(self):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def GetScreenOri(self):
+    #     raise NotImplementedError()

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/util/response.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 2165 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\util\response.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 2239 bytes
 from __future__ import absolute_import
 from ..packages.six.moves import http_client as httplib
 from ..exceptions import HeaderParsingError
@@ -45,13 +45,14 @@ def assert_header_parsing(headers):
     """
     if not isinstance(headers, httplib.HTTPMessage):
         raise TypeError('expected httplib.Message, got {0}.'.format(type(headers)))
-    defects = getattr(headers, 'defects', None)
-    get_payload = getattr(headers, 'get_payload', None)
-    unparsed_data = None
-    if get_payload:
-        unparsed_data = get_payload()
-    if defects or unparsed_data:
-        raise HeaderParsingError(defects=defects, unparsed_data=unparsed_data)
+    else:
+        defects = getattr(headers, 'defects', None)
+        get_payload = getattr(headers, 'get_payload', None)
+        unparsed_data = None
+        if get_payload:
+            unparsed_data = get_payload()
+        if defects or unparsed_data:
+            raise HeaderParsingError(defects=defects, unparsed_data=unparsed_data)
 
 
 def is_response_to_head(response):
@@ -65,4 +66,5 @@ def is_response_to_head(response):
     method = response._method
     if isinstance(method, int):
         return method == 3
-    return method.upper() == 'HEAD'
+    else:
+        return method.upper() == 'HEAD'

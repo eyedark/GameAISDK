@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/ui_device.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 6023 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\ui_device.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 6209 bytes
 import logging, os, sys, threading, time, traceback
 __dir__ = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(__dir__)
@@ -56,17 +56,17 @@ def assign_ui_port():
 
 def screensnap_thread(report, stop, interval):
     LOG.info('time_snap Start')
-    while 1:
+    while True:
         if stop.is_set():
             LOG.debug('end')
             return
-            try:
-                LOG.debug('auto screen shot')
-                report.screenshot()
-                stop.wait(interval)
-            except:
-                stack = traceback.format_exc()
-                LOG.warning(stack)
+        try:
+            LOG.debug('auto screen shot')
+            report.screenshot()
+            stop.wait(interval)
+        except:
+            stack = traceback.format_exc()
+            LOG.warning(stack)
 
 
 class UIDevice:
@@ -85,23 +85,28 @@ class UIDevice:
         devices_num = len(adb.devices())
         if devices_num == 0:
             return (False, 'error: no devices/emulators found')
-        if serial is not None and serial != '':
-            os.environ['ANDROID_SERIAL'] = serial
-        elif devices_num > 1:
-            return (False, 'error: more than one device/emulator')
-        in_wetest = os.environ.get('PLATFORM_IP')
-        if not in_wetest:
-            os.environ['UIAUTOMATOR_PORT'] = assign_ui_port()
-        from .wpyscripts import manager
-        self._UIDevice__device = manager.get_device()
-        if use_wetest_screensnap and in_wetest:
-            self.report = manager.get_reporter()
-            self.snap_thread = threading.Thread(target=screensnap_thread, args=(
-             self.report, self.stop_snap_thread, self.interval))
-            self.snap_thread.setDaemon(True)
-            self.snap_thread.start()
-        self._reset_qq()
-        return (True, '')
+        else:
+            if serial is not None:
+                if serial != '':
+                    os.environ['ANDROID_SERIAL'] = serial
+                else:
+                    if devices_num > 1:
+                        return (False, 'error: more than one device/emulator')
+                in_wetest = os.environ.get('PLATFORM_IP')
+                if not in_wetest:
+                    os.environ['UIAUTOMATOR_PORT'] = assign_ui_port()
+            else:
+                from .wpyscripts import manager
+                self._UIDevice__device = manager.get_device()
+                if use_wetest_screensnap:
+                    if in_wetest:
+                        self.report = manager.get_reporter()
+                        self.snap_thread = threading.Thread(target=screensnap_thread, args=(
+                         self.report, self.stop_snap_thread, self.interval))
+                        self.snap_thread.setDaemon(True)
+                        self.snap_thread.start()
+            self._reset_qq()
+            return (True, '')
 
     def launch_app(self, package_name):
         return self._UIDevice__device.launch_app(package_name)
@@ -112,14 +117,16 @@ class UIDevice:
             return True
         else:
             from .wpyscripts.uiautomator.login_tencent import login_tencent
-            if account is not None and pwd is not None:
-                DEVICE_DRIVER_LOGGER.info('try login_tencent[{}/{}]'.format(account, pwd))
-                return login_tencent(account, pwd)
+            if account is not None:
+                if pwd is not None:
+                    DEVICE_DRIVER_LOGGER.info('try login_tencent[{}/{}]'.format(account, pwd))
+                    return login_tencent(account, pwd)
             account = os.getenv('QQNAME', None)
             pwd = os.getenv('QQPWD', None)
-            if account is not None and pwd is not None:
-                DEVICE_DRIVER_LOGGER.info('try login_tencent[{}/{}]'.format(account, pwd))
-                return login_tencent(account, pwd)
+            if account is not None:
+                if pwd is not None:
+                    DEVICE_DRIVER_LOGGER.info('try login_tencent[{}/{}]'.format(account, pwd))
+                    return login_tencent(account, pwd)
             DEVICE_DRIVER_LOGGER.error('can not try login_tencent without account/pwd')
             return False
 
@@ -134,14 +141,15 @@ class UIDevice:
 
     def _should_try_login(self, msg_data):
         if msg_data is not None:
-            if msg_data['msg_id'] == MSG_ID_GAME_STATE and msg_data['game_state'] in [GAME_STATE_START,
-             GAME_STATE_OVER,
-             GAME_STATE_MATCH_WIN]:
-                LOG.info('game_state != GAME_STATE_UI or GAME_STATE_NONE')
+            if msg_data['msg_id'] == MSG_ID_GAME_STATE:
+                if msg_data['game_state'] in [GAME_STATE_START,
+                 GAME_STATE_OVER,
+                 GAME_STATE_MATCH_WIN]:
+                    LOG.info('game_state != GAME_STATE_UI or GAME_STATE_NONE')
+                    return False
+            else:
+                LOG.info('msg_id != MSG_ID_GAME_STATE')
                 return False
-        else:
-            LOG.info('msg_id != MSG_ID_GAME_STATE')
-            return False
         from .wpyscripts.uiautomator.login_tencent import get_current_pkgname
         LOG.info('try to get_current_package')
         package_name = get_current_pkgname()
@@ -159,5 +167,5 @@ if __name__ == '__main__':
         ui_device.launch_app(MOBILE_QQ_PACKAGE_NAME)
         time.sleep(10)
         ui_device.login_qq()
-else:
-    print(errstr)
+    else:
+        print(errstr)

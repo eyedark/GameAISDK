@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/util/ssl_.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 11622 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\util\ssl_.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 11942 bytes
 from __future__ import absolute_import
 import errno, warnings, hmac
 from binascii import hexlify, unhexlify
@@ -15,9 +15,9 @@ SSLContext = None
 HAS_SNI = False
 create_default_context = None
 IS_PYOPENSSL = False
-HASHFUNC_MAP = {32: md5, 
- 40: sha1, 
- 64: sha256}
+HASHFUNC_MAP = {32:md5, 
+ 40:sha1, 
+ 64:sha256}
 
 def _const_compare_digest_backport(a, b):
     """
@@ -82,12 +82,12 @@ except ImportError:
 
         def wrap_socket(self, socket, server_hostname=None, server_side=False):
             warnings.warn('A true SSLContext object is not available. This prevents urllib3 from configuring SSL appropriately and may cause certain SSL connections to fail. You can upgrade to a newer version of Python to solve this. For more information, see https://urllib3.readthedocs.io/en/latest/security.html#insecureplatformwarning.', InsecurePlatformWarning)
-            kwargs = {'keyfile': self.keyfile, 
-             'certfile': self.certfile, 
-             'ca_certs': self.ca_certs, 
-             'cert_reqs': self.verify_mode, 
-             'ssl_version': self.protocol, 
-             'server_side': server_side}
+            kwargs = {'keyfile':self.keyfile, 
+             'certfile':self.certfile, 
+             'ca_certs':self.ca_certs, 
+             'cert_reqs':self.verify_mode, 
+             'ssl_version':self.protocol, 
+             'server_side':server_side}
             if self.supports_set_ciphers:
                 return wrap_socket(socket, ciphers=self.ciphers, **kwargs)
             else:
@@ -127,12 +127,13 @@ def resolve_cert_reqs(candidate):
     """
     if candidate is None:
         return CERT_NONE
-    if isinstance(candidate, str):
-        res = getattr(ssl, candidate, None)
-        if res is None:
-            res = getattr(ssl, 'CERT_' + candidate)
-        return res
-    return candidate
+    else:
+        if isinstance(candidate, str):
+            res = getattr(ssl, candidate, None)
+            if res is None:
+                res = getattr(ssl, 'CERT_' + candidate)
+            return res
+        return candidate
 
 
 def resolve_ssl_version(candidate):
@@ -141,12 +142,13 @@ def resolve_ssl_version(candidate):
     """
     if candidate is None:
         return PROTOCOL_SSLv23
-    if isinstance(candidate, str):
-        res = getattr(ssl, candidate, None)
-        if res is None:
-            res = getattr(ssl, 'PROTOCOL_' + candidate)
-        return res
-    return candidate
+    else:
+        if isinstance(candidate, str):
+            res = getattr(ssl, candidate, None)
+            if res is None:
+                res = getattr(ssl, 'PROTOCOL_' + candidate)
+            return res
+        return candidate
 
 
 def create_urllib3_context(ssl_version=None, cert_reqs=None, options=None, ciphers=None):
@@ -234,5 +236,6 @@ def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None, ca_certs=
         context.load_cert_chain(certfile, keyfile)
     if HAS_SNI:
         return context.wrap_socket(sock, server_hostname=server_hostname)
-    warnings.warn('An HTTPS request has been made, but the SNI (Subject Name Indication) extension to TLS is not available on this platform. This may cause the server to present an incorrect TLS certificate, which can cause validation failures. You can upgrade to a newer version of Python to solve this. For more information, see https://urllib3.readthedocs.io/en/latest/security.html#snimissingwarning.', SNIMissingWarning)
-    return context.wrap_socket(sock)
+    else:
+        warnings.warn('An HTTPS request has been made, but the SNI (Subject Name Indication) extension to TLS is not available on this platform. This may cause the server to present an incorrect TLS certificate, which can cause validation failures. You can upgrade to a newer version of Python to solve this. For more information, see https://urllib3.readthedocs.io/en/latest/security.html#snimissingwarning.', SNIMissingWarning)
+        return context.wrap_socket(sock)

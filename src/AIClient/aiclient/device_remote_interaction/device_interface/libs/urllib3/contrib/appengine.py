@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/contrib/appengine.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 7937 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\contrib\appengine.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 8168 bytes
 from __future__ import absolute_import
 import logging, os, warnings
 from ..exceptions import HTTPError, HTTPWarning, MaxRetryError, ProtocolError, TimeoutError, SSLError
@@ -51,7 +51,14 @@ class AppEngineManager(RequestMethods):
     def urlopen(self, method, url, body=None, headers=None, retries=None, redirect=True, timeout=Timeout.DEFAULT_TIMEOUT, **response_kw):
         retries = self._get_retries(retries, redirect)
         try:
-            response = urlfetch.fetch(url, payload=body, method=method, headers=headers or {}, allow_truncated=False, follow_redirects=redirect and retries.redirect != 0 and retries.total, deadline=self._get_absolute_timeout(timeout), validate_certificate=self.validate_certificate)
+            response = urlfetch.fetch(url,
+              payload=body,
+              method=method,
+              headers=(headers or {}),
+              allow_truncated=False,
+              follow_redirects=(redirect and retries.redirect != 0 and retries.total),
+              deadline=(self._get_absolute_timeout(timeout)),
+              validate_certificate=(self.validate_certificate))
         except urlfetch.DeadlineExceededError as e:
             raise TimeoutError(self, e)
         except urlfetch.InvalidURLError as e:
@@ -69,40 +76,52 @@ class AppEngineManager(RequestMethods):
         except urlfetch.InvalidMethodError as e:
             raise AppEnginePlatformError('URLFetch does not support method: %s' % method, e)
 
-        http_response = self._urlfetch_response_to_http_response(response, **response_kw)
-        if http_response.get_redirect_location() and retries.raise_on_redirect and redirect:
-            raise MaxRetryError(self, url, 'too many redirects')
-        if retries.is_forced_retry(method, status_code=http_response.status):
-            retries = retries.increment(method, url, response=http_response, _pool=self)
+        http_response = (self._urlfetch_response_to_http_response)(
+         response, **response_kw)
+        if http_response.get_redirect_location():
+            if retries.raise_on_redirect:
+                if redirect:
+                    raise MaxRetryError(self, url, 'too many redirects')
+        if retries.is_forced_retry(method, status_code=(http_response.status)):
+            retries = retries.increment(method,
+              url, response=http_response, _pool=self)
             log.info('Forced retry: %s', url)
             retries.sleep()
-            return self.urlopen(method, url, body=body, headers=headers, retries=retries, redirect=redirect, timeout=timeout, **response_kw)
-        return http_response
+            return (self.urlopen)(
+ method, url, body=body, 
+             headers=headers, retries=retries, 
+             redirect=redirect, timeout=timeout, **response_kw)
+        else:
+            return http_response
 
     def _urlfetch_response_to_http_response(self, urlfetch_resp, **response_kw):
         if is_prod_appengine():
             content_encoding = urlfetch_resp.headers.get('content-encoding')
             if content_encoding == 'deflate':
                 del urlfetch_resp.headers['content-encoding']
-            transfer_encoding = urlfetch_resp.headers.get('transfer-encoding')
-            if transfer_encoding == 'chunked':
-                encodings = transfer_encoding.split(',')
-                encodings.remove('chunked')
-                urlfetch_resp.headers['transfer-encoding'] = ','.join(encodings)
-            return HTTPResponse(body=BytesIO(urlfetch_resp.content), headers=urlfetch_resp.headers, status=urlfetch_resp.status_code, **response_kw)
+        transfer_encoding = urlfetch_resp.headers.get('transfer-encoding')
+        if transfer_encoding == 'chunked':
+            encodings = transfer_encoding.split(',')
+            encodings.remove('chunked')
+            urlfetch_resp.headers['transfer-encoding'] = ','.join(encodings)
+        return HTTPResponse(body=BytesIO(urlfetch_resp.content), 
+         headers=urlfetch_resp.headers, 
+         status=urlfetch_resp.status_code, **response_kw)
 
     def _get_absolute_timeout(self, timeout):
         if timeout is Timeout.DEFAULT_TIMEOUT:
             return 5
-        if isinstance(timeout, Timeout):
-            if timeout._read is not timeout._connect:
-                warnings.warn('URLFetch does not support granular timeout settings, reverting to total timeout.', AppEnginePlatformWarning)
-            return timeout.total
-        return timeout
+        else:
+            if isinstance(timeout, Timeout):
+                if timeout._read is not timeout._connect:
+                    warnings.warn('URLFetch does not support granular timeout settings, reverting to total timeout.', AppEnginePlatformWarning)
+                return timeout.total
+            return timeout
 
     def _get_retries(self, retries, redirect):
         if not isinstance(retries, Retry):
-            retries = Retry.from_int(retries, redirect=redirect, default=self.retries)
+            retries = Retry.from_int(retries,
+              redirect=redirect, default=(self.retries))
         if retries.connect or retries.read or retries.redirect:
             warnings.warn('URLFetch only supports total retries and does not recognize connect, read, or redirect retry parameters.', AppEnginePlatformWarning)
         return retries

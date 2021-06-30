@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/util/url.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 5879 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\util\url.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 6096 bytes
 from __future__ import absolute_import
 from collections import namedtuple
 from ..exceptions import LocationParseError
@@ -17,8 +17,9 @@ class Url(namedtuple('Url', url_attrs)):
     slots = ()
 
     def __new__(cls, scheme=None, auth=None, host=None, port=None, path=None, query=None, fragment=None):
-        if path and not path.startswith('/'):
-            path = '/' + path
+        if path:
+            if not path.startswith('/'):
+                path = '/' + path
         return super(Url, cls).__new__(cls, scheme, auth, host, port, path, query, fragment)
 
     @property
@@ -39,7 +40,8 @@ class Url(namedtuple('Url', url_attrs)):
         """Network location including host and port"""
         if self.port:
             return '%s:%d' % (self.host, self.port)
-        return self.host
+        else:
+            return self.host
 
     @property
     def url(self):
@@ -103,14 +105,16 @@ def split_first(s, delims):
     for d in delims:
         idx = s.find(d)
         if idx < 0:
-            pass
-        elif min_idx is None or idx < min_idx:
+            continue
+        if min_idx is None or idx < min_idx:
             min_idx = idx
             min_delim = d
 
     if min_idx is None or min_idx < 0:
         return (s, '', None)
-    return (s[:min_idx], s[min_idx + 1:], min_delim)
+    else:
+        return (
+         s[:min_idx], s[min_idx + 1:], min_delim)
 
 
 def parse_url(url):
@@ -131,42 +135,46 @@ def parse_url(url):
     """
     if not url:
         return Url()
-    scheme = None
-    auth = None
-    host = None
-    port = None
-    path = None
-    fragment = None
-    query = None
-    if '://' in url:
-        scheme, url = url.split('://', 1)
-    url, path_, delim = split_first(url, ['/', '?', '#'])
-    if delim:
-        path = delim + path_
-    if '@' in url:
-        auth, url = url.rsplit('@', 1)
-    if url and url[0] == '[':
-        host, url = url.split(']', 1)
-        host += ']'
-    if ':' in url:
-        _host, port = url.split(':', 1)
-        if not host:
-            host = _host
-        if port:
-            if not port.isdigit():
-                raise LocationParseError(url)
-            port = int(port)
+    else:
+        scheme = None
+        auth = None
+        host = None
+        port = None
+        path = None
+        fragment = None
+        query = None
+        if '://' in url:
+            scheme, url = url.split('://', 1)
+        url, path_, delim = split_first(url, ['/', '?', '#'])
+        if delim:
+            path = delim + path_
+        if '@' in url:
+            auth, url = url.rsplit('@', 1)
+        if url:
+            if url[0] == '[':
+                host, url = url.split(']', 1)
+                host += ']'
+        if ':' in url:
+            _host, port = url.split(':', 1)
+            if not host:
+                host = _host
+            if port:
+                if not port.isdigit():
+                    raise LocationParseError(url)
+                port = int(port)
+            else:
+                port = None
         else:
-            port = None
-    elif not host and url:
-        host = url
-    if not path:
+            if not host:
+                if url:
+                    host = url
+        if not path:
+            return Url(scheme, auth, host, port, path, query, fragment)
+        if '#' in path:
+            path, fragment = path.split('#', 1)
+        if '?' in path:
+            path, query = path.split('?', 1)
         return Url(scheme, auth, host, port, path, query, fragment)
-    if '#' in path:
-        path, fragment = path.split('#', 1)
-    if '?' in path:
-        path, query = path.split('?', 1)
-    return Url(scheme, auth, host, port, path, query, fragment)
 
 
 def get_host(url):

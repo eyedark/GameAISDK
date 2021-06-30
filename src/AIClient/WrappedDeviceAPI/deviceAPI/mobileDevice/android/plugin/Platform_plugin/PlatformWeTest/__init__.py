@@ -1,12 +1,26 @@
 # -*- coding: utf-8 -*-
-# uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
-# Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
-# [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/__init__.py
-# Compiled at: 2020-12-29 09:26:44
-# Size of source mod 2**32: 111 bytes
-from .demo.PlatformWeTest import PlatformWeTest
+"""
+Tencent is pleased to support the open source community by making GameAISDK available.
+
+This source code file is licensed under the GNU General Public License Version 3.
+For full details, please refer to the file "LICENSE.txt" which is provided as part of this source code package.
+
+Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
+"""
+
+import platform
+__is_windows_system = platform.platform().lower().startswith('window')
+__is_linux_system = platform.platform().lower().startswith('linux')
+if __is_windows_system:
+    from .demo_windows.PlatformWeTest import PlatformWeTest
+    from .demo_windows.common.AdbTool import AdbTool
+elif __is_linux_system:
+    from .demo_ubuntu16.PlatformWeTest import PlatformWeTest
+
+    from .demo_ubuntu16.common.AdbTool import AdbTool
+else:
+    raise Exception('system is not support!')
+
 
 def GetInstance():
     return PlatformWeTest()

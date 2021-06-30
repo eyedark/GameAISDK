@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/start_service.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 12402 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\start_service.py
+# Compiled at: 2021-02-23 16:10:42
+# Size of source mod 2**32: 12695 bytes
 import configparser, logging, os, threading, time, traceback, cv2, json
-from math import e
 from .aiclientapi.network_client import NetworkClient
 from .aiclientapi.tool_manage import communicate_config as com_config
 from .device_remote_interaction.action_threads.action_execute_thread import ActionExecuteThread
@@ -38,7 +36,8 @@ class ActionExecute(object):
         success = self.ai_client.init()
         if success is not True:
             return False
-        return self.create_action_recv_thread()
+        else:
+            return self.create_action_recv_thread()
 
     def finish(self):
         self.MAIN_THREAD_LOGGER.info('main thread terminating......')
@@ -61,10 +60,11 @@ class ActionExecute(object):
             self.ai_client.finish_exception(error_str)
             self.MAIN_THREAD_LOGGER.info('finish over, failed')
             return False
-        self.ai_client.on_service_over()
-        self.MAIN_THREAD_LOGGER.info('finish over, success')
-        self.MAIN_THREAD_LOGGER.info('It needs few seconds to quit, please wait.')
-        return True
+        else:
+            self.ai_client.on_service_over()
+            self.MAIN_THREAD_LOGGER.info('finish over, success')
+            self.MAIN_THREAD_LOGGER.info('It needs few seconds to quit, please wait.')
+            return True
 
     def create_recv_execute_thread(self):
         try:
@@ -149,10 +149,11 @@ class ActionExecute(object):
             if self.need_stop or not com_config.is_ai_service_state_ok or not self.ai_client.heart_beat_ok():
                 self.MAIN_THREAD_LOGGER.error('main thread exit, need_stop: {}, is_ai_service_state_ok: {}, heart_beat_ok: {}'.format(self.need_stop, com_config.is_ai_service_state_ok, self.ai_client.heart_beat_ok()))
                 break
-            if com_config.ui_action_on and not com_config.send_frame:
-                time.sleep(0.002)
-                continue
             else:
+                if com_config.ui_action_on:
+                    if not com_config.send_frame:
+                        time.sleep(0.002)
+                        continue
                 send_start_time = time.time()
                 try:
                     img, extend_data, error_str = self.device_api_inst.GetFrame()
@@ -166,40 +167,39 @@ class ActionExecute(object):
                     if self.device_api_inst.ready:
                         if none_frame_start_time is None:
                             none_frame_start_time = time.time()
-            if time.time() - none_frame_start_time > self.ai_client.max_none_frame_time:
-                if self.device_api_inst.max_restart_time == 0:
-                    self.ai_client.none_frame_exception(self.ai_client.max_none_frame_time, error_str)
-                    break
-                else:
-                    self.MAIN_THREAD_LOGGER.warning('failed to get frame in {} seconds: {}'.format(self.ai_client.max_none_frame_time, error_str))
-                    restart_flag = False
-                    if restart_time is None:
-                        restart_time = time.time()
-                    while time.time() - restart_time <= self.device_api_inst.max_restart_time:
-                        self.MAIN_THREAD_LOGGER.info('try to restart device. {} seconds left'.format(self.device_api_inst.max_restart_time - time.time() + restart_time))
-                        restart_flag = self.device_api_inst.restart()
-                        if restart_flag:
-                            none_frame_start_time = None
-                            break
-                        time.sleep(5)
+                        elif time.time() - none_frame_start_time > self.ai_client.max_none_frame_time:
+                            if self.device_api_inst.max_restart_time == 0:
+                                self.ai_client.none_frame_exception(self.ai_client.max_none_frame_time, error_str)
+                                break
+                            else:
+                                self.MAIN_THREAD_LOGGER.warning('failed to get frame in {} seconds: {}'.format(self.ai_client.max_none_frame_time, error_str))
+                                restart_flag = False
+                                if restart_time is None:
+                                    restart_time = time.time()
+                                while time.time() - restart_time <= self.device_api_inst.max_restart_time:
+                                    self.MAIN_THREAD_LOGGER.info('try to restart device. {} seconds left'.format(self.device_api_inst.max_restart_time - time.time() + restart_time))
+                                    restart_flag = self.device_api_inst.restart()
+                                    if restart_flag:
+                                        none_frame_start_time = None
+                                        break
+                                    time.sleep(5)
 
-                if not restart_flag:
-                    self.ai_client.bad_device_exception(self.device_api_inst.max_restart_time)
-                    break
-                time.sleep(get_img_interval)
-                continue
-            else:
+                            if not restart_flag:
+                                self.ai_client.bad_device_exception(self.device_api_inst.max_restart_time)
+                                break
+                    time.sleep(get_img_interval)
+                    continue
                 restart_time = None
                 none_frame_start_time = None
                 with self.ai_client_lock:
                     self.ai_client.send_img_msg(img, extend_data)
                 if com_config.ui_action_on:
                     com_config.send_frame = False
-                send_end_time = time.time()
-                if self.ai_client.max_send_interval_time > send_end_time - send_start_time:
-                    time.sleep(self.ai_client.max_send_interval_time - (send_end_time - send_start_time))
-                else:
-                    self.MAIN_THREAD_LOGGER.warning('send img time has exceed fixed time, actually time:{expend_time}'.format(expend_time=send_end_time - send_start_time))
+            send_end_time = time.time()
+            if self.ai_client.max_send_interval_time > send_end_time - send_start_time:
+                time.sleep(self.ai_client.max_send_interval_time - (send_end_time - send_start_time))
+            else:
+                self.MAIN_THREAD_LOGGER.warning('send img time has exceed fixed time, actually time:{expend_time}'.format(expend_time=(send_end_time - send_start_time)))
 
         self.MAIN_THREAD_LOGGER.info('Stop sending frames...')
 
@@ -219,14 +219,13 @@ class ActionExecute(object):
         st = time.time()
         while 1:
             ct = time.time()
-            if ct - st > 50:
+            if ct - st > 30:
                 break
             self.ai_client.send_source_info_request()
             if network_check.source_info is None or len(network_check.source_info) == 0:
                 time.sleep(0.1)
                 continue
-            else:        
-                return network_check.source_info
+            return network_check.source_info
 
     def start_device(self):
         try:

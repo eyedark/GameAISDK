@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/six.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 30098 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\six.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 30966 bytes
 """Utilities for writing code that runs on Python 2 and 3"""
 from __future__ import absolute_import
 import functools, itertools, operator, sys, types
@@ -29,241 +29,242 @@ else:
     class_types = (type, types.ClassType)
     text_type = unicode
     binary_type = str
-    if sys.platform.startswith('java'):
+if sys.platform.startswith('java'):
+    MAXSIZE = int(2147483647)
+else:
+
+    class X(object):
+
+        def __len__(self):
+            return 2147483648
+
+
+    try:
+        len(X())
+    except OverflowError:
         MAXSIZE = int(2147483647)
     else:
+        MAXSIZE = int(9223372036854775807)
+    del X
 
-        class X(object):
+def _add_doc(func, doc):
+    """Add documentation to a function."""
+    func.__doc__ = doc
 
-            def __len__(self):
-                return 2147483648
+
+def _import_module(name):
+    """Import module, returning the module after the last dot."""
+    __import__(name)
+    return sys.modules[name]
 
 
+class _LazyDescr(object):
+
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, tp):
+        result = self._resolve()
+        setattr(obj, self.name, result)
         try:
-            len(X())
-        except OverflowError:
-            MAXSIZE = int(2147483647)
+            delattr(obj.__class__, self.name)
+        except AttributeError:
+            pass
+
+        return result
+
+
+class MovedModule(_LazyDescr):
+
+    def __init__(self, name, old, new=None):
+        super(MovedModule, self).__init__(name)
+        if PY3:
+            if new is None:
+                new = name
+            self.mod = new
         else:
-            MAXSIZE = int(9223372036854775807)
-        del X
+            self.mod = old
 
-    def _add_doc(func, doc):
-        """Add documentation to a function."""
-        func.__doc__ = doc
+    def _resolve(self):
+        return _import_module(self.mod)
 
-
-    def _import_module(name):
-        """Import module, returning the module after the last dot."""
-        __import__(name)
-        return sys.modules[name]
+    def __getattr__(self, attr):
+        _module = self._resolve()
+        value = getattr(_module, attr)
+        setattr(self, attr, value)
+        return value
 
 
-    class _LazyDescr(object):
+class _LazyModule(types.ModuleType):
 
-        def __init__(self, name):
-            self.name = name
+    def __init__(self, name):
+        super(_LazyModule, self).__init__(name)
+        self.__doc__ = self.__class__.__doc__
 
-        def __get__(self, obj, tp):
-            result = self._resolve()
-            setattr(obj, self.name, result)
-            try:
-                delattr(obj.__class__, self.name)
-            except AttributeError:
-                pass
+    def __dir__(self):
+        attrs = [
+         '__doc__', '__name__']
+        attrs += [attr.name for attr in self._moved_attributes]
+        return attrs
 
-            return result
-
-
-    class MovedModule(_LazyDescr):
-
-        def __init__(self, name, old, new=None):
-            super(MovedModule, self).__init__(name)
-            if PY3:
-                if new is None:
-                    new = name
-                self.mod = new
-            else:
-                self.mod = old
-
-        def _resolve(self):
-            return _import_module(self.mod)
-
-        def __getattr__(self, attr):
-            _module = self._resolve()
-            value = getattr(_module, attr)
-            setattr(self, attr, value)
-            return value
+    _moved_attributes = []
 
 
-    class _LazyModule(types.ModuleType):
+class MovedAttribute(_LazyDescr):
 
-        def __init__(self, name):
-            super(_LazyModule, self).__init__(name)
-            self.__doc__ = self.__class__.__doc__
-
-        def __dir__(self):
-            attrs = [
-             '__doc__', '__name__']
-            attrs += [attr.name for attr in self._moved_attributes]
-            return attrs
-
-        _moved_attributes = []
-
-
-    class MovedAttribute(_LazyDescr):
-
-        def __init__(self, name, old_mod, new_mod, old_attr=None, new_attr=None):
-            super(MovedAttribute, self).__init__(name)
-            if PY3:
-                if new_mod is None:
-                    new_mod = name
-                self.mod = new_mod
-                if new_attr is None:
-                    if old_attr is None:
-                        new_attr = name
-                    else:
-                        new_attr = old_attr
-                    self.attr = new_attr
-            else:
-                self.mod = old_mod
+    def __init__(self, name, old_mod, new_mod, old_attr=None, new_attr=None):
+        super(MovedAttribute, self).__init__(name)
+        if PY3:
+            if new_mod is None:
+                new_mod = name
+            self.mod = new_mod
+            if new_attr is None:
                 if old_attr is None:
-                    old_attr = name
-                self.attr = old_attr
+                    new_attr = name
+                else:
+                    new_attr = old_attr
+            self.attr = new_attr
+        else:
+            self.mod = old_mod
+            if old_attr is None:
+                old_attr = name
+            self.attr = old_attr
 
-        def _resolve(self):
-            module = _import_module(self.mod)
-            return getattr(module, self.attr)
+    def _resolve(self):
+        module = _import_module(self.mod)
+        return getattr(module, self.attr)
 
 
-    class _SixMetaPathImporter(object):
-        __doc__ = '\n    A meta path importer to import six.moves and its submodules.\n\n    This class implements a PEP302 finder and loader. It should be compatible\n    with Python 2.5 and all existing versions of Python3\n    '
+class _SixMetaPathImporter(object):
+    __doc__ = '\n    A meta path importer to import six.moves and its submodules.\n\n    This class implements a PEP302 finder and loader. It should be compatible\n    with Python 2.5 and all existing versions of Python3\n    '
 
-        def __init__(self, six_module_name):
-            self.name = six_module_name
-            self.known_modules = {}
+    def __init__(self, six_module_name):
+        self.name = six_module_name
+        self.known_modules = {}
 
-        def _add_module(self, mod, *fullnames):
-            for fullname in fullnames:
-                self.known_modules[self.name + '.' + fullname] = mod
+    def _add_module(self, mod, *fullnames):
+        for fullname in fullnames:
+            self.known_modules[self.name + '.' + fullname] = mod
 
-        def _get_module(self, fullname):
-            return self.known_modules[(self.name + '.' + fullname)]
+    def _get_module(self, fullname):
+        return self.known_modules[(self.name + '.' + fullname)]
 
-        def find_module(self, fullname, path=None):
-            if fullname in self.known_modules:
-                return self
+    def find_module(self, fullname, path=None):
+        if fullname in self.known_modules:
+            return self
 
-        def __get_module(self, fullname):
-            try:
-                return self.known_modules[fullname]
-            except KeyError:
-                raise ImportError('This loader does not know module ' + fullname)
+    def __get_module(self, fullname):
+        try:
+            return self.known_modules[fullname]
+        except KeyError:
+            raise ImportError('This loader does not know module ' + fullname)
 
-        def load_module(self, fullname):
-            try:
-                return sys.modules[fullname]
-            except KeyError:
-                pass
+    def load_module(self, fullname):
+        try:
+            return sys.modules[fullname]
+        except KeyError:
+            pass
 
-            mod = self._SixMetaPathImporter__get_module(fullname)
-            if isinstance(mod, MovedModule):
-                mod = mod._resolve()
-            else:
-                mod.__loader__ = self
-            sys.modules[fullname] = mod
-            return mod
+        mod = self._SixMetaPathImporter__get_module(fullname)
+        if isinstance(mod, MovedModule):
+            mod = mod._resolve()
+        else:
+            mod.__loader__ = self
+        sys.modules[fullname] = mod
+        return mod
 
-        def is_package(self, fullname):
-            """
+    def is_package(self, fullname):
+        """
         Return true, if the named module is a package.
 
         We need this method to get correct spec objects with
         Python 3.4 (see PEP451)
         """
-            return hasattr(self._SixMetaPathImporter__get_module(fullname), '__path__')
+        return hasattr(self._SixMetaPathImporter__get_module(fullname), '__path__')
 
-        def get_code(self, fullname):
-            """Return None
+    def get_code(self, fullname):
+        """Return None
 
         Required, if is_package is implemented"""
-            self._SixMetaPathImporter__get_module(fullname)
+        self._SixMetaPathImporter__get_module(fullname)
 
-        get_source = get_code
-
-
-    _importer = _SixMetaPathImporter(__name__)
-
-    class _MovedItems(_LazyModule):
-        __doc__ = 'Lazy loading of moved objects'
-        __path__ = []
+    get_source = get_code
 
 
-    _moved_attributes = [
-     MovedAttribute('cStringIO', 'cStringIO', 'io', 'StringIO'),
-     MovedAttribute('filter', 'itertools', 'builtins', 'ifilter', 'filter'),
-     MovedAttribute('filterfalse', 'itertools', 'itertools', 'ifilterfalse', 'filterfalse'),
-     MovedAttribute('input', '__builtin__', 'builtins', 'raw_input', 'input'),
-     MovedAttribute('intern', '__builtin__', 'sys'),
-     MovedAttribute('map', 'itertools', 'builtins', 'imap', 'map'),
-     MovedAttribute('getcwd', 'os', 'os', 'getcwdu', 'getcwd'),
-     MovedAttribute('getcwdb', 'os', 'os', 'getcwd', 'getcwdb'),
-     MovedAttribute('range', '__builtin__', 'builtins', 'xrange', 'range'),
-     MovedAttribute('reload_module', '__builtin__', 'importlib' if PY34 else 'imp', 'reload'),
-     MovedAttribute('reduce', '__builtin__', 'functools'),
-     MovedAttribute('shlex_quote', 'pipes', 'shlex', 'quote'),
-     MovedAttribute('StringIO', 'StringIO', 'io'),
-     MovedAttribute('UserDict', 'UserDict', 'collections'),
-     MovedAttribute('UserList', 'UserList', 'collections'),
-     MovedAttribute('UserString', 'UserString', 'collections'),
-     MovedAttribute('xrange', '__builtin__', 'builtins', 'xrange', 'range'),
-     MovedAttribute('zip', 'itertools', 'builtins', 'izip', 'zip'),
-     MovedAttribute('zip_longest', 'itertools', 'itertools', 'izip_longest', 'zip_longest'),
-     MovedModule('builtins', '__builtin__'),
-     MovedModule('configparser', 'ConfigParser'),
-     MovedModule('copyreg', 'copy_reg'),
-     MovedModule('dbm_gnu', 'gdbm', 'dbm.gnu'),
-     MovedModule('_dummy_thread', 'dummy_thread', '_dummy_thread'),
-     MovedModule('http_cookiejar', 'cookielib', 'http.cookiejar'),
-     MovedModule('http_cookies', 'Cookie', 'http.cookies'),
-     MovedModule('html_entities', 'htmlentitydefs', 'html.entities'),
-     MovedModule('html_parser', 'HTMLParser', 'html.parser'),
-     MovedModule('http_client', 'httplib', 'http.client'),
-     MovedModule('email_mime_multipart', 'email.MIMEMultipart', 'email.mime.multipart'),
-     MovedModule('email_mime_nonmultipart', 'email.MIMENonMultipart', 'email.mime.nonmultipart'),
-     MovedModule('email_mime_text', 'email.MIMEText', 'email.mime.text'),
-     MovedModule('email_mime_base', 'email.MIMEBase', 'email.mime.base'),
-     MovedModule('BaseHTTPServer', 'BaseHTTPServer', 'http.server'),
-     MovedModule('CGIHTTPServer', 'CGIHTTPServer', 'http.server'),
-     MovedModule('SimpleHTTPServer', 'SimpleHTTPServer', 'http.server'),
-     MovedModule('cPickle', 'cPickle', 'pickle'),
-     MovedModule('queue', 'Queue'),
-     MovedModule('reprlib', 'repr'),
-     MovedModule('socketserver', 'SocketServer'),
-     MovedModule('_thread', 'thread', '_thread'),
-     MovedModule('tkinter', 'Tkinter'),
-     MovedModule('tkinter_dialog', 'Dialog', 'tkinter.dialog'),
-     MovedModule('tkinter_filedialog', 'FileDialog', 'tkinter.filedialog'),
-     MovedModule('tkinter_scrolledtext', 'ScrolledText', 'tkinter.scrolledtext'),
-     MovedModule('tkinter_simpledialog', 'SimpleDialog', 'tkinter.simpledialog'),
-     MovedModule('tkinter_tix', 'Tix', 'tkinter.tix'),
-     MovedModule('tkinter_ttk', 'ttk', 'tkinter.ttk'),
-     MovedModule('tkinter_constants', 'Tkconstants', 'tkinter.constants'),
-     MovedModule('tkinter_dnd', 'Tkdnd', 'tkinter.dnd'),
-     MovedModule('tkinter_colorchooser', 'tkColorChooser', 'tkinter.colorchooser'),
-     MovedModule('tkinter_commondialog', 'tkCommonDialog', 'tkinter.commondialog'),
-     MovedModule('tkinter_tkfiledialog', 'tkFileDialog', 'tkinter.filedialog'),
-     MovedModule('tkinter_font', 'tkFont', 'tkinter.font'),
-     MovedModule('tkinter_messagebox', 'tkMessageBox', 'tkinter.messagebox'),
-     MovedModule('tkinter_tksimpledialog', 'tkSimpleDialog', 'tkinter.simpledialog'),
-     MovedModule('urllib_parse', __name__ + '.moves.urllib_parse', 'urllib.parse'),
-     MovedModule('urllib_error', __name__ + '.moves.urllib_error', 'urllib.error'),
-     MovedModule('urllib', __name__ + '.moves.urllib', __name__ + '.moves.urllib'),
-     MovedModule('urllib_robotparser', 'robotparser', 'urllib.robotparser'),
-     MovedModule('xmlrpc_client', 'xmlrpclib', 'xmlrpc.client'),
-     MovedModule('xmlrpc_server', 'SimpleXMLRPCServer', 'xmlrpc.server')]
-    if sys.platform == 'win32':
-        _moved_attributes += [
-         MovedModule('winreg', '_winreg')]
+_importer = _SixMetaPathImporter(__name__)
+
+class _MovedItems(_LazyModule):
+    __doc__ = 'Lazy loading of moved objects'
+    __path__ = []
+
+
+_moved_attributes = [
+ MovedAttribute('cStringIO', 'cStringIO', 'io', 'StringIO'),
+ MovedAttribute('filter', 'itertools', 'builtins', 'ifilter', 'filter'),
+ MovedAttribute('filterfalse', 'itertools', 'itertools', 'ifilterfalse', 'filterfalse'),
+ MovedAttribute('input', '__builtin__', 'builtins', 'raw_input', 'input'),
+ MovedAttribute('intern', '__builtin__', 'sys'),
+ MovedAttribute('map', 'itertools', 'builtins', 'imap', 'map'),
+ MovedAttribute('getcwd', 'os', 'os', 'getcwdu', 'getcwd'),
+ MovedAttribute('getcwdb', 'os', 'os', 'getcwd', 'getcwdb'),
+ MovedAttribute('range', '__builtin__', 'builtins', 'xrange', 'range'),
+ MovedAttribute('reload_module', '__builtin__', 'importlib' if PY34 else 'imp', 'reload'),
+ MovedAttribute('reduce', '__builtin__', 'functools'),
+ MovedAttribute('shlex_quote', 'pipes', 'shlex', 'quote'),
+ MovedAttribute('StringIO', 'StringIO', 'io'),
+ MovedAttribute('UserDict', 'UserDict', 'collections'),
+ MovedAttribute('UserList', 'UserList', 'collections'),
+ MovedAttribute('UserString', 'UserString', 'collections'),
+ MovedAttribute('xrange', '__builtin__', 'builtins', 'xrange', 'range'),
+ MovedAttribute('zip', 'itertools', 'builtins', 'izip', 'zip'),
+ MovedAttribute('zip_longest', 'itertools', 'itertools', 'izip_longest', 'zip_longest'),
+ MovedModule('builtins', '__builtin__'),
+ MovedModule('configparser', 'ConfigParser'),
+ MovedModule('copyreg', 'copy_reg'),
+ MovedModule('dbm_gnu', 'gdbm', 'dbm.gnu'),
+ MovedModule('_dummy_thread', 'dummy_thread', '_dummy_thread'),
+ MovedModule('http_cookiejar', 'cookielib', 'http.cookiejar'),
+ MovedModule('http_cookies', 'Cookie', 'http.cookies'),
+ MovedModule('html_entities', 'htmlentitydefs', 'html.entities'),
+ MovedModule('html_parser', 'HTMLParser', 'html.parser'),
+ MovedModule('http_client', 'httplib', 'http.client'),
+ MovedModule('email_mime_multipart', 'email.MIMEMultipart', 'email.mime.multipart'),
+ MovedModule('email_mime_nonmultipart', 'email.MIMENonMultipart', 'email.mime.nonmultipart'),
+ MovedModule('email_mime_text', 'email.MIMEText', 'email.mime.text'),
+ MovedModule('email_mime_base', 'email.MIMEBase', 'email.mime.base'),
+ MovedModule('BaseHTTPServer', 'BaseHTTPServer', 'http.server'),
+ MovedModule('CGIHTTPServer', 'CGIHTTPServer', 'http.server'),
+ MovedModule('SimpleHTTPServer', 'SimpleHTTPServer', 'http.server'),
+ MovedModule('cPickle', 'cPickle', 'pickle'),
+ MovedModule('queue', 'Queue'),
+ MovedModule('reprlib', 'repr'),
+ MovedModule('socketserver', 'SocketServer'),
+ MovedModule('_thread', 'thread', '_thread'),
+ MovedModule('tkinter', 'Tkinter'),
+ MovedModule('tkinter_dialog', 'Dialog', 'tkinter.dialog'),
+ MovedModule('tkinter_filedialog', 'FileDialog', 'tkinter.filedialog'),
+ MovedModule('tkinter_scrolledtext', 'ScrolledText', 'tkinter.scrolledtext'),
+ MovedModule('tkinter_simpledialog', 'SimpleDialog', 'tkinter.simpledialog'),
+ MovedModule('tkinter_tix', 'Tix', 'tkinter.tix'),
+ MovedModule('tkinter_ttk', 'ttk', 'tkinter.ttk'),
+ MovedModule('tkinter_constants', 'Tkconstants', 'tkinter.constants'),
+ MovedModule('tkinter_dnd', 'Tkdnd', 'tkinter.dnd'),
+ MovedModule('tkinter_colorchooser', 'tkColorChooser', 'tkinter.colorchooser'),
+ MovedModule('tkinter_commondialog', 'tkCommonDialog', 'tkinter.commondialog'),
+ MovedModule('tkinter_tkfiledialog', 'tkFileDialog', 'tkinter.filedialog'),
+ MovedModule('tkinter_font', 'tkFont', 'tkinter.font'),
+ MovedModule('tkinter_messagebox', 'tkMessageBox', 'tkinter.messagebox'),
+ MovedModule('tkinter_tksimpledialog', 'tkSimpleDialog', 'tkinter.simpledialog'),
+ MovedModule('urllib_parse', __name__ + '.moves.urllib_parse', 'urllib.parse'),
+ MovedModule('urllib_error', __name__ + '.moves.urllib_error', 'urllib.error'),
+ MovedModule('urllib', __name__ + '.moves.urllib', __name__ + '.moves.urllib'),
+ MovedModule('urllib_robotparser', 'robotparser', 'urllib.robotparser'),
+ MovedModule('xmlrpc_client', 'xmlrpclib', 'xmlrpc.client'),
+ MovedModule('xmlrpc_server', 'SimpleXMLRPCServer', 'xmlrpc.server')]
+if sys.platform == 'win32':
+    _moved_attributes += [
+     MovedModule('winreg', '_winreg')]
+else:
     for attr in _moved_attributes:
         setattr(_MovedItems, attr.name, attr)
         if isinstance(attr, MovedModule):
@@ -505,19 +506,19 @@ else:
     if PY3:
 
         def iterkeys(d, **kw):
-            return iter(d.keys(**kw))
+            return iter((d.keys)(**kw))
 
 
         def itervalues(d, **kw):
-            return iter(d.values(**kw))
+            return iter((d.values)(**kw))
 
 
         def iteritems(d, **kw):
-            return iter(d.items(**kw))
+            return iter((d.items)(**kw))
 
 
         def iterlists(d, **kw):
-            return iter(d.lists(**kw))
+            return iter((d.lists)(**kw))
 
 
         viewkeys = operator.methodcaller('keys')
@@ -526,19 +527,19 @@ else:
     else:
 
         def iterkeys(d, **kw):
-            return d.iterkeys(**kw)
+            return (d.iterkeys)(**kw)
 
 
         def itervalues(d, **kw):
-            return d.itervalues(**kw)
+            return (d.itervalues)(**kw)
 
 
         def iteritems(d, **kw):
-            return d.iteritems(**kw)
+            return (d.iteritems)(**kw)
 
 
         def iterlists(d, **kw):
-            return d.iterlists(**kw)
+            return (d.iterlists)(**kw)
 
 
         viewkeys = operator.methodcaller('viewkeys')
@@ -606,15 +607,15 @@ else:
     _add_doc(u, 'Text literal')
 
     def assertCountEqual(self, *args, **kwargs):
-        return getattr(self, _assertCountEqual)(*args, **kwargs)
+        return (getattr(self, _assertCountEqual))(*args, **kwargs)
 
 
     def assertRaisesRegex(self, *args, **kwargs):
-        return getattr(self, _assertRaisesRegex)(*args, **kwargs)
+        return (getattr(self, _assertRaisesRegex))(*args, **kwargs)
 
 
     def assertRegex(self, *args, **kwargs):
-        return getattr(self, _assertRegex)(*args, **kwargs)
+        return (getattr(self, _assertRegex))(*args, **kwargs)
 
 
     if PY3:
@@ -638,40 +639,45 @@ else:
                 if _locs_ is None:
                     _locs_ = frame.f_locals
                 del frame
-            elif _locs_ is None:
-                _locs_ = _globs_
+            else:
+                if _locs_ is None:
+                    _locs_ = _globs_
             exec('exec _code_ in _globs_, _locs_')
 
 
         exec_('def reraise(tp, value, tb=None):\n    raise tp, value, tb\n')
-if sys.version_info[:2] == (3, 2):
-    exec_('def raise_from(value, from_value):\n    if from_value is None:\n        raise value\n    raise value from from_value\n')
-else:
-    if sys.version_info[:2] > (3, 2):
-        exec_('def raise_from(value, from_value):\n    raise value from from_value\n')
+    if sys.version_info[:2] == (3, 2):
+        exec_('def raise_from(value, from_value):\n    if from_value is None:\n        raise value\n    raise value from from_value\n')
     else:
+        if sys.version_info[:2] > (3, 2):
+            exec_('def raise_from(value, from_value):\n    raise value from from_value\n')
+        else:
 
-        def raise_from(value, from_value):
-            raise value
+            def raise_from(value, from_value):
+                raise value
 
 
-    print_ = getattr(moves.builtins, 'print', None)
-    if print_ is None:
+print_ = getattr(moves.builtins, 'print', None)
+if print_ is None:
 
-        def print_(*args, **kwargs):
-            """The new-style print function for Python 2.4 and 2.5."""
-            fp = kwargs.pop('file', sys.stdout)
-            if fp is None:
-                return
+    def print_(*args, **kwargs):
+        """The new-style print function for Python 2.4 and 2.5."""
+        fp = kwargs.pop('file', sys.stdout)
+        if fp is None:
+            return
+        else:
 
             def write(data):
                 if not isinstance(data, basestring):
                     data = str(data)
-                if isinstance(fp, file) and isinstance(data, unicode) and fp.encoding is not None:
-                    errors = getattr(fp, 'errors', None)
-                    if errors is None:
-                        errors = 'strict'
-                    data = data.encode(fp.encoding, errors)
+                else:
+                    if isinstance(fp, file):
+                        if isinstance(data, unicode):
+                            if fp.encoding is not None:
+                                errors = getattr(fp, 'errors', None)
+                                if errors is None:
+                                    errors = 'strict'
+                                data = data.encode(fp.encoding, errors)
                 fp.write(data)
 
             want_unicode = False
@@ -679,41 +685,41 @@ else:
             if sep is not None:
                 if isinstance(sep, unicode):
                     want_unicode = True
-            elif not isinstance(sep, str):
-                raise TypeError('sep must be None or a string')
+                elif not isinstance(sep, str):
+                    raise TypeError('sep must be None or a string')
             end = kwargs.pop('end', None)
             if end is not None:
                 if isinstance(end, unicode):
                     want_unicode = True
-            else:
-                if not isinstance(end, str):
+                elif not isinstance(end, str):
                     raise TypeError('end must be None or a string')
-                if kwargs:
-                    raise TypeError('invalid keyword arguments to print()')
-                if not want_unicode:
-                    for arg in args:
-                        if isinstance(arg, unicode):
-                            want_unicode = True
-                            break
+            if kwargs:
+                raise TypeError('invalid keyword arguments to print()')
+            if not want_unicode:
+                for arg in args:
+                    if isinstance(arg, unicode):
+                        want_unicode = True
+                        break
 
-                if want_unicode:
-                    newline = unicode('\n')
-                    space = unicode(' ')
-                else:
-                    newline = '\n'
-                    space = ' '
-            if sep is None:
-                sep = space
-            if end is None:
-                end = newline
-            for i, arg in enumerate(args):
-                if i:
-                    write(sep)
-                write(arg)
+            if want_unicode:
+                newline = unicode('\n')
+                space = unicode(' ')
+            else:
+                newline = '\n'
+            space = ' '
+        if sep is None:
+            sep = space
+        if end is None:
+            end = newline
+        for i, arg in enumerate(args):
+            if i:
+                write(sep)
+            write(arg)
 
-            write(end)
+        write(end)
 
 
+else:
     if sys.version_info[:2] < (3, 3):
         _print = print_
 
@@ -721,8 +727,9 @@ else:
             fp = kwargs.get('file', sys.stdout)
             flush = kwargs.pop('flush', False)
             _print(*args, **kwargs)
-            if flush and fp is not None:
-                fp.flush()
+            if flush:
+                if fp is not None:
+                    fp.flush()
 
 
     _add_doc(reraise, 'Reraise an exception.')

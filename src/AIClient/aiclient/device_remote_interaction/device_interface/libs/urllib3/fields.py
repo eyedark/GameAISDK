@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/fields.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 5931 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\fields.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 6109 bytes
 from __future__ import absolute_import
 import email.utils, mimetypes
 from .packages import six
@@ -21,7 +21,8 @@ def guess_content_type(filename, default='application/octet-stream'):
     """
     if filename:
         return mimetypes.guess_type(filename)[0] or default
-    return default
+    else:
+        return default
 
 
 def format_header_param(name, value):
@@ -45,11 +46,12 @@ def format_header_param(name, value):
             pass
         else:
             return result
-        if not six.PY3 and isinstance(value, six.text_type):
+    if not six.PY3:
+        if isinstance(value, six.text_type):
             value = value.encode('utf-8')
-        value = email.utils.encode_rfc2231(value, 'utf-8')
-        value = '%s*=%s' % (name, value)
-        return value
+    value = email.utils.encode_rfc2231(value, 'utf-8')
+    value = '%s*=%s' % (name, value)
+    return value
 
 
 class RequestField(object):

@@ -3,7 +3,7 @@
 PWD=`pwd`
 export PATH=$PATH:$PWD/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib/
-
+export AI_SDK_PROJECT_FILE_PATH=/home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/LQ.prj
 echo "Run AI Service"
 
 
@@ -33,7 +33,7 @@ fi
 
 #Start Agent process
 python3 agentai.py >/dev/null 2>&1 &
-sleep 10
+sleep 20
 
 #Check Agent process
 ps -fe | grep 'python3 agentai.py' | grep -v grep

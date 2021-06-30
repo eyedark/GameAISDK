@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/tools/action_network_verify_thread.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 1840 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\tools\action_network_verify_thread.py
+# Compiled at: 2021-02-23 16:10:42
+# Size of source mod 2**32: 1885 bytes
 import threading, time, logging
 from aiclient.aiclientapi.tool_manage import communicate_config as com_config
 from aiclient.device_remote_interaction.common.action_queue import action_result_queue_inst
@@ -23,30 +23,26 @@ class ActionNetworkVerifyThread(threading.Thread):
         self.op_code_funcs = {}
 
     def run(self):
-        while 1:
+        while True:
             msg = action_result_queue_inst.get_action_item()
             if msg is None:
                 time.sleep(0.01)
-                continue
             else:
                 msg_id = msg.get('msg_id', -1)
                 if msg_id == -1:
                     self.network_logger.error('msg_id error:{}'.format(msg))
-                    continue
+                elif msg_id == define.MSG_AI_ACTION:
+                    self.network_logger.warning('AI action process function in AI part, msg:{}'.format(msg))
+                elif msg_id == define.MSG_UI_ACTION:
+                    self.network_logger.warning('no op_code process function in UI part, msg:{}'.format(msg))
                 else:
-                    if msg_id == define.MSG_AI_ACTION:
-                        self.network_logger.warning('AI action process function in AI part, msg:{}'.format(msg))
+                    if msg_id == define.MSG_GAME_STATE:
+                        game_state = msg.get('game_state', define.GAME_STATE_NONE)
+                        self.network_logger.warning('game_state changed, from {a} to {b}'.format(a=(com_config.GAME_STATE), b=game_state))
+                        com_config.GAME_STATE = game_state
                     else:
-                        if msg_id == define.MSG_UI_ACTION:
-                            self.network_logger.warning('no op_code process function in UI part, msg:{}'.format(msg))
+                        if msg_id == define.MSG_CLIENT_REP:
+                            self.network_logger.info('get IO response:{}'.format(msg))
+                            network_check.has_recv_rep = True
                         else:
-                            if msg_id == define.MSG_GAME_STATE:
-                                game_state = msg.get('game_state', define.GAME_STATE_NONE)
-                                self.network_logger.warning('game_state changed, from {a} to {b}'.format(a=com_config.GAME_STATE, b=game_state))
-                                com_config.GAME_STATE = game_state
-                            else:
-                                if msg_id == define.MSG_CLIENT_REP:
-                                    self.network_logger.info('get IO response:{}'.format(msg))
-                                    network_check.has_recv_rep = True
-                                else:
-                                    self.network_logger.error('msg_id error:{}'.format(msg))
+                            self.network_logger.error('msg_id error:{}'.format(msg))

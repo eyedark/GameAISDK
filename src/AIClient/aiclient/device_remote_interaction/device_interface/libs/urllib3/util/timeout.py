@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/util/timeout.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 9596 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\util\timeout.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 9838 bytes
 from __future__ import absolute_import
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 import time
@@ -46,23 +46,24 @@ class Timeout(object):
         """
         if value is _Default:
             return cls.DEFAULT_TIMEOUT
-        if value is None or value is cls.DEFAULT_TIMEOUT:
-            return value
-        try:
-            float(value)
-        except (TypeError, ValueError):
-            raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (
-             name, value))
-
-        try:
-            if value < 0:
-                raise ValueError('Attempted to set %s timeout to %s, but the timeout cannot be set to a value less than 0.' % (
+        else:
+            if value is None or value is cls.DEFAULT_TIMEOUT:
+                return value
+            try:
+                float(value)
+            except (TypeError, ValueError):
+                raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (
                  name, value))
-        except TypeError:
-            raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (
-             name, value))
 
-        return value
+            try:
+                if value < 0:
+                    raise ValueError('Attempted to set %s timeout to %s, but the timeout cannot be set to a value less than 0.' % (
+                     name, value))
+            except TypeError:
+                raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (
+                 name, value))
+
+            return value
 
     @classmethod
     def from_float(cls, timeout):
@@ -89,7 +90,7 @@ class Timeout(object):
         :return: a copy of the timeout object
         :rtype: :class:`Timeout`
         """
-        return Timeout(connect=self._connect, read=self._read, total=self.total)
+        return Timeout(connect=(self._connect), read=(self._read), total=(self.total))
 
     def start_connect(self):
         """ Start the timeout clock, used during a connect() attempt
@@ -126,9 +127,10 @@ class Timeout(object):
         """
         if self.total is None:
             return self._connect
-        if self._connect is None or self._connect is self.DEFAULT_TIMEOUT:
-            return self.total
-        return min(self._connect, self.total)
+        else:
+            if self._connect is None or self._connect is self.DEFAULT_TIMEOUT:
+                return self.total
+            return min(self._connect, self.total)
 
     @property
     def read_timeout(self):
@@ -152,6 +154,7 @@ class Timeout(object):
                 return self._read
             return max(0, min(self.total - self.get_connect_duration(), self._read))
         else:
-            if self.total is not None and self.total is not self.DEFAULT_TIMEOUT:
-                return max(0, self.total - self.get_connect_duration())
+            if self.total is not None:
+                if self.total is not self.DEFAULT_TIMEOUT:
+                    return max(0, self.total - self.get_connect_duration())
             return self._read

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/contrib/socks.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 5668 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\contrib\socks.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 5840 bytes
 """
 SOCKS support for urllib3
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,7 +47,7 @@ class SOCKSConnection(HTTPConnection):
 
     def __init__(self, *args, **kwargs):
         self._socks_options = kwargs.pop('_socks_options')
-        super(SOCKSConnection, self).__init__(*args, **kwargs)
+        (super(SOCKSConnection, self).__init__)(*args, **kwargs)
 
     def _new_conn(self):
         """
@@ -59,8 +59,12 @@ class SOCKSConnection(HTTPConnection):
         if self.socket_options:
             extra_kw['socket_options'] = self.socket_options
         try:
-            conn = socks.create_connection((
-             self.host, self.port), proxy_type=self._socks_options['socks_version'], proxy_addr=self._socks_options['proxy_host'], proxy_port=self._socks_options['proxy_port'], proxy_username=self._socks_options['username'], proxy_password=self._socks_options['password'], timeout=self.timeout, **extra_kw)
+            conn = (socks.create_connection)((self.host, self.port), proxy_type=self._socks_options['socks_version'], 
+             proxy_addr=self._socks_options['proxy_host'], 
+             proxy_port=self._socks_options['proxy_port'], 
+             proxy_username=self._socks_options['username'], 
+             proxy_password=self._socks_options['password'], 
+             timeout=self.timeout, **extra_kw)
         except SocketTimeout as e:
             raise ConnectTimeoutError(self, 'Connection to %s timed out. (connect timeout=%s)' % (
              self.host, self.timeout))
@@ -94,8 +98,8 @@ class SOCKSHTTPSConnectionPool(HTTPSConnectionPool):
 
 class SOCKSProxyManager(PoolManager):
     __doc__ = '\n    A version of the urllib3 ProxyManager that routes connections via the\n    defined SOCKS proxy.\n    '
-    pool_classes_by_scheme = {'http': SOCKSHTTPConnectionPool, 
-     'https': SOCKSHTTPSConnectionPool}
+    pool_classes_by_scheme = {'http':SOCKSHTTPConnectionPool, 
+     'https':SOCKSHTTPSConnectionPool}
 
     def __init__(self, proxy_url, username=None, password=None, num_pools=10, headers=None, **connection_pool_kw):
         parsed = parse_url(proxy_url)
@@ -107,11 +111,12 @@ class SOCKSProxyManager(PoolManager):
             else:
                 raise ValueError('Unable to determine SOCKS version from %s' % proxy_url)
         self.proxy_url = proxy_url
-        socks_options = {'socks_version': socks_version, 
-         'proxy_host': parsed.host, 
-         'proxy_port': parsed.port, 
-         'username': username, 
-         'password': password}
+        socks_options = {'socks_version':socks_version, 
+         'proxy_host':parsed.host, 
+         'proxy_port':parsed.port, 
+         'username':username, 
+         'password':password}
         connection_pool_kw['_socks_options'] = socks_options
-        super(SOCKSProxyManager, self).__init__(num_pools, headers, **connection_pool_kw)
+        (super(SOCKSProxyManager, self).__init__)(
+         num_pools, headers, **connection_pool_kw)
         self.pool_classes_by_scheme = SOCKSProxyManager.pool_classes_by_scheme

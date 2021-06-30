@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/util/request.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 2128 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\util\request.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 2200 bytes
 from __future__ import absolute_import
 from base64 import b64encode
 from ..packages.six import b
@@ -50,12 +50,12 @@ def make_headers(keep_alive=None, accept_encoding=None, user_agent=None, basic_a
     if accept_encoding:
         if isinstance(accept_encoding, str):
             pass
-    else:
-        if isinstance(accept_encoding, list):
-            accept_encoding = ','.join(accept_encoding)
         else:
-            accept_encoding = ACCEPT_ENCODING
-        headers['accept-encoding'] = accept_encoding
+            if isinstance(accept_encoding, list):
+                accept_encoding = ','.join(accept_encoding)
+            else:
+                accept_encoding = ACCEPT_ENCODING
+            headers['accept-encoding'] = accept_encoding
     if user_agent:
         headers['user-agent'] = user_agent
     if keep_alive:

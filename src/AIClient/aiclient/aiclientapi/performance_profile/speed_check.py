@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/aiclientapi/performance_profile/speed_check.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 3475 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\aiclientapi\performance_profile\speed_check.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 3554 bytes
 import time, logging
 from ..tool_manage import communicate_config as com_config
 REMCORD_INTERVAL_NUM = 20
@@ -62,8 +62,10 @@ class SpeedCheck(object):
                     del self.img_recv_dict[key]
 
             if self.process_action_num % REMCORD_INTERVAL_NUM == 0:
-                self.MONITOR_LOGGER.info('process action num:{a}, avg_action_process_time:{b}'.format(a=self.process_action_num, b=self.sum_action_process_time / self.process_action_num))
-                self.MONITOR_LOGGER.info('process_img num:{a}, avg_img_process_time:{b}'.format(a=self.process_img_num, b=self.avg_img_process_time))
+                self.MONITOR_LOGGER.info('process action num:{a}, avg_action_process_time:{b}'.format(a=(self.process_action_num),
+                  b=(self.sum_action_process_time / self.process_action_num)))
+                self.MONITOR_LOGGER.info('process_img num:{a}, avg_img_process_time:{b}'.format(a=(self.process_img_num),
+                  b=(self.avg_img_process_time)))
 
     def record_img_process_speed(self, img_id):
         if len(self.img_process_speed_dict) == 0:
@@ -73,7 +75,7 @@ class SpeedCheck(object):
             self.img_process_speed_dict.add(img_id)
         if len(self.img_process_speed_dict) % IMG_SPEED_PROCESS_INTERVAL_NUM == 0:
             avg_time = (time.time() - self.img_process_speed_start_time) / len(self.img_process_speed_dict)
-            self.MONITOR_LOGGER.info('sum img:{a}, img_process speed in recv:{b}'.format(a=len(self.img_process_speed_dict), b=avg_time))
+            self.MONITOR_LOGGER.info('sum img:{a}, img_process speed in recv:{b}'.format(a=(len(self.img_process_speed_dict)), b=avg_time))
 
 
 speed_check_inst = SpeedCheck()

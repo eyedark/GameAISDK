@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/imap_utf7.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 3335 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\imap_utf7.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 3444 bytes
 from __future__ import unicode_literals
 from libs.six import binary_type, text_type, byte2int, iterbytes, unichr
 PRINTABLE = set(range(32, 38)) | set(range(39, 127))
@@ -18,27 +18,28 @@ def encode(s):
     """
     if not isinstance(s, text_type):
         return s
-    r = []
-    _in = []
+    else:
+        r = []
+        _in = []
 
-    def extend_result_if_chars_buffered():
-        if _in:
-            r.extend(['&', modified_utf7(''.join(_in)), '-'])
-            del _in[:]
+        def extend_result_if_chars_buffered():
+            if _in:
+                r.extend(['&', modified_utf7(''.join(_in)), '-'])
+                del _in[:]
 
-    for c in s:
-        if ord(c) in PRINTABLE:
-            extend_result_if_chars_buffered()
-            r.append(c.encode('latin-1'))
-        else:
-            if c == '&':
+        for c in s:
+            if ord(c) in PRINTABLE:
                 extend_result_if_chars_buffered()
-                r.append('&-')
+                r.append(c.encode('latin-1'))
             else:
-                _in.append(c)
+                if c == '&':
+                    extend_result_if_chars_buffered()
+                    r.append('&-')
+                else:
+                    _in.append(c)
 
-    extend_result_if_chars_buffered()
-    return ''.join(r)
+        extend_result_if_chars_buffered()
+        return ''.join(r)
 
 
 AMPERSAND_ORD = byte2int('&')
@@ -53,13 +54,13 @@ def decode(s):
     """
     if not isinstance(s, binary_type):
         return s
-    r = []
-    _in = bytearray()
-    for c in iterbytes(s):
-        if c == AMPERSAND_ORD and not _in:
-            _in.append(c)
-        else:
-            if c == DASH_ORD and _in:
+    else:
+        r = []
+        _in = bytearray()
+        for c in iterbytes(s):
+            if c == AMPERSAND_ORD and not _in:
+                _in.append(c)
+            elif c == DASH_ORD and _in:
                 if len(_in) == 1:
                     r.append('&')
                 else:
@@ -71,9 +72,9 @@ def decode(s):
                 else:
                     r.append(unichr(c))
 
-    if _in:
-        r.append(modified_deutf7(_in[1:]))
-    return ''.join(r)
+        if _in:
+            r.append(modified_deutf7(_in[1:]))
+        return ''.join(r)
 
 
 def modified_utf7(s):

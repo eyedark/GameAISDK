@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/aiclientapi/network_client.py
-# Compiled at: 2020-12-31 12:10:42
-# Size of source mod 2**32: 14383 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\aiclientapi\network_client.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 14698 bytes
 import time, os, telnetlib, json, logging
 from .tool_manage import communicate_config as com_config
 from .communication import instance_factory as ins_fact
@@ -52,7 +52,7 @@ class NetworkClient(object):
         ret, self.para_data, error_str = para_context.para_context_inst.init(CFG_FILE)
         if not ret:
             self.MAIN_THREAD_LOGGER.error(error_str)
-            self.state_notify_inst.on_exception(exception_type=self.state_notify_inst.CONFIG_PARAMS_LOAD_ERROR, description=error_str)
+            self.state_notify_inst.on_exception(exception_type=(self.state_notify_inst.CONFIG_PARAMS_LOAD_ERROR), description=error_str)
             return False
         if not os.path.exists(WETESTIP_FILE):
             self.MAIN_THREAD_LOGGER.error('wetest_ip loaded error: can not find wetestip_map.json at {}'.format(WETESTIP_FILE))
@@ -71,56 +71,56 @@ class NetworkClient(object):
         ret, error_str = self.resource_apply_inst.init()
         if not ret:
             self.MAIN_THREAD_LOGGER.error(error_str)
-            self.state_notify_inst.on_exception(exception_type=self.state_notify_inst.CONFIG_PARAMS_LOAD_ERROR, description=error_str)
+            self.state_notify_inst.on_exception(exception_type=(self.state_notify_inst.CONFIG_PARAMS_LOAD_ERROR), description=error_str)
             return False
         ret, error_str = self.resource_apply_inst.args_verify()
         if not ret:
             self.MAIN_THREAD_LOGGER.error(error_str)
-            self.state_notify_inst.on_exception(exception_type=self.state_notify_inst.ARGS_VERIFY_EXCEPTION, description=error_str)
+            self.state_notify_inst.on_exception(exception_type=(self.state_notify_inst.ARGS_VERIFY_EXCEPTION), description=error_str)
             return False
-        ret, self.communicate_instance = self.create_communication_instance()
-        if not ret:
-            self.MAIN_THREAD_LOGGER.error('create_communication_instance failed')
-            return False
-        return True
+        else:
+            ret, self.communicate_instance = self.create_communication_instance()
+            if not ret:
+                self.MAIN_THREAD_LOGGER.error('create_communication_instance failed')
+                return False
+            return True
 
     def create_communication_instance(self):
         auto_apply_resource = self.para_data.get('auto_apply_resource', 0)
-        # print("Cfg auto_apply_resource: {}".format(auto_apply_resource), self.para_data)
-        if auto_apply_resource == 0:
+        if auto_apply_resource:
             self.MAIN_THREAD_LOGGER.warning('use auto apply resource pattern')
             service_info, error_str = self.resource_apply_inst.get_service_info()
             if service_info is None:
                 self.MAIN_THREAD_LOGGER.error('auto apply resource failed, error: {}'.format(error_str))
                 self.state_notify_inst.on_resource_apply_state(com_config.RESOURCE_APPLY_FAILURE, error_str)
                 return (False, None)
-            else:
-                try:
-                    self.para_data['ip'] = service_info['ip']
-                    self.para_data['port1'] = service_info['port1']
-                    self.para_data['port2'] = service_info['port2']
-                    self.para_data['key'] = service_info['key']
-                    self.para_data['task_id'] = service_info['task_id']
-                    self.para_data['source_server_id'] = service_info['source_server_id']
-                    self.para_data['service'] = self.resource_apply_inst.get_service_type()
-                except Exception as err:
-                    self.MAIN_THREAD_LOGGER.error('modify attr in auto apply resource:{}'.format(err))
-                    self.state_notify_inst.on_resource_apply_state(com_config.RESOURCE_APPLY_FAILURE, err)
-                    return (False, None)
+            try:
+                self.para_data['ip'] = service_info['ip']
+                self.para_data['port1'] = service_info['port1']
+                self.para_data['port2'] = service_info['port2']
+                self.para_data['key'] = service_info['key']
+                self.para_data['task_id'] = service_info['task_id']
+                self.para_data['source_server_id'] = service_info['source_server_id']
+                self.para_data['service'] = self.resource_apply_inst.get_service_type()
+            except Exception as err:
+                self.MAIN_THREAD_LOGGER.error('modify attr in auto apply resource:{}'.format(err))
+                self.state_notify_inst.on_resource_apply_state(com_config.RESOURCE_APPLY_FAILURE, err)
+                return (False, None)
 
-                self.state_notify_inst.on_resource_apply_state(com_config.RESOURCE_APPLY_SUCCESS, 'apply resource success')
-            if os.environ.get('PLATFORM_IP'):
-                ip = self.para_data['ip']
-                if ip in self.wetest_ip:
-                    self.para_data['ip'] = self.wetest_ip[ip]
-        else:
-            self.MAIN_THREAD_LOGGER.error('unkown ip {}'.format(ip))
-            return (False, None)
+            self.state_notify_inst.on_resource_apply_state(com_config.RESOURCE_APPLY_SUCCESS, 'apply resource success')
+        if os.environ.get('PLATFORM_IP'):
+            ip = self.para_data['ip']
+            if ip in self.wetest_ip:
+                self.para_data['ip'] = self.wetest_ip[ip]
+            else:
+                self.MAIN_THREAD_LOGGER.error('unkown ip {}'.format(ip))
+                return (False, None)
         ret, comm_instace, error_str = ins_fact.create_comm_instance(self.para_data)
         if not ret:
             self.MAIN_THREAD_LOGGER.error(error_str)
             self.state_notify_inst.on_exception(self.state_notify_inst.REMOTE_COMMUNICATION_INIT_ERROR, error_str)
-        return (ret, comm_instace)
+        return (
+         ret, comm_instace)
 
     def reconnect(self):
         self.MAIN_THREAD_LOGGER.info('reconnect to tcp:{}, port:{} {}'.format(self.para_data['ip'], self.para_data['port1'], self.para_data['port2']))
@@ -189,17 +189,19 @@ class NetworkClient(object):
 
     def send_img_msg(self, img_data, extend_data=None):
         self.NETWORK_IO_LOGGER.debug('send frame data, frameIndex={}'.format(self.img_id))
-        self.communicate_instance.send_img_msg(self.img_id, img_data, extend_info=extend_data)
+        self.communicate_instance.send_img_msg((self.img_id), img_data, extend_info=extend_data)
         if com_config.GAME_STATE != self.game_state:
-            self.NETWORK_IO_LOGGER.info('game state changed, {last_state} -> {new_state}'.format(last_state=self.game_state, new_state=com_config.GAME_STATE))
+            self.NETWORK_IO_LOGGER.info('game state changed, {last_state} -> {new_state}'.format(last_state=(self.game_state),
+              new_state=(com_config.GAME_STATE)))
             self.game_state = com_config.GAME_STATE
         if self.game_state == define.GAME_STATE_START:
             speed_check_inst.add_img(self.img_id)
         if self.img_id < 200:
             if self.img_id % IMG_NUM_RECORD_INTERVAL == 0:
                 self.NETWORK_IO_LOGGER.info('img_id:{}'.format(self.img_id))
-        elif self.img_id % (IMG_NUM_RECORD_INTERVAL * 25) == 0:
-            self.NETWORK_IO_LOGGER.info('img_id:{}'.format(self.img_id))
+        else:
+            if self.img_id % (IMG_NUM_RECORD_INTERVAL * 25) == 0:
+                self.NETWORK_IO_LOGGER.info('img_id:{}'.format(self.img_id))
         self.img_id += 1
 
     def check_network(self):
@@ -212,7 +214,8 @@ class NetworkClient(object):
         self.communicate_instance.send_restore_ai()
 
     def change_game_state(self, game_state):
-        self.MAIN_THREAD_LOGGER.info('game state changed in change_game_state, {last_state} -> {new_state}'.format(last_state=self.game_state, new_state=game_state))
+        self.MAIN_THREAD_LOGGER.info('game state changed in change_game_state, {last_state} -> {new_state}'.format(last_state=(self.game_state),
+          new_state=game_state))
         self.communicate_instance.send_game_state(game_state)
 
     def start_ai(self):
@@ -250,9 +253,11 @@ class NetworkClient(object):
                 speed_check_inst.caculate_ai_process_time(img_id_recv)
                 self.NETWORK_IO_LOGGER.info('recv msg:{}'.format(msg))
             img_id_sent = self.img_id - 1
-            if com_config.ui_action_on and not img_id_recv == -1 and not img_id_recv == img_id_sent:
-                self.NETWORK_IO_LOGGER.info('img_id mismatching: sent {}, received {}'.format(img_id_sent, img_id_recv))
-                msg = None
+            if com_config.ui_action_on:
+                if not img_id_recv == -1:
+                    if not img_id_recv == img_id_sent:
+                        self.NETWORK_IO_LOGGER.info('img_id mismatching: sent {}, received {}'.format(img_id_sent, img_id_recv))
+                        msg = None
         return msg
 
     def state_notify_obj_register(self, obj):
@@ -262,20 +267,22 @@ class NetworkClient(object):
         if not self.para_data.__contains__('task_id'):
             self.MAIN_THREAD_LOGGER.warning('not task_id to get')
             return
-        task_id = self.para_data.get('task_id')
-        self.MAIN_THREAD_LOGGER.info('return task_id:{}'.format(task_id))
-        return task_id
+        else:
+            task_id = self.para_data.get('task_id')
+            self.MAIN_THREAD_LOGGER.info('return task_id:{}'.format(task_id))
+            return task_id
 
     def recycle_resource_by_taskid(self):
         task_id = self.get_task_id()
         if task_id is None:
             self.MAIN_THREAD_LOGGER.warning('task_id is None, can not recycle resource')
             return (True, 'task_id is None, can not recycle resource')
-        ret = self.resource_apply_inst.recycle_resource_by_taskid(task_id)
-        if not ret:
-            self.MAIN_THREAD_LOGGER.error('recycle_resource_by_taskid')
-            return (False, 'recycle_resource_by_taskid, task_id: {}'.format(task_id))
-        return (True, '')
+        else:
+            ret = self.resource_apply_inst.recycle_resource_by_taskid(task_id)
+            if not ret:
+                self.MAIN_THREAD_LOGGER.error('recycle_resource_by_taskid')
+                return (False, 'recycle_resource_by_taskid, task_id: {}'.format(task_id))
+            return (True, '')
 
     def on_service_over(self):
         self.state_notify_inst.on_service_over()

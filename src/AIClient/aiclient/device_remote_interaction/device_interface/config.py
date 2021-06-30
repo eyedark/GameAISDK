@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/config.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 1989 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\config.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 2083 bytes
 import os, configparser
 from enum import Enum, unique
 
@@ -57,7 +57,7 @@ class IniConfigParser(object):
     def parser(self):
         if self._IniConfigParser__parser is None:
             self._IniConfigParser__parser = configparser.ConfigParser()
-            self._IniConfigParser__parser.read(self._IniConfigParser__cfg_path, encoding='UTF-8')
+            self._IniConfigParser__parser.read((self._IniConfigParser__cfg_path), encoding='UTF-8')
         return self._IniConfigParser__parser
 
     def get(self, section, key):
@@ -67,8 +67,10 @@ class IniConfigParser(object):
         :param key:
         :return:
         """
-        if self.parser and section in self.parser and key in self.parser[section]:
-            return self.parser.get(section, key)
+        if self.parser:
+            if section in self.parser:
+                if key in self.parser[section]:
+                    return self.parser.get(section, key)
 
     def set(self, section, key, value):
         """ 修改配置项
@@ -86,5 +88,5 @@ class IniConfigParser(object):
 
         :return:
         """
-        with open(self._IniConfigParser__cfg_path, 'w', encoding='UTF-8') as (fd):
+        with open((self._IniConfigParser__cfg_path), 'w', encoding='UTF-8') as (fd):
             self.parser.write(fd)

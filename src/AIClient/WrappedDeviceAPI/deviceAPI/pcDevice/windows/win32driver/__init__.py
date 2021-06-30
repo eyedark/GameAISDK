@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-# uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
-# Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
-# [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/WrappedDeviceAPI/deviceAPI/pcDevice/windows/win32driver/__init__.py
-# Compiled at: 2020-12-29 09:26:39
-# Size of source mod 2**32: 3130 bytes
+"""
+Tencent is pleased to support the open source community by making GameAISDK available.
+
+This source code file is licensed under the GNU General Public License Version 3.
+For full details, please refer to the file "LICENSE.txt" which is provided as part of this source code package.
+
+Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
+"""
+
+# -*- coding:UTF-8 -*-
+
 """驱动类
 """
-if __name__ == '__main__':
-    pass

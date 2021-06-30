@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/packages/ordered_dict.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 8935 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\packages\ordered_dict.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 9194 bytes
 try:
     from thread import get_ident as _get_ident
 except ImportError:
@@ -35,7 +35,7 @@ class OrderedDict(dict):
              root, root, None]
             self._OrderedDict__map = {}
 
-        self._OrderedDict__update(*args, **kwds)
+        (self._OrderedDict__update)(*args, **kwds)
 
     def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
         """od.__setitem__(i, y) <==> od[i]=y"""
@@ -89,14 +89,15 @@ class OrderedDict(dict):
         """
         if not self:
             raise KeyError('dictionary is empty')
-        root = self._OrderedDict__root
-        if last:
-            link = root[0]
-            link_prev = link[0]
-            link_prev[1] = root
-            root[0] = link_prev
         else:
-            link = root[1]
+            root = self._OrderedDict__root
+            if last:
+                link = root[0]
+                link_prev = link[0]
+                link_prev[1] = root
+                root[0] = link_prev
+            else:
+                link = root[1]
             link_next = link[1]
             root[1] = link_next
             link_next[0] = root
@@ -143,9 +144,9 @@ class OrderedDict(dict):
         if len(args) > 2:
             raise TypeError('update() takes at most 2 positional arguments (%d given)' % (
              len(args),))
+        elif not args:
+            raise TypeError('update() takes at least 1 argument (0 given)')
         else:
-            if not args:
-                raise TypeError('update() takes at least 1 argument (0 given)')
             self = args[0]
             other = ()
             if len(args) == 2:
@@ -178,16 +179,18 @@ class OrderedDict(dict):
             result = self[key]
             del self[key]
             return result
-        if default is self._OrderedDict__marker:
-            raise KeyError(key)
-        return default
+        else:
+            if default is self._OrderedDict__marker:
+                raise KeyError(key)
+            return default
 
     def setdefault(self, key, default=None):
         """od.setdefault(k[,d]) -> od.get(k,d), also set od[k]=d if k not in od"""
         if key in self:
             return self[key]
-        self[key] = default
-        return default
+        else:
+            self[key] = default
+            return default
 
     def __repr__(self, _repr_running={}):
         """od.__repr__() <==> repr(od)"""
@@ -199,8 +202,7 @@ class OrderedDict(dict):
         try:
             if not self:
                 return '%s()' % (self.__class__.__name__,)
-            else:
-                return '%s(%r)' % (self.__class__.__name__, self.items())
+            return '%s(%r)' % (self.__class__.__name__, self.items())
         finally:
             del _repr_running[call_key]
 
@@ -213,8 +215,9 @@ class OrderedDict(dict):
 
         if inst_dict:
             return (self.__class__, (items,), inst_dict)
-        return (
-         self.__class__, (items,))
+        else:
+            return (
+             self.__class__, (items,))
 
     def copy(self):
         """od.copy() -> a shallow copy of od"""
@@ -239,7 +242,8 @@ class OrderedDict(dict):
         """
         if isinstance(other, OrderedDict):
             return len(self) == len(other) and self.items() == other.items()
-        return dict.__eq__(self, other)
+        else:
+            return dict.__eq__(self, other)
 
     def __ne__(self, other):
         return not self == other

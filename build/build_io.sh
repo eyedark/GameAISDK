@@ -18,8 +18,8 @@ cp -f ../src/AIClient/demo.py  ../tools/AIClient/ || exit 2
 cp -R ../src/AIClient/aiclient/cfg  ../tools/AIClient/aiclient/ || exit 2
 cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/cloudscreen ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/ || exit 2
 cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/input ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/ || exit 2
-cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/pb ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/ || exit 2
-cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/apk/* ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/apk/ || exit 2
+# cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/pb ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/ || exit 2
+# cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/apk/* ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/apk/ || exit 2
 cp -R ../src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/touchserver ../tools/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/ || exit 2
 cp ../src/AIClient/aiclient/cfg/resource_result.json  ../tools/AIClient/tools/resource_result.json || exit 2
 

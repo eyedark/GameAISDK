@@ -41,3 +41,6 @@ Class_train/
 output/
 project/
 tools/AIClient/
+src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/TcpSocketHandler.py
+log/
+.vscode/

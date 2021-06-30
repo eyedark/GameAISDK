@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/aiclientapi/communication/zmq_client_communication.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 7129 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\aiclientapi\communication\zmq_client_communication.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 7315 bytes
 import os, zmq, cv2, numpy as np, json, logging
 from .client_communication import ClientCommunication
 from ...device_remote_interaction.common import define
@@ -50,11 +50,12 @@ class ZmqClientCommunication(ClientCommunication):
         if self.frame_decode_type not in define.FRAME_DECODE_TYPES:
             self.MAIN_THREAD_LOGGER.error('frame decode type error:{}'.format(self.frame_decode_type))
             return False
-        self.key = self.para_data.get('key', '')
-        if self.key == '':
-            self.MAIN_THREAD_LOGGER.error('key error, key:{}'.format(self.key))
-            return False
-        return True
+        else:
+            self.key = self.para_data.get('key', '')
+            if self.key == '':
+                self.MAIN_THREAD_LOGGER.error('key error, key:{}'.format(self.key))
+                return False
+            return True
 
     def get_ip_port(self):
         ip = self.para_data['ip']
@@ -79,15 +80,16 @@ class ZmqClientCommunication(ClientCommunication):
 
     def recv_msg(self):
         try:
-            msg_data = self.sock_recv.recv(flags=zmq.NOBLOCK)
+            msg_data = self.sock_recv.recv(flags=(zmq.NOBLOCK))
         except Exception as err:
             return
 
         if msg_data is None:
             self.NETWORK_IO_LOGGER.warning('recv data is None in zmq')
             return msg_data
-        msg_data = self.unpack_msg(msg_data)
-        return msg_data
+        else:
+            msg_data = self.unpack_msg(msg_data)
+            return msg_data
 
     def send_check_network(self):
         msg_data = dict()
@@ -168,17 +170,18 @@ class ZmqClientCommunication(ClientCommunication):
     def convert_img_data(self, img_id, img_data, send_type):
         if send_type == define.RAW_IMG_SEND_TYPE:
             return (True, img_data)
-        if send_type == define.BINARY_IMG_SEND_TYPE:
-            if bytes != type(img_data):
-                self.NETWORK_IO_LOGGER.error('send img type error:{} in BINARY_IMG_SEND_TYPE'.format(send_type))
-                return (False, '')
         else:
-            if send_type == define.CV2_EN_DECODE_IMG_SEND_TYPE:
-                img_encode = cv2.imencode('.jpg', img_data)[1]
-                data_encode = np.array(img_encode)
-                img_data = data_encode.tostring()
+            if send_type == define.BINARY_IMG_SEND_TYPE:
+                if bytes != type(img_data):
+                    self.NETWORK_IO_LOGGER.error('send img type error:{} in BINARY_IMG_SEND_TYPE'.format(send_type))
+                    return (False, '')
             else:
-                self.NETWORK_IO_LOGGER.error('img send type error, type:{}'.format(send_type))
-                return (False, '')
-        return (
-         True, img_data)
+                if send_type == define.CV2_EN_DECODE_IMG_SEND_TYPE:
+                    img_encode = cv2.imencode('.jpg', img_data)[1]
+                    data_encode = np.array(img_encode)
+                    img_data = data_encode.tostring()
+                else:
+                    self.NETWORK_IO_LOGGER.error('img send type error, type:{}'.format(send_type))
+                    return (False, '')
+            return (
+             True, img_data)

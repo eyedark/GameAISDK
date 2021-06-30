@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/py_logger.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 699 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\py_logger.py
+# Compiled at: 2021-02-23 16:10:42
+# Size of source mod 2**32: 725 bytes
 import os, logging, logging.config, shutil, json
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(ROOT_DIR, 'log')
@@ -24,4 +24,4 @@ def setup_logging():
             config = json.load(f)
         logging.config.dictConfig(config)
     else:
-        raise Exception('LOG_CONFIG_FILE does not exist {}'.format(LOG_CONFIG_FILE))
+        raise Exception('LOG_CONFIG_FILE does not exist')

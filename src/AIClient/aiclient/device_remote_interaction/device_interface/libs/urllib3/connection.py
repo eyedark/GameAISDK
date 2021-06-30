@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/urllib3/connection.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 11617 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\device_interface\libs\urllib3\connection.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 11947 bytes
 from __future__ import absolute_import
 import datetime, logging, os, sys, socket
 from socket import error as SocketError, timeout as SocketTimeout
@@ -42,8 +42,8 @@ from .util.ssl_ import resolve_cert_reqs, resolve_ssl_version, ssl_wrap_socket, 
 from .util import connection
 from ._collections import HTTPHeaderDict
 log = logging.getLogger(__name__)
-port_by_scheme = {'http': 80, 
- 'https': 443}
+port_by_scheme = {'http':80, 
+ 'https':443}
 RECENT_DATE = datetime.date(2014, 1, 1)
 
 class DummyConnection(object):
@@ -65,7 +65,7 @@ class HTTPConnection(_HTTPConnection, object):
         if sys.version_info < (2, 7):
             kw.pop('source_address', None)
         self.socket_options = kw.pop('socket_options', self.default_socket_options)
-        _HTTPConnection.__init__(self, *args, **kw)
+        (_HTTPConnection.__init__)(self, *args, **kw)
 
     def _new_conn(self):
         """ Establish a socket connection and set nodelay settings on it.
@@ -78,8 +78,9 @@ class HTTPConnection(_HTTPConnection, object):
         if self.socket_options:
             extra_kw['socket_options'] = self.socket_options
         try:
-            conn = connection.create_connection((
-             self.host, self.port), self.timeout, **extra_kw)
+            conn = (connection.create_connection)(
+             (
+              self.host, self.port), (self.timeout), **extra_kw)
         except SocketTimeout as e:
             raise ConnectTimeoutError(self, 'Connection to %s timed out. (connect timeout=%s)' % (
              self.host, self.timeout))
@@ -136,7 +137,7 @@ class HTTPSConnection(HTTPConnection):
     default_port = port_by_scheme['https']
 
     def __init__(self, host, port=None, key_file=None, cert_file=None, strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, **kw):
-        HTTPConnection.__init__(self, host, port, strict=strict, timeout=timeout, **kw)
+        (HTTPConnection.__init__)(self, host, port, strict=strict, timeout=timeout, **kw)
         self.key_file = key_file
         self.cert_file = cert_file
         self._protocol = 'https'
@@ -156,8 +157,9 @@ class VerifiedHTTPSConnection(HTTPSConnection):
     assert_fingerprint = None
 
     def set_cert(self, key_file=None, cert_file=None, cert_reqs=None, ca_certs=None, assert_hostname=None, assert_fingerprint=None, ca_cert_dir=None):
-        if (ca_certs or ca_cert_dir) and cert_reqs is None:
-            cert_reqs = 'CERT_REQUIRED'
+        if ca_certs or ca_cert_dir:
+            if cert_reqs is None:
+                cert_reqs = 'CERT_REQUIRED'
         self.key_file = key_file
         self.cert_file = cert_file
         self.cert_reqs = cert_reqs
@@ -176,17 +178,23 @@ class VerifiedHTTPSConnection(HTTPSConnection):
             self._tunnel()
             self.auto_open = 0
             hostname = self._tunnel_host
-        is_time_off = datetime.date.today() < RECENT_DATE
-        if is_time_off:
-            warnings.warn('System time is way off (before {0}). This will probably lead to SSL verification errors'.format(RECENT_DATE), SystemTimeWarning)
-        self.sock = ssl_wrap_socket(conn, self.key_file, self.cert_file, cert_reqs=resolved_cert_reqs, ca_certs=self.ca_certs, ca_cert_dir=self.ca_cert_dir, server_hostname=hostname, ssl_version=resolved_ssl_version)
-        if self.assert_fingerprint:
-            assert_fingerprint(self.sock.getpeercert(binary_form=True), self.assert_fingerprint)
-        elif resolved_cert_reqs != ssl.CERT_NONE and self.assert_hostname is not False:
-            cert = self.sock.getpeercert()
-            if not cert.get('subjectAltName', ()):
-                warnings.warn('Certificate for {0} has no `subjectAltName`, falling back to check for a `commonName` for now. This feature is being removed by major browsers and deprecated by RFC 2818. (See https://github.com/shazow/urllib3/issues/497 for details.)'.format(hostname), SubjectAltNameWarning)
-            _match_hostname(cert, self.assert_hostname or hostname)
+        else:
+            is_time_off = datetime.date.today() < RECENT_DATE
+            if is_time_off:
+                warnings.warn('System time is way off (before {0}). This will probably lead to SSL verification errors'.format(RECENT_DATE), SystemTimeWarning)
+            self.sock = ssl_wrap_socket(conn, (self.key_file), (self.cert_file), cert_reqs=resolved_cert_reqs,
+              ca_certs=(self.ca_certs),
+              ca_cert_dir=(self.ca_cert_dir),
+              server_hostname=hostname,
+              ssl_version=resolved_ssl_version)
+            if self.assert_fingerprint:
+                assert_fingerprint(self.sock.getpeercert(binary_form=True), self.assert_fingerprint)
+            elif resolved_cert_reqs != ssl.CERT_NONE:
+                if self.assert_hostname is not False:
+                    cert = self.sock.getpeercert()
+                    if not cert.get('subjectAltName', ()):
+                        warnings.warn('Certificate for {0} has no `subjectAltName`, falling back to check for a `commonName` for now. This feature is being removed by major browsers and deprecated by RFC 2818. (See https://github.com/shazow/urllib3/issues/497 for details.)'.format(hostname), SubjectAltNameWarning)
+                    _match_hostname(cert, self.assert_hostname or hostname)
         self.is_verified = resolved_cert_reqs == ssl.CERT_REQUIRED or self.assert_fingerprint is not None
 
 

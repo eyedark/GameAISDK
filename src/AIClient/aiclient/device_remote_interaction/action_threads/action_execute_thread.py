@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
+# Python bytecode 3.6 (3379)
 # Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
 # [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/action_threads/action_execute_thread.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 12126 bytes
+# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi\aiclient\device_remote_interaction\action_threads\action_execute_thread.py
+# Compiled at: 2021-02-23 16:10:41
+# Size of source mod 2**32: 12355 bytes
 import threading, time, os, configparser, traceback, logging
 from ...aiclientapi.performance_profile.speed_check import speed_check_inst
 from ...aiclientapi.tool_manage import communicate_config as com_config
@@ -47,14 +47,14 @@ class ActionExecuteThread(threading.Thread):
             err_info = 'Unknown device_type {}, should be one of {}'.format(self.device_type, DeviceType)
             return (
              False, err_info)
-        ret, self.para_data, error_str = para_context.para_context_inst.init(CFG_FILE)
-        if not ret:
-            self.state_notify_inst.on_exception(exception_type=self.state_notify_inst.CONFIG_PARAMS_LOAD_ERROR, description=error_str)
-            return (
-             False, error_str)
-        self.max_none_action_time = self.para_data.get('max_none_action_time', MAX_NONE_ACTION_TIME)
-        self.service = self.para_data.get('service')
-        return (True, '')
+        else:
+            ret, self.para_data, error_str = para_context.para_context_inst.init(CFG_FILE)
+            if not ret:
+                self.state_notify_inst.on_exception(exception_type=(self.state_notify_inst.CONFIG_PARAMS_LOAD_ERROR), description=error_str)
+                return (False, error_str)
+            self.max_none_action_time = self.para_data.get('max_none_action_time', MAX_NONE_ACTION_TIME)
+            self.service = self.para_data.get('service')
+            return (True, '')
 
     def init(self):
         ret, err = self.load_parameter()
@@ -75,12 +75,13 @@ class ActionExecuteThread(threading.Thread):
                     if not self.action_handler.init():
                         self.MAIN_THREAD_LOGGER.error('android action handler init failed')
                         return False
-                elif self.device_type == DeviceType.Windows.value:
-                    from ..action_handlers.windows_action_handler import WindowsActionHandler
-                    self.action_handler = WindowsActionHandler()
-            if not self.action_handler.init():
-                self.MAIN_THREAD_LOGGER.error('windows action handler init failed')
-                return False
+                else:
+                    if self.device_type == DeviceType.Windows.value:
+                        from ..action_handlers.windows_action_handler import WindowsActionHandler
+                        self.action_handler = WindowsActionHandler()
+                        if not self.action_handler.init():
+                            self.MAIN_THREAD_LOGGER.error('windows action handler init failed')
+                            return False
         except Exception as err:
             self.MAIN_THREAD_LOGGER.error('{} action handler created failed: {}'.format(self.device_type, err))
             self.MAIN_THREAD_LOGGER.error(traceback.format_exc())
@@ -94,22 +95,23 @@ class ActionExecuteThread(threading.Thread):
                 if com_config.ui_action_on:
                     if none_action_start_time is None:
                         none_action_start_time = time.time()
-            else:
-                if time.time() - none_action_start_time > self.max_none_action_time:
-                    self.DEVICE_DRIVER_LOGGER.info('have not received any action in the last {} seconds.'.format(self.max_none_action_time))
-                    com_config.send_frame = True
-                    none_action_start_time = None
+                    elif time.time() - none_action_start_time > self.max_none_action_time:
+                        self.DEVICE_DRIVER_LOGGER.info('have not received any action in the last {} seconds.'.format(self.max_none_action_time))
+                        com_config.send_frame = True
+                        none_action_start_time = None
                 time.sleep(0.002)
                 continue
-                if com_config.ui_action_on and none_action_start_time is not None and time.time() - none_action_start_time > self.max_none_action_time:
-                    self.DEVICE_DRIVER_LOGGER.info('have not received any action in the last {} seconds.'.format(self.max_none_action_time))
-                    com_config.send_frame = True
-                    none_action_start_time = None
+            if com_config.ui_action_on:
+                if none_action_start_time is not None:
+                    if time.time() - none_action_start_time > self.max_none_action_time:
+                        self.DEVICE_DRIVER_LOGGER.info('have not received any action in the last {} seconds.'.format(self.max_none_action_time))
+                        com_config.send_frame = True
+                        none_action_start_time = None
             self.DEVICE_DRIVER_LOGGER.info('get action item: {}'.format(msg))
             msg_id = msg.get('msg_id', -1)
             if msg_id == -1:
                 self.DEVICE_DRIVER_LOGGER.error('msg_id error:{}'.format(msg))
-                continue
+            else:
                 if msg_id == define.MSG_AI_ACTION:
                     try:
                         self.action_handler.do_action(msg)
@@ -140,9 +142,10 @@ class ActionExecuteThread(threading.Thread):
                     else:
                         if msg_id == define.MSG_GAME_STATE:
                             game_state = msg.get('game_state', define.GAME_STATE_NONE)
-                            if game_state != define.GAME_STATE_NONE and game_state != com_config.GAME_STATE:
-                                self.MAIN_THREAD_LOGGER.info('game_state changed, from {a} to {b}'.format(a=com_config.GAME_STATE, b=game_state))
-                                com_config.GAME_STATE = game_state
+                            if game_state != define.GAME_STATE_NONE:
+                                if game_state != com_config.GAME_STATE:
+                                    self.MAIN_THREAD_LOGGER.info('game_state changed, from {a} to {b}'.format(a=(com_config.GAME_STATE), b=game_state))
+                                    com_config.GAME_STATE = game_state
                             if game_state == define.GAME_STATE_START:
                                 self.DEVICE_DRIVER_LOGGER.info('Use AI action')
                                 com_config.ui_action_on = False
@@ -150,13 +153,15 @@ class ActionExecuteThread(threading.Thread):
                                 if game_state == define.GAME_STATE_UI:
                                     self.DEVICE_DRIVER_LOGGER.info('Using UI action')
                                     com_config.ui_action_on = True
-                                elif game_state == define.GAME_STATE_OVER or game_state == define.GAME_STATE_MATCH_WIN:
-                                    self.MAIN_THREAD_LOGGER.info('Round {} done. Counted by GAME_STATE'.format(self.cur_runtimes_by_game_state))
-                                    if self.cur_runtimes_by_game_state == com_config.runtimes and self.service == 2:
-                                        self.MAIN_THREAD_LOGGER.info('UI agent: reached maximum runtimes: {}'.format(com_config.runtimes))
-                                        com_config.terminate = True
-                                    else:
-                                        self.cur_runtimes_by_game_state += 1
+                                else:
+                                    if game_state == define.GAME_STATE_OVER or game_state == define.GAME_STATE_MATCH_WIN:
+                                        self.MAIN_THREAD_LOGGER.info('Round {} done. Counted by GAME_STATE'.format(self.cur_runtimes_by_game_state))
+                                        if self.cur_runtimes_by_game_state == com_config.runtimes:
+                                            if self.service == 2:
+                                                self.MAIN_THREAD_LOGGER.info('UI agent: reached maximum runtimes: {}'.format(com_config.runtimes))
+                                                com_config.terminate = True
+                                        else:
+                                            self.cur_runtimes_by_game_state += 1
                         else:
                             if msg_id == define.MSG_AGENT_STATE:
                                 self.state_notify(msg)
@@ -168,8 +173,8 @@ class ActionExecuteThread(threading.Thread):
                                         self.ai_service_state_detect(msg)
                                     else:
                                         self.DEVICE_DRIVER_LOGGER.error('msg_id error:{}'.format(msg))
-                    if self.device_type == DeviceType.Android.value:
-                        self.action_handler.call_ui_login(msg)
+                if self.device_type == DeviceType.Android.value:
+                    self.action_handler.call_ui_login(msg)
                 time.sleep(0.001)
 
         self.MAIN_THREAD_LOGGER.info('action_execute_thread terminated...')

@@ -268,7 +268,6 @@ class Adb(object):
             return self.raw_cmd(*args)
 
     def raw_cmd(self, *args):
-        return
         cmd_line = [
          self.adb()] + self.adbHostPortOptions + list(args)
         logger.info(cmd_line)
@@ -278,7 +277,6 @@ class Adb(object):
         return subprocess.Popen(cmd_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def device_serial(self):
-        return
         devices = self.default_serial or self.devices()
         if devices:
             if len(devices) is 1:
@@ -290,7 +288,6 @@ class Adb(object):
         return self.default_serial
 
     def devices(self):
-        return
         out = self.raw_cmd('devices').communicate()[0].decode('utf-8')
         match = 'List of devices attached'
         index = out.find(match)
@@ -304,7 +301,6 @@ class Adb(object):
 
     def forward_list(self):
         """adb forward --list"""
-        return
         version = self.version()
         if int(version[1]) <= 1 and int(version[2]) <= 0 and int(version[3]) < 31:
             raise EnvironmentError('Low adb version.')
@@ -312,7 +308,6 @@ class Adb(object):
         return [line.strip().split() for line in lines]
 
     def version(self):
-        return
         match = re.search('(\\d+)\\.(\\d+)\\.(\\d+)', self.raw_cmd('version').communicate()[0].decode('utf-8'))
         return [match.group(i) for i in range(4)]
 
@@ -484,7 +479,6 @@ class AutomatorServer(object):
             return self._AutomatorServer__sdk
 
     def start(self, timeout=5):
-        return
         logger.info('Start the rpc server.')
         files = self.push()
         cmd = list(itertools.chain([
@@ -511,7 +505,6 @@ class AutomatorServer(object):
         return self.ping() == 'pong'
 
     def stop(self):
-        return
         logger.info('stop the rpc server.')
         logger.info(self.uiautomator_process)
         if self.uiautomator_process and self.uiautomator_process.poll() is None:

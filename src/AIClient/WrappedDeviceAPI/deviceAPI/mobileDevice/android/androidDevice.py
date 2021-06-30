@@ -1,96 +1,107 @@
 # -*- coding: utf-8 -*-
-# uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
-# Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
-# [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/WrappedDeviceAPI/deviceAPI/mobileDevice/android/androidDevice.py
-# Compiled at: 2020-12-29 09:26:39
-# Size of source mod 2**32: 31133 bytes
-import cv2, traceback
-from .androidDeviceAPI import *
-from .devicePlatform.IPlatformProxy import *
+"""
+Tencent is pleased to support the open source community by making GameAISDK available.
+
+This source code file is licensed under the GNU General Public License Version 3.
+For full details, please refer to the file "LICENSE.txt" which is provided as part of this source code package.
+
+Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
+"""
+
+import os
+import sys
+import logging
+from logging.handlers import RotatingFileHandler
+
+import cv2
+
+from .androidDeviceAPI import AndroidDeviceAPI
+from .APIDefine import LOG_DEBUG, LOG_DEFAULT, TOUCH_CMD_LIST, DEVICE_CMD_LIST, TOUCH_KEY, \
+    TOUCH_CLICK, TOUCH_UP, TOUCH_MOVE, TOUCH_DOWN, TOUCH_SWIPE, TOUCH_SWIPEMOVE, TOUCH_RESET, DEVICE_KEY, \
+    DEVICE_CLICK, DEVICE_CLEARAPP, DEVICE_CURAPP, DEVICE_EXIT, DEVICE_INSTALL, DEVICE_START, \
+    DEVICE_TEXT, DEVICE_SCREENORI, DEVICE_SCREENSHOT, DEVICE_MAXCONTACT, DEVICE_PARAM, DEVICE_SLEEP, \
+    DEVICE_SWIPE, DEVICE_WAKE, DEVICE_WMSIZE, LOG_LIST, LOG_FORMAT
+
 from ...iDevice import IDevice
+
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(cur_dir)
+PP_RET_OK = 0
+
 
 class AndroidDevice(IDevice):
+    def __init__(self, platform_type):
+        super(AndroidDevice, self).__init__(platform_type)
+        self.__deviceApi = AndroidDeviceAPI(platform_type)
+        self.__height = -1
+        self.__width = -1
+        self.__pid = os.getpid()
+        self.__serial = '*'
+        self.__showScreen = False
+        self.__maxContact = 10
+        self.__logger = None
 
-    def __init__(self, platform):
-        IDevice.__init__(self, platform)
-        self._AndroidDevice__deviceApi = AndroidDeviceAPI(platform)
-        self._AndroidDevice__height = -1
-        self._AndroidDevice__width = -1
-        self._AndroidDevice__pid = os.getpid()
-        self._AndroidDevice__serial = '*'
-
-    def initialize(self, log_dir, level=LOG_DEBUG, long_edge=1280, device_serial=None, is_portrait=False, show_raw_screen=False, **kwargs):
+    def initialize(self, log_dir, **kwargs):
         """
         :param device_serial: str, 手机序列号,默认为None，当接入一个设备时可不指定序列号，当接入多个设备时需要指定
-        :param is_portrait: bool, 手机为横屏还是竖屏，True为竖屏，False为横屏
         :param long_edge: int, 长边的长度
         :param log_dir: str, 日志存放目录
-        :param level: enum, 指定日志级别，取值为[LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_CRITICAL]，默认为LOG_DEBUG
+        :param level: enum, 指定日志级别，
+                      取值为[LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_CRITICAL]，默认为LOG_DEBUG
         :param show_raw_screen: bool, 是否显示手机图片
         :param kwargs: dict, 一些组件需要的参数，可以自己定义，例如端口号等等
         """
-        try:
-            if device_serial is not None:
-                log_dir = os.path.join(log_dir, device_serial.replace(':', '_')) + os.path.sep
-                self._AndroidDevice__serial = device_serial
-                if not self._LogInit(log_dir, level, device_serial):
-                    raise RuntimeError('init log failed')
-            else:
-                log_dir = os.path.join(log_dir, LOG_DEFAULT) + os.path.sep
-                if not self._LogInit(log_dir, level, LOG_DEFAULT):
-                    raise RuntimeError('init log failed')
-                kwargs['standalone'] = 0 if os.environ.get('PLATFORM_IP') else 1
-                if not self._AndroidDevice__deviceApi.Initialize(device_serial, is_portrait, long_edge, kwargs):
-                    self._AndroidDevice__logger.error('DeviceAPI initial failed')
-                    raise RuntimeError('DeviceAPI initial failed')
-                self._AndroidDevice__showScreen = show_raw_screen
-                self._AndroidDevice__maxContact = self._AndroidDevice__deviceApi.GetMaxContact()
-                maxContact = self._AndroidDevice__maxContact
-                exec('self.__maxContact = maxContact')
-                self._AndroidDevice__height, self._AndroidDevice__width, strError = self._AndroidDevice__deviceApi.GetScreenResolution()
-                if self._AndroidDevice__height == -1 and self._AndroidDevice__width == -1:
-                    self._AndroidDevice__logger.error(strError)
-                    raise RuntimeError(strError)
-                if is_portrait:
-                    height = long_edge
-                    width = self._AndroidDevice__width * height / self._AndroidDevice__height
-                else:
-                    width = long_edge
-                    height = self._AndroidDevice__width * width / self._AndroidDevice__height
-            exec('self.__width = width')
-            exec('self.__height = height')
-            self._AndroidDevice__logger.info('init successful')
-            return True
-        except Exception as e:
-            self._AndroidDevice__logger.error(e)
-            traceback.print_exc()
-            raise e
+        level = kwargs.pop('level') if 'level' in kwargs else logging.DEBUG
+        long_edge = kwargs.pop('long_edge') if 'long_edge' in kwargs else 1280
+        device_serial = kwargs.pop('device_serial') if 'device_serial' in kwargs else None
+        show_raw_screen = kwargs.pop('show_raw_screen') if 'show_raw_screen' in kwargs else False
+
+        if device_serial is not None:
+            log_dir = os.path.join(log_dir, device_serial.replace(':', "_")) + os.path.sep
+            self.__serial = device_serial
+            if not self._LogInit(log_dir, level, device_serial):
+                raise RuntimeError("init log failed")
+        else:
+            log_dir = os.path.join(log_dir, LOG_DEFAULT) + os.path.sep
+            if not self._LogInit(log_dir, level, LOG_DEFAULT):
+                raise RuntimeError("init log failed")
+
+        kwargs['standalone'] = 0 if os.environ.get("PLATFORM_IP") else 1
+        if not self.__deviceApi.Initialize(device_serial, long_edge, **kwargs):
+            self.__logger.error('DeviceAPI initial failed')
+            raise RuntimeError("DeviceAPI initial failed")
+        self.__showScreen = show_raw_screen
+        self.__maxContact = self.__deviceApi.GetMaxContact()
+        self.__height, self.__width, strError = self.__deviceApi.GetScreenResolution()
+        if self.__height == -1 and self.__width == -1:
+            self.__logger.error(strError)
+            raise RuntimeError(strError)
+
+        height = long_edge
+        width = self.__width * height / self.__height
+
+        self.__width = width
+        self.__height = height
+        self.__logger.info("init successful")
+        return True
 
     def deInitialize(self):
-        return self._AndroidDevice__deviceApi.DeInitialize()
+        return self.__deviceApi.DeInitialize()
 
-    def getScreen(self):
+    def getScreen(self, **kwargs):
         """
         :return: Mat类型的图像/None
         """
-        try:
-            self._CheckException()
-            err, image = self._AndroidDevice__deviceApi.GetFrame()
-            if err != PP_RET_OK:
-                raise Exception('get image error')
-            if image is not None and self._AndroidDevice__showScreen:
-                self._AndroidDevice__logger.info('get image')
-                cv2.imshow('pid:' + str(self._AndroidDevice__pid) + ' serial:' + str(self._AndroidDevice__serial), image)
-                cv2.waitKey(1)
-            return image
-        except Exception as e:
-            self._AndroidDevice__logger.error('get image error [{}]'.format(e))
-            self._AndroidDevice__logger.error(traceback.format_exc())
-            raise e
+        err, image = self.__deviceApi.GetFrame()
+        if err != PP_RET_OK:
+            self.__logger.error('failed to get frame')
+            return None
+
+        if image is not None and self.__showScreen:
+            self.__logger.info("get image")
+            cv2.imshow('pid:' + str(self.__pid) + ' serial:' + str(self.__serial), image)
+            cv2.waitKey(1)
+        return image
 
     def doAction(self, **kwargs):
         aType = kwargs['aType']
@@ -98,324 +109,243 @@ class AndroidDevice(IDevice):
             return self.TouchCMD(**kwargs)
         if aType in DEVICE_CMD_LIST:
             return self.DeviceCMD(**kwargs)
-        raise Exception('unknown action type: {}, {}'.format(aType, kwargs))
+        raise Exception("unknown action type: %s, %s", aType, kwargs)
 
     def TouchCMD(self, **kwargs):
-        try:
-            self._CheckException()
-            for key in kwargs.keys():
-                if key not in TOUCH_KEY:
-                    self._AndroidDevice__logger.error('wrong key of kwargs: {0}'.format(key))
-                    return False
+        """ 执行操作
 
-            neededFlag, actionType = self._GetValuesInkwargs('aType', True, None, kwargs)
-            if not neededFlag:
-                self._AndroidDevice__logger.error('aType is needed when exec TouchCommand')
+        :kwargs: dict,
+            aType参数表示动作类型[TOUCH_CLICK, TOUCH_DOWN, TOUCH_UP, TOUCH_SWIPE, TOUCH_MOVE]
+            sx为x坐标，当aType为[TOUCH_CLICK, TOUCH_DOWN]时表示按压点的x坐标，
+                当aType为[TOUCH_SWIPE, TOUCH_MOVE]时表示起始点的x坐标
+            sy为y坐标，当aType为[TOUCH_CLICK, TOUCH_DOWN]时表示按压点的y坐标，
+                当aType为[TOUCH_SWIPE, TOUCH_MOVE]时表示起始点的y坐标
+            ex为x坐标，当aType为[TOUCH_SWIPE, TOUCH_MOVE]时表示结束点的x坐标
+            ex为y坐标，当aType为[TOUCH_SWIPE, TOUCH_MOVE]时表示结束点的y坐标
+            DaType为执行该操作的方式，有minitouch方式和ADB命令方式，分别表示为[DACT_TOUCH, DACT_ADB]，默认为DACT_TOUCH
+            contact为触点，默认为0
+            durationMS为执行一次动作持续的时间，在aType为[TOUCH_CLICK, TOUCH_SWIPE]时使用，
+                当aType为TOUCH_CLICK时默认为-1，当aType为TOUCH_SWIPE时默认为50
+            needUp仅在aType为TOUCH_SWIPE时使用，表示滑动后是否需要抬起，默认为True
+        :return: True or False
+        """
+        for key in kwargs:
+            if key not in TOUCH_KEY:
+                self.__logger.error('wrong key of kwargs: %s', key)
                 return False
-            else:
-                if actionType == TOUCH_CLICK:
-                    neededFlag, px = self._GetValuesInkwargs('sx', True, None, kwargs)
-                    if not self._CheckVar(neededFlag, 'sx', actionType, px, int, 'var >= 0 and var < self.__width'):
-                        return False
-                    neededFlag, py = self._GetValuesInkwargs('sy', True, None, kwargs)
-                    if not self._CheckVar(neededFlag, 'sy', actionType, py, int, 'var >= 0 and var < self.__height'):
-                        return False
-                    neededFlag, contact = self._GetValuesInkwargs('contact', False, 0, kwargs)
-                    if not self._CheckVar(neededFlag, 'contact', actionType, contact, int, 'var >= 0 and var <= self.__maxContact'):
-                        return False
-                    neededFlag, durationMS = self._GetValuesInkwargs('durationMS', False, -1, kwargs)
-                    if not self._CheckVar(neededFlag, 'durationMS', actionType, durationMS, int, 'var >= -1'):
-                        return False
-                    neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                    if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                        self._AndroidDevice__logger.error('wrong wait_time when exec click, wait_time:{0}'.format(wait_time))
-                        return False
-                    self._AndroidDevice__logger.info('platform click, x: {0}, y {1}, contact: {2}, durationMS: {3}, waitTime: {4}'.format(px, py, contact, durationMS, wait_time))
-                    self._AndroidDevice__deviceApi.Click(px, py, contact, durationMS, wait_time)
-                else:
-                    if actionType == TOUCH_DOWN:
-                        neededFlag, px = self._GetValuesInkwargs('sx', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'sx', actionType, px, int, 'var >= 0 and var < self.__width'):
-                            return False
-                        neededFlag, py = self._GetValuesInkwargs('sy', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'sy', actionType, py, int, 'var >= 0 and var < self.__height'):
-                            return False
-                        neededFlag, contact = self._GetValuesInkwargs('contact', False, 0, kwargs)
-                        if not self._CheckVar(neededFlag, 'contact', actionType, contact, int, 'var >= 0 and var <= self.__maxContact'):
-                            return False
-                        neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                        if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                            self._AndroidDevice__logger.error('wrong wait_time when exec down, wait_time:{0}'.format(wait_time))
-                            return False
-                        self._AndroidDevice__logger.info('platform down, x: {0}, y {1}, contact: {2}, waitTime: {3}'.format(px, py, contact, wait_time))
-                        self._AndroidDevice__deviceApi.Down(px, py, contact, wait_time)
-                    else:
-                        if actionType == TOUCH_UP:
-                            neededFlag, contact = self._GetValuesInkwargs('contact', False, 0, kwargs)
-                            if not self._CheckVar(neededFlag, 'contact', actionType, contact, int, 'var >= 0 and var <= self.__maxContact'):
-                                return False
-                            neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                            if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                                self._AndroidDevice__logger.error('wrong wait_time when exec up, wait_time:{0}'.format(wait_time))
-                                return False
-                            self._AndroidDevice__logger.info('platform up, contact: {0}, waitTime: {1}'.format(contact, wait_time))
-                            self._AndroidDevice__deviceApi.Up(contact, wait_time)
-                        else:
-                            if actionType == TOUCH_SWIPE:
-                                neededFlag, sx = self._GetValuesInkwargs('sx', True, None, kwargs)
-                                if not self._CheckVar(neededFlag, 'sx', actionType, sx, int, 'var >= 0 and var < self.__width'):
-                                    return False
-                                neededFlag, sy = self._GetValuesInkwargs('sy', True, None, kwargs)
-                                if not self._CheckVar(neededFlag, 'sy', actionType, sy, int, 'var >= 0 and var < self.__height'):
-                                    return False
-                                neededFlag, ex = self._GetValuesInkwargs('ex', True, None, kwargs)
-                                if not self._CheckVar(neededFlag, 'ex', actionType, ex, int, 'var >= 0 and var < self.__width'):
-                                    return False
-                                neededFlag, ey = self._GetValuesInkwargs('ey', True, None, kwargs)
-                                if not self._CheckVar(neededFlag, 'ey', actionType, ey, int, 'var >= 0 and var < self.__height'):
-                                    return False
-                                neededFlag, contact = self._GetValuesInkwargs('contact', False, 0, kwargs)
-                                if not self._CheckVar(neededFlag, 'contact', actionType, contact, int, 'var >= 0 and var <= self.__maxContact'):
-                                    return False
-                                neededFlag, durationMS = self._GetValuesInkwargs('durationMS', False, 50, kwargs)
-                                if not self._CheckVar(neededFlag, 'durationMS', actionType, durationMS, int, 'var >= 0'):
-                                    return False
-                                neededFlag, needUp = self._GetValuesInkwargs('needUp', False, True, kwargs)
-                                if not self._CheckVar(neededFlag, 'needUp', actionType, needUp, bool, 'True'):
-                                    return False
-                                neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                                if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                                    self._AndroidDevice__logger.error('wrong wait_time when exec swipe, wait_time:{0}'.format(wait_time))
-                                    return False
-                                self._AndroidDevice__logger.info('platform swipe, sx: {0}, sy {1}, ex: {2}, ey {3}, contact: {4}, durationMS: {5}, waitTime: {6}'.format(sx, sy, ex, ey, contact, durationMS, wait_time))
-                                self._AndroidDevice__deviceApi.Swipe(sx, sy, ex, ey, contact, durationMS, needUp, wait_time)
-                            else:
-                                if actionType == TOUCH_MOVE:
-                                    neededFlag, px = self._GetValuesInkwargs('sx', True, None, kwargs)
-                                    if not self._CheckVar(neededFlag, 'sx', actionType, px, int, 'var >= 0 and var < self.__width'):
-                                        return False
-                                    neededFlag, py = self._GetValuesInkwargs('sy', True, None, kwargs)
-                                    if not self._CheckVar(neededFlag, 'sy', actionType, py, int, 'var >= 0 and var < self.__height'):
-                                        return False
-                                    neededFlag, contact = self._GetValuesInkwargs('contact', False, 0, kwargs)
-                                    if not self._CheckVar(neededFlag, 'contact', actionType, contact, int, 'var >= 0 and var <= self.__maxContact'):
-                                        return False
-                                    neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                                    if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                                        self._AndroidDevice__logger.error('wrong wait_time when exec move, wait_time:{0}'.format(wait_time))
-                                        return False
-                                    self._AndroidDevice__logger.info('platform move, px: {0}, py {1}, contact: {2}, waitTime: {3}'.format(px, py, contact, wait_time))
-                                    self._AndroidDevice__deviceApi.Move(px, py, contact, wait_time)
-                                else:
-                                    if actionType == TOUCH_SWIPEMOVE:
-                                        neededFlag, px = self._GetValuesInkwargs('sx', True, None, kwargs)
-                                        if not self._CheckVar(neededFlag, 'sx', actionType, px, int, 'var >= 0 and var < self.__width'):
-                                            return False
-                                        neededFlag, py = self._GetValuesInkwargs('sy', True, None, kwargs)
-                                        if not self._CheckVar(neededFlag, 'sy', actionType, py, int, 'var >= 0 and var < self.__height'):
-                                            return False
-                                        neededFlag, contact = self._GetValuesInkwargs('contact', False, 0, kwargs)
-                                        if not self._CheckVar(neededFlag, 'contact', actionType, contact, int, 'var >= 0 and var <= self.__maxContact'):
-                                            return False
-                                        neededFlag, durationMS = self._GetValuesInkwargs('durationMS', False, 50, kwargs)
-                                        if not self._CheckVar(neededFlag, 'durationMS', actionType, durationMS, int, 'var >= 0'):
-                                            return False
-                                        neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                                        if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                                            self._AndroidDevice__logger.error('wrong wait_time when exec swipemove, wait_time:{0}'.format(wait_time))
-                                            return False
-                                        self._AndroidDevice__logger.info('platform swipemove, px: {0}, py {1}, contact: {2}, durationMS: {3} waitTime: {4}'.format(px, py, contact, durationMS, wait_time))
-                                        self._AndroidDevice__deviceApi.SwipeMove(px, py, contact, durationMS, wait_time)
-                                    else:
-                                        if actionType == TOUCH_RESET:
-                                            neededFlag, wait_time = self._GetValuesInkwargs('wait_time', False, 0, kwargs)
-                                            if not neededFlag or not (isinstance(wait_time, int) or isinstance(wait_time, float)) or wait_time < 0:
-                                                self._AndroidDevice__logger.error('wrong wait_time when exec reset, wait_time:{0}'.format(wait_time))
-                                                return False
-                                            self._AndroidDevice__logger.info('platform reset, waitTime: {0}'.format(wait_time))
-                                            self._AndroidDevice__deviceApi.Reset(wait_time=wait_time)
-                                        else:
-                                            self._AndroidDevice__logger.error('Wrong aType when TouchCommand, aType:{0}'.format(actionType))
-                                            return False
-                return True
-        except Exception as e:
-            self._AndroidDevice__logger.error(e)
-            traceback.print_exc()
+
+        actionType = kwargs.get('aType')
+        if not actionType:
+            self.__logger.error('aType is needed when exec TouchCommand')
             return False
 
-    def DeviceCMD(self, **kwargs):
-        try:
-            self._CheckException()
-            neededFlag, actionType = self._GetValuesInkwargs('aType', True, None, kwargs)
-            if not neededFlag:
-                self._AndroidDevice__logger.error('aType is needed when exec DeviceCommand')
-                return False
-            if actionType == DEVICE_INSTALL:
-                neededFlag, APKPath = self._GetValuesInkwargs('APKPath', True, None, kwargs)
-                if not self._CheckVar(neededFlag, 'APKPath', actionType, APKPath, str, 'True'):
-                    return False
-                if not self._AndroidDevice__deviceApi.InstallAPP(APKPath):
-                    self._AndroidDevice__logger.error('install app failed: {0}'.format(APKPath))
-                    return False
-            else:
-                if actionType == DEVICE_START:
-                    neededFlag, PKGName = self._GetValuesInkwargs('PKGName', True, None, kwargs)
-                    if not self._CheckVar(neededFlag, 'PKGName', actionType, PKGName, str, 'True'):
-                        return False
-                    neededFlag, ActivName = self._GetValuesInkwargs('ActivityName', True, None, kwargs)
-                    if not self._CheckVar(neededFlag, 'ActivityName', actionType, ActivName, str, 'True'):
-                        return False
-                    self._AndroidDevice__deviceApi.LaunchAPP(PKGName, ActivName)
-                else:
-                    if actionType == DEVICE_EXIT:
-                        neededFlag, PKGName = self._GetValuesInkwargs('PKGName', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'PKGName', actionType, PKGName, str, 'True'):
-                            return False
-                        self._AndroidDevice__deviceApi.ExitAPP(PKGName)
-                    else:
-                        if actionType == DEVICE_CURAPP:
-                            return self._AndroidDevice__deviceApi.CurrentApp()
-                        if actionType == DEVICE_CLEARAPP:
-                            neededFlag, PKGName = self._GetValuesInkwargs('PKGName', True, None, kwargs)
-                            if not self._CheckVar(neededFlag, 'PKGName', actionType, PKGName, str, 'True'):
-                                return False
-                            self._AndroidDevice__deviceApi.ClearAppData(PKGName)
-                        else:
-                            if actionType == DEVICE_KEY:
-                                neededFlag, key = self._GetValuesInkwargs('key', True, None, kwargs)
-                                if not self._CheckVar(neededFlag, 'key', actionType, key, str, 'True'):
-                                    return False
-                                self._AndroidDevice__deviceApi.Key(key)
-                            else:
-                                if actionType == DEVICE_TEXT:
-                                    neededFlag, text = self._GetValuesInkwargs('text', True, None, kwargs)
-                                    if not self._CheckVar(neededFlag, 'text', actionType, text, str, 'True'):
-                                        return False
-                                    self._AndroidDevice__deviceApi.Text(text)
-                                else:
-                                    if actionType == DEVICE_SLEEP:
-                                        self._AndroidDevice__deviceApi.Sleep()
-                                    else:
-                                        if actionType == DEVICE_WAKE:
-                                            self._AndroidDevice__deviceApi.Wake()
-                                        elif actionType == DEVICE_WMSIZE:
-                                            return self._AndroidDevice__deviceApi.WMSize()
-            if actionType == DEVICE_SCREENSHOT:
-                neededFlag, targetPath = self._GetValuesInkwargs('targetPath', True, None, kwargs)
-                if not self._CheckVar(neededFlag, 'targetPath', actionType, targetPath, str, 'True'):
-                    return False
-                self._AndroidDevice__deviceApi.TakeScreenshot(targetPath)
-            elif actionType == DEVICE_SCREENORI:
-                return self._AndroidDevice__deviceApi.GetScreenOri()
-            if actionType == DEVICE_MAXCONTACT:
-                return self._AndroidDevice__maxContact
-            else:
-                if actionType == DEVICE_CLICK:
-                    neededFlag, px = self._GetValuesInkwargs('px', True, None, kwargs)
-                    if not self._CheckVar(neededFlag, 'px', actionType, px, int, 'var >= 0 and var < self.__width'):
-                        return False
-                    neededFlag, py = self._GetValuesInkwargs('py', True, None, kwargs)
-                    if not self._CheckVar(neededFlag, 'py', actionType, py, int, 'var >= 0 and var < self.__height'):
-                        return False
-                    self._AndroidDevice__deviceApi.ADBClick(px, py)
-                else:
-                    if actionType == DEVICE_SWIPE:
-                        neededFlag, sx = self._GetValuesInkwargs('sx', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'sx', actionType, sx, int, 'var >= 0 and var < self.__width'):
-                            return False
-                        neededFlag, sy = self._GetValuesInkwargs('sy', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'sy', actionType, sy, int, 'var >= 0 and var < self.__height'):
-                            return False
-                        neededFlag, ex = self._GetValuesInkwargs('ex', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'ex', actionType, ex, int, 'var >= 0 and var < self.__width'):
-                            return False
-                        neededFlag, ey = self._GetValuesInkwargs('ey', True, None, kwargs)
-                        if not self._CheckVar(neededFlag, 'ey', actionType, ey, int, 'var >= 0 and var < self.__height'):
-                            return False
-                        neededFlag, durationMS = self._GetValuesInkwargs('durationMS', False, 50, kwargs)
-                        if not self._CheckVar(neededFlag, 'durationMS', actionType, durationMS, int, 'var >= 0'):
-                            return False
-                        self._AndroidDevice__deviceApi.ADBSwipe(sx, sy, ex, ey, durationMS=durationMS)
-                    else:
-                        if actionType == DEVICE_PARAM:
-                            neededFlag, packageName = self._GetValuesInkwargs('PKGName', True, None, kwargs)
-                            if not self._CheckVar(neededFlag, 'PKGName', actionType, packageName, str, 'True'):
-                                return False
-                            return self._AndroidDevice__deviceApi.GetDeviceParame(packageName)
-                        else:
-                            self._AndroidDevice__logger.error('wrong aType when exec DeviceCommand, aType:{0}'.format(actionType))
-                            return False
-                return True
-        except Exception as e:
-            self._AndroidDevice__logger.error(e)
-            traceback.print_exc()
+        px = sx = kwargs.get('sx', None)
+        py = sy = kwargs.get('sy', None)
+        ex = kwargs.get('ex', None)
+        ey = kwargs.get('ey', None)
+        contact = kwargs.get('contact', 0)
+        durationMS = kwargs.get('durationMS', 0)
+        needUp = kwargs.get('needUp', True)
+        wait_time = kwargs.get('wait_time', 0)
+
+        if actionType == TOUCH_CLICK:
+            self.__logger.info("platform Click, x: %s, y: %s, contact: %s, durationMS: %s, waitTime: %s",
+                               px,
+                               py,
+                               contact,
+                               durationMS,
+                               wait_time)
+            self.__deviceApi.Click(px, py, contact, durationMS, wait_time)
+
+        elif actionType == TOUCH_DOWN:
+            self.__logger.info(
+                "platform Down, x: %s, y: %s, contact: %s, waitTime: %s", px, py, contact, wait_time)
+            self.__deviceApi.Down(px, py, contact, wait_time)
+
+        elif actionType == TOUCH_UP:
+            self.__logger.info("platform Up, contact: %s, waitTime: %s", contact, wait_time)
+            self.__deviceApi.Up(contact, wait_time)
+
+        elif actionType == TOUCH_SWIPE:
+            if durationMS <= 0:
+                durationMS = 50
+            self.__logger.info("platform Swipe, sx: %s, sy: %s, ex: %s, ey: %s, "
+                               "contact: %s, durationMS: %s, waitTime: %s",
+                               sx,
+                               sy,
+                               ex,
+                               ey,
+                               contact,
+                               durationMS,
+                               wait_time)
+            self.__deviceApi.Swipe(sx, sy, ex, ey, contact, durationMS, needUp, wait_time)
+
+        elif actionType == TOUCH_MOVE:
+            self.__logger.info(
+                "platform Move, x: %s, y: %s, contact: %s, waitTime: %s", px, py, contact, wait_time)
+            self.__deviceApi.Move(px, py, contact, wait_time)
+
+        elif actionType == TOUCH_SWIPEMOVE:
+            if durationMS <= 0:
+                durationMS = 50
+            self.__logger.info(
+                "platform SwipeMove, px: %s, py: %s, contact: %s, durationMS: %s waitTime: %s", px,
+                                                                                                py,
+                                                                                                contact,
+                                                                                                durationMS,
+                                                                                                wait_time)
+            self.__deviceApi.SwipeMove(px, py, contact, durationMS, wait_time)
+
+        elif actionType == TOUCH_RESET:
+            self.__logger.info("platform Reset, waitTime: %s", wait_time)
+            self.__deviceApi.Reset(wait_time=wait_time)
+
+        else:
+            self.__logger.error('Wrong aType when TouchCommand, aType:%s', actionType)
             return False
 
-    def _GetandCheck(self, varname, needed, default, kwargs, actionType, type, describ):
-        try:
-            neededFlag, var = self._GetValuesInkwargs(varname, needed, default, kwargs)
-            if not self._CheckVar(neededFlag, varname, actionType, var, type, describ):
-                return False
-            else:
-                return var
-        except Exception as e:
-            self._AndroidDevice__logger.error(e)
-            return False
-
-    def _GetValuesInkwargs(self, key, isNessesary, defaultValue, kwargs):
-        try:
-            if not isNessesary:
-                if key not in kwargs:
-                    return (True, defaultValue)
-                else:
-                    return (
-                     True, kwargs[key])
-            else:
-                return (
-                 True, kwargs[key])
-        except Exception as e:
-            self._AndroidDevice__logger.error(e)
-            return False
-
-    def _CheckVar(self, needFlag, varname, aType, var, typed, execd):
         return True
 
-    def _LogInit(self, log_dir, level, device_serial):
-        try:
-            if not isinstance(log_dir, str):
-                logging.ERROR('wrong log_dir when init LOG, log_dir:{0}'.format(log_dir))
-                return False
-            else:
-                if level not in LOG_LIST:
-                    logging.WARNING('wrong level when init LOG, level:{0}, use default level: DEBUG'.format(level))
-                    level = LOG_DEBUG
-                if not os.path.exists(log_dir):
-                    os.makedirs(log_dir)
-                self._AndroidDevice__logger = logging.getLogger(device_serial)
-                if not self._AndroidDevice__logger.handlers:
-                    console = logging.StreamHandler()
-                    formatter = logging.Formatter(LOG_FORMAT)
-                    console.setFormatter(formatter)
-                    fileHandler = RotatingFileHandler(filename=os.path.join(log_dir, 'DeviceAPI.log'), maxBytes=2048000, backupCount=10)
-                    fileHandler.setFormatter(formatter)
-                    self._AndroidDevice__logger.addHandler(fileHandler)
-                    self._AndroidDevice__logger.addHandler(console)
-                    self._AndroidDevice__logger.setLevel(level)
-                loggerWeTest = logging.getLogger('PlatformWeTest')
-                if not loggerWeTest.handlers:
-                    fileHandler = RotatingFileHandler(filename=os.path.join(log_dir, 'PlatformWeTest.log'), maxBytes=2048000, backupCount=10)
-                    fileHandler.setFormatter(formatter)
-                    loggerWeTest.addHandler(fileHandler)
-                    loggerWeTest.setLevel(level)
-                return True
-        except Exception as e:
-            logging.error(e)
+    def DeviceCMD(self, **kwargs):
+        """ 执行设备相关的操作
+
+        aType:操作类型[DEVICE_INSTALL, DEVICE_START, DEVICE_EXIT, DEVICE_CURAPP, DEVICE_CLEARAPP, DEVICE_KEY,
+                      DEVICE_TEXT, DEVICE_SLEEP, DEVICE_WAKE, DEVICE_WMSIZE, DEVICE_BINDRO, DEVICE_SCREENSHOT,
+                      DEVICE_SCREENORI, DEVICE_PARAM]
+        APKPath:安装包路径
+        PKGName：包名
+        ActivityName：包的activity
+        key：字母
+        text：键盘输入的字符串
+        """
+        actionType = kwargs.get('aType')
+        if not actionType:
+            self.__logger.error('aType is needed when exec DeviceCommand')
             return False
 
-    def _CheckException(self):
-        if exceptionQueue.empty() is False:
-            errorStr = exceptionQueue.get()
-            while exceptionQueue.empty() is False:
-                errorStr = exceptionQueue.get()
+        if actionType == DEVICE_INSTALL:
+            APKPath = kwargs.get('APKPath', None)
+            if not self.__deviceApi.InstallAPP(APKPath):
+                self.__logger.error('install app failed: %s', APKPath)
+                return False
 
-            raise Exception(errorStr)
+        elif actionType == DEVICE_START:
+            PKGName = kwargs.get('PKGName', None)
+            ActivityName = kwargs.get('ActivityName', None)
+            self.__deviceApi.LaunchAPP(PKGName, ActivityName)
+
+        elif actionType == DEVICE_EXIT:
+            PKGName = kwargs.get('PKGName', None)
+            self.__deviceApi.ExitAPP(PKGName)
+
+        elif actionType == DEVICE_CURAPP:
+            return self.__deviceApi.CurrentApp()
+
+        elif actionType == DEVICE_CLEARAPP:
+            PKGName = kwargs.get('PKGName', None)
+            self.__deviceApi.ClearAppData(PKGName)
+
+        elif actionType == DEVICE_KEY:
+            key = kwargs.get('key', None)
+            self.__deviceApi.Key(key)
+
+        elif actionType == DEVICE_TEXT:
+            text = kwargs.get('text', None)
+            self.__deviceApi.Text(text)
+
+        elif actionType == DEVICE_SLEEP:
+            self.__deviceApi.Sleep()
+
+        elif actionType == DEVICE_WAKE:
+            self.__deviceApi.Wake()
+
+        elif actionType == DEVICE_WMSIZE:
+            return self.__deviceApi.WMSize()
+
+        elif actionType == DEVICE_SCREENSHOT:
+            targetPath = kwargs.get('targetPath', None)
+            self.__deviceApi.TakeScreenshot(targetPath)
+
+        elif actionType == DEVICE_SCREENORI:
+            return self.__deviceApi.GetScreenOri()
+
+        elif actionType == DEVICE_MAXCONTACT:
+            return self.__maxContact
+
+        elif actionType == DEVICE_CLICK:
+            px = kwargs.get('sx', None)
+            py = kwargs.get('sy', None)
+            self.__deviceApi.ADBClick(px, py)
+
+        elif actionType == DEVICE_SWIPE:
+            sx = kwargs.get('sx', None)
+            sy = kwargs.get('sy', None)
+            ex = kwargs.get('ex', None)
+            ey = kwargs.get('ey', None)
+            durationMS = kwargs.get('durationMS', 50)
+            self.__deviceApi.ADBSwipe(sx, sy, ex, ey, durationMS=durationMS)
+
+        elif actionType == DEVICE_PARAM:
+            packageName = kwargs.get('PKGName', None)
+            return self.__deviceApi.GetDeviceParame(packageName)
+
+        else:
+            self.__logger.error('wrong aType when exec DeviceCommand, aType:%s', actionType)
+            return False
+
+        return True
+
+    # def _GetValuesInkwargs(self, key, isNessesary, defaultValue, kwargs):
+    #     try:
+    #         if not isNessesary:
+    #             if key not in kwargs:
+    #                 return True, defaultValue
+    #             else:
+    #                 return True, kwargs[key]
+    #         else:
+    #             return True, kwargs[key]
+    #     except KeyError as e:
+    #         self.__logger.error(e)
+    #         return False, 'key error'
+
+    def _LogInit(self, log_dir, level, device_serial):
+        if not isinstance(log_dir, str):
+            logging.error('wrong log_dir when init LOG, log_dir:%s', log_dir)
+            return False
+
+        if level not in LOG_LIST:
+            logging.warning('wrong level when init LOG, level:%s, use default level: DEBUG', level)
+            level = LOG_DEBUG
+
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+        self.__logger = logging.getLogger(device_serial)
+        if not self.__logger.handlers:
+            console = logging.StreamHandler()
+            formatter = logging.Formatter(LOG_FORMAT)
+            console.setFormatter(formatter)
+            fileHandler = RotatingFileHandler(filename=os.path.join(log_dir, 'DeviceAPI.log'),
+                                              maxBytes=2048000,
+                                              backupCount=10)
+            fileHandler.setFormatter(formatter)
+            self.__logger.addHandler(fileHandler)
+            self.__logger.addHandler(console)
+            self.__logger.setLevel(level)
+
+        loggerWeTest = logging.getLogger('PlatformWeTest')
+        if not loggerWeTest.handlers:
+            fileHandler = RotatingFileHandler(filename=os.path.join(log_dir, 'PlatformWeTest.log'),
+                                              maxBytes=2048000,
+                                              backupCount=10)
+            fileHandler.setFormatter(formatter)
+            loggerWeTest.addHandler(fileHandler)
+            loggerWeTest.setLevel(level)
+        return True
+
+    # def _CheckException(self):
+    #     if exceptionQueue.empty() is False:
+    #         errorStr = exceptionQueue.get()
+    #         while exceptionQueue.empty() is False:
+    #             errorStr = exceptionQueue.get()
+    #         raise Exception(errorStr)
