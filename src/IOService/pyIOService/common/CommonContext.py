@@ -14,7 +14,7 @@ from common.Define import TASK_STATUS_NONE, GAME_STATE_NONE
 
 
 IO_SERVICE_CONTEXT = {
-    'source_server_id': os.getenv('source_server_id', 'RESOURCE_APPLY_SERVER'),
+    'source_server_id': os.getenv('source_server_id', '1'),
     'task_id': None,
     'task_state': TASK_STATUS_NONE,
     'seesion_key': '0',

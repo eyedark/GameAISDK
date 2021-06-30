@@ -248,7 +248,7 @@ class MsgHandler(object):
 
         LOG.debug('recv frame data, frameIndex=%s', frameSeq)
 
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if str(key) == IO_SERVICE_CONTEXT['seesion_key']:
             IO_SERVICE_CONTEXT['frame'] = frameData
             IO_SERVICE_CONTEXT['frame_type'] = frameType
             IO_SERVICE_CONTEXT['frame_seq'] = frameSeq
@@ -450,14 +450,14 @@ class MsgHandler(object):
 
         LOG.debug('recv frame data, frameIndex=%s', frameSeq)
 
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if str(key) == IO_SERVICE_CONTEXT['seesion_key']:
             IO_SERVICE_CONTEXT['frame'] = frameData
             IO_SERVICE_CONTEXT['frame_type'] = frameType
             IO_SERVICE_CONTEXT['extend'] = extend
             IO_SERVICE_CONTEXT['frame_seq'] = frameSeq
             self.__speedCheck.AddRecvImg(frameSeq)
         else:
-            LOG.warning('Recv invalid frame, wrong key[%s]', key)
+            LOG.warning('Recv invalid frame, wrong key[%s] type key', key, type(key))
 
     def _OnControlReq(self, msg_data):
         LOG.info('Recv control req msg[%s]', msg_data)
@@ -475,7 +475,7 @@ class MsgHandler(object):
 
         msg_data = dict()
         msg_data['msg_id'] = MSG_ID_CLIENT_REP
-        if key == int(IO_SERVICE_CONTEXT['seesion_key']):
+        if str(key) == IO_SERVICE_CONTEXT['seesion_key']:
             msg_data['code'] = CLIENT_REP_CODE_OK
             if not isinstance(testID, str):
                 LOG.error('testID[%s] is not str', testID)
@@ -489,7 +489,7 @@ class MsgHandler(object):
                 self.__commMgr.SendToMC(msgBuff)
         else:
             msg_data['code'] = CLIENT_REP_CODE_INVALID_KEY
-            LOG.warning('Recv invalid req, wrong key[%s] server key: %s', key, IO_SERVICE_CONTEXT['seesion_key'])
+            LOG.warning('Recv invalid req, wrong key[%s] server key: %s', type(key), type(IO_SERVICE_CONTEXT['seesion_key']))
         LOG.info("send the response to the ai client, msg_data:%s", msg_data)
         self.__clientSocket.Send(msg_data)
 
@@ -497,12 +497,12 @@ class MsgHandler(object):
         LOG.info('Recv client Change GameState msg[%s]', msg_data)
         key = msg_data['key']
 
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if str(key) == str(IO_SERVICE_CONTEXT['seesion_key']):
             IO_SERVICE_CONTEXT['game_state'] = msg_data['game_state']
             msgBuff = self._CreatePBChangeGameStateMsg()
             self.__commMgr.SendToMC(msgBuff)
         else:
-            LOG.warning('Recv invalid msg, wrong key[%s]', key)
+            LOG.warning('Recv invalid msg, wrong key[%s]' , key)
 
     def _get_source_info(self, msg_data):
         """ 发送source的信息给aiclient, 告诉当前环境信息
@@ -527,7 +527,7 @@ class MsgHandler(object):
         LOG.info('Recv Pause msg[%s]', msg_data)
         key = msg_data['key']
 
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if str(key) == IO_SERVICE_CONTEXT['seesion_key']:
             msgBuff = self._CreatePBPauseAgentMsg()
             self.__commMgr.SendToMC(msgBuff)
         else:
@@ -537,7 +537,7 @@ class MsgHandler(object):
         LOG.info('Recv Restore msg[%s]', msg_data)
         key = msg_data['key']
 
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if str(key) == IO_SERVICE_CONTEXT['seesion_key']:
             msgBuff = self._CreatePBRestoreAgentMsg()
             self.__commMgr.SendToMC(msgBuff)
         else:
@@ -547,7 +547,7 @@ class MsgHandler(object):
         LOG.info('Recv Restart msg[%s]', msg_data)
         key = msg_data['key']
 
-        if key == IO_SERVICE_CONTEXT['seesion_key']:
+        if str(key) == IO_SERVICE_CONTEXT['seesion_key']:
             msgBuff = self._CreatePBRestartMsg()
             self.__commMgr.SendToMC(msgBuff)
         else:
