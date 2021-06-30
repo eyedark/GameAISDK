@@ -44,3 +44,5 @@ tools/AIClient/
 src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/TcpSocketHandler.py
 log/
 .vscode/
+tools/SDKTool/PlugIn/ai/UIAuto/ubuntu/DetectRefineNet/data/
+tools/SDKTool/PlugIn/ai/UIAuto/windows/DetectRefineNet/data/

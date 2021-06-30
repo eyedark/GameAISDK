@@ -109,13 +109,13 @@ class Initializer:
             if "No such" in res.decode("utf-8"): 
                 self.__install_touch_server()
             else:
-                logger.info("touchserver already exist")
+                logger.info("touchserver already exist!")
 
             res = self.__adb.cmd_wait("shell","ls /data/local/tmp/cloudscreen")
             if "No such" in res.decode("utf-8"): 
                 self.__install_cloudscreen_server()
             else:
-                logger.info("cloudscreen already exist")
+                logger.info("cloudscreen already exist!")
 
             self.__adb.cmd_wait("shell", "killall", "touchserver")
             self.__adb.cmd_wait("shell", "killall", "cloudscreen")

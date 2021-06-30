@@ -3,7 +3,9 @@
 PWD=`pwd`
 export PATH=$PATH:$PWD/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib/
-export AI_SDK_PROJECT_FILE_PATH=/home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/TTKP.prj
+export AI_SDK_PROJECT_FILE_PATH=${1}/${2}.prj
+export AI_SDK_PROJECT_FULL_PATH=${1}
+echo ${AI_SDK_PROJECT_FILE_PATH}
 
 
 echo "Run UI+AI Service"
@@ -34,11 +36,11 @@ fi
 
 
 #Start Agent process
-python3 agentai.py >/dev/null 2>&1 &
+python3 agentai.py --cfgpath ${1}/${2}.prj >/dev/null 2>&1 &
 sleep 10
 
 #Check Agent process
-ps -fe | grep 'python3 agentai.py' | grep -v grep
+ps -fe | grep 'python3 agentai.py ' | grep -v grep
 if [ $? -ne 0 ]; then
 	echo "No Agent process"
 	exit 1
@@ -46,7 +48,7 @@ fi
 
 
 #Start UIRecognize process
-./UIRecognize mode SDKTool cfgpath /home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/ >/dev/null 2>&1 &
+./UIRecognize mode SDKTool cfgpath ${1} >/dev/null 2>&1 &
 sleep 1
 
 #Check UIRecognize process
@@ -58,7 +60,7 @@ fi
 
 
 #Start GameReg process
-./GameReg >/dev/null 2>&1 &
+./GameReg mode SDKTool cfgpath ${1}/cfg/task/gameReg/Task.json >/dev/null 2>&1 &
 sleep 1
 
 #Check GameReg process
