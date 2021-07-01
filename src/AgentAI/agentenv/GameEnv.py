@@ -9,6 +9,7 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
 import logging
+import json
 from abc import ABCMeta, abstractmethod
 
 from AgentAPI import AgentAPIMgr
@@ -26,6 +27,7 @@ class GameEnv(object):
 
     def __init__(self):
         self.logger = logging.getLogger('agent')
+        # self.logger.setLevel(level=logging.INFO)
         self.__connect = BusConnect()
 
         if self.__connect.Connect() is not True:
@@ -134,12 +136,14 @@ class GameEnv(object):
 
             if action_context['type'] == 'click':
                 flag, px, py = self._get_position(result_dict, scene_task_id)
-                self.logger.debug("get result of scene task id is %s, %s, %s", str(flag), str(px), str(py))
+                self.logger.debug("get result of scene task[%s] id is %s, %s, %s",str(scene_task_id), str(flag), str(px), str(py))
                 if flag is True:
                     action_context['updateBtn'] = True
                     action_context['updateBtnX'] = px
                     action_context['updateBtnY'] = py
                     disable_task.append(scene_task_id)
+                else:
+                    self.logger.debug("result_dict is: %s",json.dumps(result_dict))
 
         # 发送消息给gameReg
         enable_task = [total_task[n] for n in range(len(total_task)) if total_task[n] not in disable_task]

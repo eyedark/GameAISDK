@@ -327,7 +327,7 @@ class TaskNodeInfo(object):
 
     def _init_tmpl_element(self, file=ELEMENT_TEMPLATE_JSON):
         try:
-            with open(file, encoding='utf8') as f:
+            with open(os.environ['AI_SDK_TOOL_PATH']+"/"+file, encoding='utf8') as f:
                 self._tmpl_element = json.load(f, object_pairs_hook=OrderedDict)
                 return True
         except IOError as err:
