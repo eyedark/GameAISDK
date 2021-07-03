@@ -15,6 +15,7 @@ import platform
 import signal
 import sys
 import traceback
+from AgentAI import util
 
 sys.path.insert(0, 'pyManageCenter')
 sys.path.append('pyManageCenter/protocol')
@@ -45,7 +46,7 @@ def main():
         args = parser.parse_args()
         os.environ['AI_SDK_PROJECT_PATH'] = os.path.dirname(args.cfgpath) if args.cfgpath else DEFAULT_USER_CONFIG_DIR
 
-        task_cfg_path = os.path.join(os.environ.get('AI_SDK_PROJECT_PATH'), MC_TASK_CFG_FILE)
+        task_cfg_path = os.path.join(os.environ.get('AI_SDK_PROJECT_FULL_PATH'), MC_TASK_CFG_FILE)
         platform_cfg_path = os.path.join(SYS_CONFIG_DIR, MC_CFG_FILE)
         log_cfg_path = os.path.join(SYS_CONFIG_DIR, MC_LOG_CFG_FILE)
 

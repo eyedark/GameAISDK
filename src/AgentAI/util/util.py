@@ -9,8 +9,10 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
 import os
+from os import environ
 import json
 import logging
+from pathlib import Path
 from .config_path_mgr import DEFAULT_USER_CONFIG_DIR
 from protocol import common_pb2
 
@@ -77,5 +79,16 @@ def ConvertToSDKFilePath(filePath):
     """
     env_path = os.environ.get('AI_SDK_PROJECT_PATH', DEFAULT_USER_CONFIG_DIR)
     sdk_file_path = os.path.join(env_path, filePath)
+    return sdk_file_path
+
+def ConvertToProjectFilePath(filePath):
+    """Convert file path according to environment variable AI_SDK_PATH
+
+    """
+    if environ.get('AI_SDK_PROJECT_FULL_PATH') is not None:
+        env_path = os.environ.get('AI_SDK_PROJECT_FULL_PATH')
+        sdk_file_path = os.path.join(env_path, filePath)
+    else:
+        logging.raiseExceptions("dir AI_SDK_PROJECT_FULL_PATH not set")
     return sdk_file_path
 

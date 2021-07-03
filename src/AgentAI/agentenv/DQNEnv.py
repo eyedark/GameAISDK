@@ -306,6 +306,6 @@ class DQNEnv(GameEnv):
         return reward
 
     def _LoadCfgFilePath(self):
-        self.__actionCfgFile = util.ConvertToSDKFilePath(ACTION_CFG_FILE)
-        self.__envCfgFile = util.ConvertToSDKFilePath(LEARNING_CFG_FILE)
-        self.__recognizeCfgFile = util.ConvertToSDKFilePath(TASK_CFG_FILE)
+        self.__actionCfgFile = util.ConvertToProjectFilePath(ACTION_CFG_FILE)
+        self.__envCfgFile = util.ConvertToProjectFilePath(LEARNING_CFG_FILE)
+        self.__recognizeCfgFile = util.ConvertToProjectFilePath(TASK_CFG_FILE)

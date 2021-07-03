@@ -285,7 +285,7 @@ int CNetWorkManager::SendFrameResult(const tagFrameResult &stFrameResult, int nA
         reinterpret_cast<void *>(const_cast<char *>(strFrameResult.c_str())),
         strFrameResult.length());
     if (nRet < 0) {
-        LOGW("send nRet:%d", nRet);
+        LOGW("send nRet:%d addr: %d ", nRet, nAddr);
     }
 
     return 1;

@@ -215,7 +215,7 @@ class AIFrameWork(object):
             return False
 
         if not content.get('source'):
-            self.__logger.warning("invalid the source in the project config, content:%s".format(content))
+            self.__logger.warning("invalid the source in the project config, content: {}".format(content))
             content['source'] = {}
             content['source']['device_type'] = "Android"
             content['source']['platform'] = "Local"

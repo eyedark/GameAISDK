@@ -33,9 +33,9 @@ class StateNotify(object):
 
     def init(self):
         ret, config, error_str = self.load_parameter(STATE_NOTIFY_CFG_FILE)
+        self.MAIN_THREAD_LOGGER.info('parameter info :{}'.format(config))
         if not ret:
-            return (
-             False, error_str)
+            return (False, error_str)
         ret, error_str = self.load_plugin_parameter(config)
         if not ret:
             return (False, error_str)

@@ -66,11 +66,11 @@ class AIPlugin(object):
         if self.__load_ai_algorithm():
             return True
 
-        pluginCfgPath = util.ConvertToSDKFilePath(PLUGIN_CFG_FILE)
+        pluginCfgPath = util.ConvertToProjectFilePath(PLUGIN_CFG_FILE)
         if os.path.exists(pluginCfgPath):
             return self._LoadPlugInParams(pluginCfgPath)
 
-        oldPluginCfgPath = util.ConvertToSDKFilePath(OLD_PLUGIN_CFG_FILE)
+        oldPluginCfgPath = util.ConvertToProjectFilePath(OLD_PLUGIN_CFG_FILE)
         if os.path.exists(oldPluginCfgPath):
             return self._LoadOldPlugInParams(oldPluginCfgPath)
 
@@ -78,7 +78,7 @@ class AIPlugin(object):
         return False
 
     def __load_ai_algorithm(self):
-        algorithm_config_path = util.ConvertToSDKFilePath(ALGORITHM_CONFIG_FILE)
+        algorithm_config_path = util.ConvertToProjectFilePath(ALGORITHM_CONFIG_FILE)
         self.__logger.info("begin to load the ai algorithm configure, path:{}".format(algorithm_config_path))
         # 获取算法配置
         config = util.get_configure(algorithm_config_path)

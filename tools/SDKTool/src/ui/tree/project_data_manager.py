@@ -200,7 +200,7 @@ class ProjectDataManager(metaclass=Singleton):
             project_dir_path = os.path.dirname(project_file_path_linux_format).replace(cwd_linux_format, '')
         else:
             project_dir_path = os.path.dirname(project_file_path_linux_format)
-        self.__project_dir_path = project_dir_path.strip('/')
+        self.__project_dir_path = project_dir_path
         self.set_name(project_name)
 
     def change_to_sdk_path(self, tool_path: str):

@@ -71,7 +71,7 @@ class DQNAIModel(AIModel):
     def _LoadDQNPrams(self):
         learnArgs = {}
 
-        learnCfgFile = util.ConvertToSDKFilePath(LEARN_CFG_FILE)
+        learnCfgFile = util.ConvertToProjectFilePath(LEARN_CFG_FILE)
         if not os.path.exists(learnCfgFile):
             self.logger.error('DQN param file {} not exist.'.format(learnCfgFile))
             return False, learnArgs
@@ -148,7 +148,7 @@ class DQNAIModel(AIModel):
 
     def _ProcArgs(self, learnArgs):
         learnArgs['action_space'] = self.actionSpace
-        learnArgs['checkpoint_path'] = util.ConvertToSDKFilePath(learnArgs['checkpoint_path'])
+        learnArgs['checkpoint_path'] = util.ConvertToProjectFilePath(learnArgs['checkpoint_path'])
 
         runType = learnArgs['run_type']
         if runType == 0:
