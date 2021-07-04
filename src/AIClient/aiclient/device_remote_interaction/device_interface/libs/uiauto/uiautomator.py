@@ -1,49 +1,46 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# uncompyle6 version 3.7.5.dev0
-# Python bytecode 3.5 (3350)
-# Decompiled from: Python 3.7.10 (default, Apr 15 2021, 13:44:35) 
-# [GCC 9.3.0]
-# Embedded file name: ../../aisdk2/game_ai_sdk/tools/phone_aiclientapi/aiclient/device_remote_interaction/device_interface/libs/uiauto/uiautomator.py
-# Compiled at: 2020-12-29 09:25:42
-# Size of source mod 2**32: 52158 bytes
+
 """Python wrapper for Android uiautomator tool."""
-import sys, os, subprocess, time, itertools, json, hashlib, socket, re, collections, xml.dom.minidom, logging, libs.imap_utf7 as imap_utf7, six
-logger = logging.getLogger(__name__)
-DEVICE_PORT = int(os.environ.get('UIAUTOMATOR_DEVICE_PORT', '9008'))
-LOCAL_PORT = int(os.environ.get('UIAUTOMATOR_LOCAL_PORT', '9008'))
-if 'localhost' not in os.environ.get('no_proxy', ''):
-    os.environ['no_proxy'] = 'localhost,%s' % os.environ.get('no_proxy', '')
+
+from __future__ import unicode_literals
+
+import os
+import subprocess
+import time
+import itertools
+import tempfile
+import json
+import hashlib
+import socket
+import re
+import xml.etree.ElementTree as etree
+
 try:
     import urllib2
 except ImportError:
     import urllib.request as urllib2
-
 try:
     from httplib import HTTPException
 except:
     from http.client import HTTPException
+if os.name == 'nt':
+    import urllib3
 
-try:
-    if os.name == 'nt':
-        import urllib3
-except:
-    pass
+import sys
+if sys.version_info.major == 2:
+    u = lambda x: x.decode('utf-8') if type(x) is str else x
+elif sys.version_info.major == 3:
+    u = lambda x: x
 
-__author__ = 'Xiaocong He'
-__all__ = ['device', 'Device', 'rect', 'point', 'Selector', 'JsonRPCError']
-
-def U(x):
-    if sys.version_info.major == 2:
-        if type(x) is str:
-            return x.decode('utf-8')
-        return x
-    if sys.version_info.major == 3:
-        return x
+__version__ = "0.1.28"
+__author__ = "Xiaocong He"
+__all__ = ["device", "Device", "rect", "point", "Selector", "JsonRPCError"]
 
 
 def param_to_property(*props, **kwprops):
     if props and kwprops:
-        raise SyntaxError('Can not set both props and kwprops at the same time.')
+        raise SyntaxError("Can not set both props and kwprops at the same time.")
 
     class Wrapper(object):
 
@@ -57,11 +54,10 @@ def param_to_property(*props, **kwprops):
                     if attr in prop_values and prop_name not in self.kwargs:
                         self.kwargs[prop_name] = attr
                         return self
-
             elif attr in props:
                 self.args.append(attr)
                 return self
-            raise AttributeError('%s parameter is duplicated or not allowed!' % attr)
+            raise AttributeError("%s parameter is duplicated or not allowed!" % attr)
 
         def __call__(self, *args, **kwargs):
             if kwprops:
@@ -71,7 +67,6 @@ def param_to_property(*props, **kwprops):
             else:
                 new_args, self.args = self.args + list(args), []
                 return self.func(*new_args, **kwargs)
-
     return Wrapper
 
 
@@ -82,49 +77,50 @@ class JsonRPCError(Exception):
         self.message = message
 
     def __str__(self):
-        return 'JsonRPC Error code: %d, Message: %s' % (self.code, self.message)
+        return "JsonRPC Error code: %d, Message: %s" % (self.code, self.message)
 
 
 class JsonRPCMethod(object):
+
     if os.name == 'nt':
-        try:
-            pool = urllib3.PoolManager()
-        except:
-            pass
+        pool = urllib3.PoolManager()
 
     def __init__(self, url, method, timeout=30):
         self.url, self.method, self.timeout = url, method, timeout
 
     def __call__(self, *args, **kwargs):
         if args and kwargs:
-            raise SyntaxError('Could not accept both *args and **kwargs as JSONRPC parameters.')
-        data = {'jsonrpc': '2.0', 'method': self.method, 'id': self.id()}
+            raise SyntaxError("Could not accept both *args and **kwargs as JSONRPC parameters.")
+        data = {"jsonrpc": "2.0", "method": self.method, "id": self.id()}
         if args:
-            data['params'] = args
+            data["params"] = args
+        if kwargs:
+            data["params"] = kwargs
+        if os.name == "nt":
+            res = self.pool.urlopen("POST",
+                                    self.url,
+                                    headers={"Content-Type": "application/json"},
+                                    body=json.dumps(data).encode("utf-8"),
+                                    timeout=self.timeout)
+            jsonresult = json.loads(res.data.decode("utf-8"))
         else:
-            if kwargs:
-                data['params'] = kwargs
-            jsonresult = {'result': ''}
-            if os.name == 'nt':
-                res = self.pool.urlopen('POST', self.url, headers={'Content-Type': 'application/json'}, body=json.dumps(data).encode('utf-8'), timeout=self.timeout)
-                jsonresult = json.loads(res.data.decode('utf-8'))
-            else:
-                result = None
-                try:
-                    req = urllib2.Request(self.url, json.dumps(data).encode('utf-8'), {'Content-type': 'application/json'})
-                    result = urllib2.urlopen(req, timeout=self.timeout)
-                    jsonresult = json.loads(result.read().decode('utf-8'))
-                finally:
-                    if result is not None:
-                        result.close()
-
-        if 'error' in jsonresult and jsonresult['error']:
-            raise JsonRPCError(jsonresult['error']['code'], '%s: %s' % (jsonresult['error']['data']['exceptionTypeName'], jsonresult['error']['message']))
-        return jsonresult['result']
+            result = None
+            try:
+                req = urllib2.Request(self.url,
+                                      json.dumps(data).encode("utf-8"),
+                                      {"Content-type": "application/json"})
+                result = urllib2.urlopen(req, timeout=self.timeout)
+                jsonresult = json.loads(result.read().decode("utf-8"))
+            finally:
+                if result is not None:
+                    result.close()
+        if "error" in jsonresult and jsonresult["error"]:
+            raise JsonRPCError(jsonresult["error"]["code"], jsonresult["error"]["message"])
+        return jsonresult["result"]
 
     def id(self):
         m = hashlib.md5()
-        m.update(('%s at %f' % (self.method, time.time())).encode('utf-8'))
+        m.update(("%s at %f" % (self.method, time.time())).encode("utf-8"))
         return m.hexdigest()
 
 
@@ -140,602 +136,450 @@ class JsonRPCClient(object):
 
 
 class Selector(dict):
-    __doc__ = 'The class is to build parameters for UiSelector passed to Android device.\n    '
-    _Selector__fields = {'text': (1, None), 
-     'textContains': (2, None), 
-     'textMatches': (4, None), 
-     'textStartsWith': (8, None), 
-     'className': (16, None), 
-     'classNameMatches': (32, None), 
-     'description': (64, None), 
-     'descriptionContains': (128, None), 
-     'descriptionMatches': (256, None), 
-     'descriptionStartsWith': (512, None), 
-     'checkable': (1024, False), 
-     'checked': (2048, False), 
-     'clickable': (4096, False), 
-     'longClickable': (8192, False), 
-     'scrollable': (16384, False), 
-     'enabled': (32768, False), 
-     'focusable': (65536, False), 
-     'focused': (131072, False), 
-     'selected': (262144, False), 
-     'packageName': (524288, None), 
-     'packageNameMatches': (1048576, None), 
-     'resourceId': (2097152, None), 
-     'resourceIdMatches': (4194304, None), 
-     'index': (8388608, 0), 
-     'instance': (16777216, 0)}
-    _Selector__mask, _Selector__childOrSibling, _Selector__childOrSiblingSelector = ('mask',
-                                                                                     'childOrSibling',
-                                                                                     'childOrSiblingSelector')
+
+    """The class is to build parameters for UiSelector passed to Android device.
+    """
+    __fields = {
+        "text": (0x01, None),  # MASK_TEXT,
+        "textContains": (0x02, None),  # MASK_TEXTCONTAINS,
+        "textMatches": (0x04, None),  # MASK_TEXTMATCHES,
+        "textStartsWith": (0x08, None),  # MASK_TEXTSTARTSWITH,
+        "className": (0x10, None),  # MASK_CLASSNAME
+        "classNameMatches": (0x20, None),  # MASK_CLASSNAMEMATCHES
+        "description": (0x40, None),  # MASK_DESCRIPTION
+        "descriptionContains": (0x80, None),  # MASK_DESCRIPTIONCONTAINS
+        "descriptionMatches": (0x0100, None),  # MASK_DESCRIPTIONMATCHES
+        "descriptionStartsWith": (0x0200, None),  # MASK_DESCRIPTIONSTARTSWITH
+        "checkable": (0x0400, False),  # MASK_CHECKABLE
+        "checked": (0x0800, False),  # MASK_CHECKED
+        "clickable": (0x1000, False),  # MASK_CLICKABLE
+        "longClickable": (0x2000, False),  # MASK_LONGCLICKABLE,
+        "scrollable": (0x4000, False),  # MASK_SCROLLABLE,
+        "enabled": (0x8000, False),  # MASK_ENABLED,
+        "focusable": (0x010000, False),  # MASK_FOCUSABLE,
+        "focused": (0x020000, False),  # MASK_FOCUSED,
+        "selected": (0x040000, False),  # MASK_SELECTED,
+        "packageName": (0x080000, None),  # MASK_PACKAGENAME,
+        "packageNameMatches": (0x100000, None),  # MASK_PACKAGENAMEMATCHES,
+        "resourceId": (0x200000, None),  # MASK_RESOURCEID,
+        "resourceIdMatches": (0x400000, None),  # MASK_RESOURCEIDMATCHES,
+        "index": (0x800000, 0),  # MASK_INDEX,
+        "instance": (0x01000000, 0)  # MASK_INSTANCE,
+    }
+    __mask, __childOrSibling, __childOrSiblingSelector = "mask", "childOrSibling", "childOrSiblingSelector"
 
     def __init__(self, **kwargs):
-        super(Selector, self).__setitem__(self._Selector__mask, 0)
-        super(Selector, self).__setitem__(self._Selector__childOrSibling, [])
-        super(Selector, self).__setitem__(self._Selector__childOrSiblingSelector, [])
+        super(Selector, self).__setitem__(self.__mask, 0)
+        super(Selector, self).__setitem__(self.__childOrSibling, [])
+        super(Selector, self).__setitem__(self.__childOrSiblingSelector, [])
         for k in kwargs:
             self[k] = kwargs[k]
 
     def __setitem__(self, k, v):
-        if k in self._Selector__fields:
-            super(Selector, self).__setitem__(U(k), U(v))
-            super(Selector, self).__setitem__(self._Selector__mask, self[self._Selector__mask] | self._Selector__fields[k][0])
+        if k in self.__fields:
+            super(Selector, self).__setitem__(u(k), u(v))
+            super(Selector, self).__setitem__(self.__mask, self[self.__mask] | self.__fields[k][0])
         else:
-            raise ReferenceError('%s is not allowed.' % k)
+            raise ReferenceError("%s is not allowed." % k)
 
     def __delitem__(self, k):
-        if k in self._Selector__fields:
+        if k in self.__fields:
             super(Selector, self).__delitem__(k)
-            super(Selector, self).__setitem__(self._Selector__mask, self[self._Selector__mask] & ~self._Selector__fields[k][0])
+            super(Selector, self).__setitem__(self.__mask, self[self.__mask] & ~self.__fields[k][0])
 
     def clone(self):
-        kwargs = dict((k, self[k]) for k in self if k not in [self._Selector__mask, self._Selector__childOrSibling, self._Selector__childOrSiblingSelector])
+        kwargs = dict((k, self[k]) for k in self
+                      if k not in [self.__mask, self.__childOrSibling, self.__childOrSiblingSelector])
         selector = Selector(**kwargs)
-        for v in self[self._Selector__childOrSibling]:
-            selector[self._Selector__childOrSibling].append(v)
-
-        for s in self[self._Selector__childOrSiblingSelector]:
-            selector[self._Selector__childOrSiblingSelector].append(s.clone())
-
+        for v in self[self.__childOrSibling]:
+            selector[self.__childOrSibling].append(v)
+        for s in self[self.__childOrSiblingSelector]:
+            selector[self.__childOrSiblingSelector].append(s.clone())
         return selector
 
     def child(self, **kwargs):
-        self[self._Selector__childOrSibling].append('child')
-        self[self._Selector__childOrSiblingSelector].append(Selector(**kwargs))
-        return self
+        self[self.__childOrSibling].append("child")
+        self[self.__childOrSiblingSelector].append(Selector(**kwargs))
 
     def sibling(self, **kwargs):
-        self[self._Selector__childOrSibling].append('sibling')
-        self[self._Selector__childOrSiblingSelector].append(Selector(**kwargs))
-        return self
+        self[self.__childOrSibling].append("sibling")
+        self[self.__childOrSiblingSelector].append(Selector(**kwargs))
 
     child_selector, from_parent = child, sibling
 
 
 def rect(top=0, left=0, bottom=100, right=100):
-    return {'top': top, 'left': left, 'bottom': bottom, 'right': right}
+    return {"top": top, "left": left, "bottom": bottom, "right": right}
 
 
 def intersect(rect1, rect2):
-    top = rect1['top'] if rect1['top'] > rect2['top'] else rect2['top']
-    bottom = rect1['bottom'] if rect1['bottom'] < rect2['bottom'] else rect2['bottom']
-    left = rect1['left'] if rect1['left'] > rect2['left'] else rect2['left']
-    right = rect1['right'] if rect1['right'] < rect2['right'] else rect2['right']
-    return (left, top, right, bottom)
+    top = rect1["top"] if rect1["top"] > rect2["top"] else rect2["top"]
+    bottom = rect1["bottom"] if rect1["bottom"] < rect2["bottom"] else rect2["bottom"]
+    left = rect1["left"] if rect1["left"] > rect2["left"] else rect2["left"]
+    right = rect1["right"] if rect1["right"] < rect2["right"] else rect2["right"]
+    return left, top, right, bottom
 
 
 def point(x=0, y=0):
-    return {'x': x, 'y': y}
+    return {"x": x, "y": y}
 
 
 class Adb(object):
 
-    def __init__(self, serial=None, adb_server_host=None, adb_server_port=None):
-        self._Adb__adb_cmd = None
-        self.default_serial = serial if serial else os.environ.get('ANDROID_SERIAL', None)
-        self.adb_server_host = str(adb_server_host if adb_server_host else 'localhost')
-        self.adb_server_port = str(adb_server_port if adb_server_port else '5037')
-        self.adbHostPortOptions = []
-        if self.adb_server_host not in ('localhost', '127.0.0.1'):
-            self.adbHostPortOptions += ['-H', self.adb_server_host]
-        if self.adb_server_port != '5037':
-            self.adbHostPortOptions += ['-P', self.adb_server_port]
+    def __init__(self, serial=None):
+        self.__adb_cmd = None
+        self.default_serial = serial if serial else os.environ.get("ANDROID_SERIAL", None)
 
     def adb(self):
-        return
-        if self._Adb__adb_cmd is None:
-            if 'ANDROID_HOME' in os.environ:
-                filename = 'adb.exe' if os.name == 'nt' else 'adb'
-                adb_cmd = os.path.join(os.environ['ANDROID_HOME'], 'platform-tools', filename)
+        if self.__adb_cmd is None:
+            if "ANDROID_HOME" in os.environ:
+                filename = "adb.exe" if os.name == 'nt' else "adb"
+                adb_cmd = os.path.join(os.environ["ANDROID_HOME"], "platform-tools", filename)
                 if not os.path.exists(adb_cmd):
-                    raise EnvironmentError('Adb not found in $ANDROID_HOME path: %s.' % os.environ['ANDROID_HOME'])
+                    raise EnvironmentError(
+                        "Adb not found in $ANDROID_HOME path: %s." % os.environ["ANDROID_HOME"])
             else:
-                filename = 'wadb.exe' if os.name == 'nt' else 'wadb'
-                adb_cmd = os.path.join(os.getcwd(), '../../wadb', filename)
-                logger.info('The adb being used is ' + str(adb_cmd))
-            self._Adb__adb_cmd = adb_cmd
-        return self._Adb__adb_cmd
+                import distutils
+                if "spawn" not in dir(distutils):
+                    import distutils.spawn
+                adb_cmd = distutils.spawn.find_executable("adb")
+                if adb_cmd:
+                    adb_cmd = os.path.realpath(adb_cmd)
+                else:
+                    raise EnvironmentError("$ANDROID_HOME environment not set.")
+            self.__adb_cmd = adb_cmd
+        return self.__adb_cmd
 
-    def cmd(self, *args, **kwargs):
-        return
-        serial = self.device_serial()
-        if serial:
-            if ' ' in serial:
-                serial = "'%s'" % serial
-            return self.raw_cmd(*args)
-        else:
-            return self.raw_cmd(*args)
+    def cmd(self, *args):
+        '''adb command, add -s serial by default. return the subprocess.Popen object.'''
+        cmd_line = ["-s", self.device_serial()] + list(args)
+        return self.raw_cmd(*cmd_line)
 
     def raw_cmd(self, *args):
-        cmd_line = [
-         self.adb()] + self.adbHostPortOptions + list(args)
-        logger.info(cmd_line)
-        if os.name != 'nt':
-            cmd_line = [
-             ' '.join(cmd_line)]
+        '''adb command. return the subprocess.Popen object.'''
+        cmd_line = [self.adb()] + list(args)
+        if os.name != "nt":
+            cmd_line = [" ".join(cmd_line)]
         return subprocess.Popen(cmd_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def device_serial(self):
-        devices = self.default_serial or self.devices()
-        if devices:
-            if len(devices) is 1:
-                self.default_serial = list(devices.keys())[0]
-            else:
-                raise EnvironmentError('Multiple devices attached but default android serial not set.')
+        devices = self.devices()
+        if not devices:
+            raise EnvironmentError("Device not attached.")
+
+        if self.default_serial:
+            if self.default_serial not in devices:
+                raise EnvironmentError("Device %s not connected!" % self.default_serial)
+        elif len(devices) == 1:
+            self.default_serial = list(devices.keys())[0]
         else:
-            raise EnvironmentError('Device not attached.')
+            raise EnvironmentError("Multiple devices attached but default android serial not set.")
         return self.default_serial
 
     def devices(self):
-        out = self.raw_cmd('devices').communicate()[0].decode('utf-8')
-        match = 'List of devices attached'
+        '''get a dict of attached devices. key is the device serial, value is device name.'''
+        out = self.raw_cmd("devices").communicate()[0].decode("utf-8")
+        match = "List of devices attached"
         index = out.find(match)
         if index < 0:
-            raise EnvironmentError('adb is not working.')
-        return dict([s.split('\t') for s in out[index + len(match):].strip().splitlines() if s.strip()])
+            raise EnvironmentError("adb is not working.")
+        return dict([s.split() for s in out[index + len(match):].strip().splitlines() if s.strip()])
 
     def forward(self, local_port, device_port):
-        return
-        return self.cmd('forward', 'tcp:%d' % local_port, 'tcp:%d' % device_port).wait()
+        '''adb port forward. return 0 if success, else non-zero.'''
+        return self.cmd("forward", "tcp:%d" % local_port, "tcp:%d" % device_port).wait()
 
     def forward_list(self):
-        """adb forward --list"""
+        '''adb forward --list'''
         version = self.version()
         if int(version[1]) <= 1 and int(version[2]) <= 0 and int(version[3]) < 31:
-            raise EnvironmentError('Low adb version.')
-        lines = self.raw_cmd('forward', '--list').communicate()[0].decode('utf-8').strip().splitlines()
+            raise EnvironmentError("Low adb version.")
+        lines = self.raw_cmd("forward", "--list").communicate()[0].decode("utf-8").strip().splitlines()
         return [line.strip().split() for line in lines]
 
     def version(self):
-        match = re.search('(\\d+)\\.(\\d+)\\.(\\d+)', self.raw_cmd('version').communicate()[0].decode('utf-8'))
+        '''adb version'''
+        match = re.search(r"(\d+)\.(\d+)\.(\d+)", self.raw_cmd("version").communicate()[0].decode("utf-8"))
         return [match.group(i) for i in range(4)]
 
 
-_init_local_port = LOCAL_PORT - 1
+_init_local_port = 9007
 
-def next_local_port(adbHost=None):
-    global _init_local_port
 
+def next_local_port():
     def is_port_listening(port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = s.connect_ex((str(adbHost) if adbHost else '127.0.0.1', port))
+        result = s.connect_ex(('127.0.0.1', port))
         s.close()
         return result == 0
-
-    _init_local_port = _init_local_port + 1 if _init_local_port < 32764 else LOCAL_PORT
+    global _init_local_port
+    _init_local_port = _init_local_port + 1 if _init_local_port < 32764 else 9008
     while is_port_listening(_init_local_port):
         _init_local_port += 1
-
     return _init_local_port
 
 
-class NotFoundHandler(object):
-    __doc__ = "\n    Handler for UI Object Not Found exception.\n    It's a replacement of UiAutomator watcher on device side.\n    "
-
-    def __init__(self):
-        self._NotFoundHandler__handlers = collections.defaultdict(lambda : {'on': True, 'handlers': []})
-
-    def __get__(self, instance, type):
-        return self._NotFoundHandler__handlers[instance.adb.device_serial()]
-
-
 class AutomatorServer(object):
-    __doc__ = 'start and quit rpc server on device.\n    '
-    _AutomatorServer__jar_files = {'bundle.jar': 'libs/bundle.jar', 
-     'uiautomator-stub.jar': 'libs/uiautomator-stub.jar'}
-    _AutomatorServer__apk_files = [
-     'libs/app-uiautomator.apk', 'libs/app-uiautomator-test.apk']
-    _AutomatorServer__sdk = 0
-    handlers = NotFoundHandler()
 
-    def __init__(self, serial=None, local_port=None, device_port=None, adb_server_host=None, adb_server_port=None):
+    """start and quit rpc server on device.
+    """
+    __jar_files = {
+        "bundle.jar": "https://github.com/xiaocong/"
+                      "android-uiautomator-jsonrpcserver/releases/download/"
+                      "v0.1.3/bundle.jar",
+        "uiautomator-stub.jar": "https://github.com/xiaocong/"
+                                "android-uiautomator-jsonrpcserver/releases/download/"
+                                "v0.1.3/uiautomator-stub.jar"
+    }
+
+    def __init__(self, serial=None, local_port=None):
         self.uiautomator_process = None
-        self.adb = Adb(serial=serial, adb_server_host=adb_server_host, adb_server_port=adb_server_port)
-        self.device_port = int(device_port) if device_port else DEVICE_PORT
+        self.adb = Adb(serial=serial)
+        self.device_port = 9008
         if local_port:
             self.local_port = local_port
         else:
-            try:
+            try:  # first we will try to use the local port already adb forwarded
                 for s, lp, rp in self.adb.forward_list():
                     if s == self.adb.device_serial() and rp == 'tcp:%d' % self.device_port:
                         self.local_port = int(lp[4:])
                         break
                 else:
-                    self.local_port = next_local_port(adb_server_host)
-
+                    self.local_port = next_local_port()
             except:
-                self.local_port = next_local_port(adb_server_host)
+                self.local_port = next_local_port()
 
-    def push(self):
-        base_dir = os.path.dirname(__file__)
-        for jar, url in self._AutomatorServer__jar_files.items():
-            filename = os.path.join(base_dir, url)
-            self.adb.cmd('push', filename, '/data/local/tmp/').wait()
+    def download_and_push(self):
+        lib_path = os.path.join(tempfile.gettempdir(), "libs")
+        if not os.path.exists(lib_path):
+            os.mkdir(lib_path)
+        for jar, url in self.__jar_files.items():
+            filename = os.path.join(lib_path, jar)
+            if not os.path.exists(filename) or os.stat(filename).st_size == 0:
+                self.download(filename, url)
+            self.adb.cmd("push", filename, "/data/local/tmp/").wait()
+        return list(self.__jar_files.keys())
 
-        return list(self._AutomatorServer__jar_files.keys())
-
-    def install(self):
-        base_dir = os.path.dirname(__file__)
-        for apk in self._AutomatorServer__apk_files:
-            self.adb.cmd('install', '-rt', os.path.join(base_dir, apk)).wait()
+    def download(self, filename, url):
+        with open(filename, 'wb') as file:
+            res = None
+            try:
+                res = urllib2.urlopen(url)
+                file.write(res.read())
+            finally:
+                if res is not None:
+                    res.close()
 
     @property
     def jsonrpc(self):
-        return self.jsonrpc_wrap(timeout=int(os.environ.get('jsonrpc_timeout', 90)))
-
-    @property
-    def jsonmonitor(self):
-        return self.jsonmonitor_wrap(timeout=int(os.environ.get('jsonrpc_timeout', 90)))
-
-    def jsonrpc_wrap(self, timeout):
         server = self
         ERROR_CODE_BASE = -32000
 
-        def _JsonRPCMethod(url, method, timeout, restart=True):
+        def _JsonRPCMethod(url, method, timeout):
             _method_obj = JsonRPCMethod(url, method, timeout)
 
             def wrapper(*args, **kwargs):
-                logger.debug('Request start'.format(*args))
-                URLError = urllib3.exceptions.HTTPError if os.name == 'nt' else urllib2.URLError
-                try:
-                    try:
-                        return _method_obj(*args, **kwargs)
-                    except (URLError, socket.error, HTTPException) as e:
-                        if restart:
-                            server.stop()
-                            server.start(timeout=30)
-                            return _JsonRPCMethod(url, method, timeout, False)(*args, **kwargs)
-                        raise
-                    except JsonRPCError as e:
-                        if e.code >= ERROR_CODE_BASE - 1:
-                            server.stop()
-                            server.start()
-                            return _method_obj(*args, **kwargs)
-                        if e.code == ERROR_CODE_BASE - 2 and self.handlers['on']:
-                            try:
-                                self.handlers['on'] = False
-                                any(handler(self.handlers.get('device', None)) for handler in self.handlers['handlers'])
-                            finally:
-                                self.handlers['on'] = True
-
-                            return _method_obj(*args, **kwargs)
-                        raise
-
-                finally:
-                    logger.debug('Request end')
-
-            return wrapper
-
-        return JsonRPCClient(self.rpc_uri, timeout=timeout, method_class=_JsonRPCMethod)
-
-    def jsonmonitor_wrap(self, timeout):
-        server = self
-        ERROR_CODE_BASE = -32000
-
-        def _JsonRPCMethod(url, method, timeout, restart=True):
-            _method_obj = JsonRPCMethod(url, method, timeout)
-
-            def wrapper(*args, **kwargs):
-                URLError = urllib3.exceptions.HTTPError if os.name == 'nt' else urllib2.URLError
+                URLError = urllib3.exceptions.HTTPError if os.name == "nt" else urllib2.URLError
                 try:
                     return _method_obj(*args, **kwargs)
                 except (URLError, socket.error, HTTPException) as e:
-                    if restart:
-                        server.stop()
-                        server.start(timeout=30)
-                        return _JsonRPCMethod(url, method, timeout, False)(*args, **kwargs)
-                    raise
+                    server.stop()
+                    server.start()
+                    return _method_obj(*args, **kwargs)
                 except JsonRPCError as e:
                     if e.code >= ERROR_CODE_BASE - 1:
                         server.stop()
                         server.start()
                         return _method_obj(*args, **kwargs)
-                    if e.code == ERROR_CODE_BASE - 2 and self.handlers['on']:
-                        try:
-                            self.handlers['on'] = False
-                            any(handler(self.handlers.get('device', None)) for handler in self.handlers['handlers'])
-                        finally:
-                            self.handlers['on'] = True
-
-                        return _method_obj(*args, **kwargs)
                     raise
-
             return wrapper
 
-        return JsonRPCClient(self.monitor_uri, timeout=timeout, method_class=_JsonRPCMethod)
+        return JsonRPCClient(self.rpc_uri,
+                             timeout=int(os.environ.get("JSONRPC_TIMEOUT", 90)),
+                             method_class=_JsonRPCMethod)
 
     def __jsonrpc(self):
-        return JsonRPCClient(self.rpc_uri, timeout=int(os.environ.get('JSONRPC_TIMEOUT', 90)))
+        return JsonRPCClient(self.rpc_uri, timeout=int(os.environ.get("JSONRPC_TIMEOUT", 90)))
 
-    def sdk_version(self):
-        """sdk version of connected device."""
-        if self._AutomatorServer__sdk == 0:
-            try:
-                self._AutomatorServer__sdk = int(self.adb.cmd('shell', 'getprop', 'ro.build.version.sdk').communicate()[0].decode('utf-8').strip())
-            except:
-                pass
-
-            return self._AutomatorServer__sdk
-
-    def start(self, timeout=5):
-        logger.info('Start the rpc server.')
-        files = self.push()
-        cmd = list(itertools.chain([
-         'shell', 'uiautomator', 'runtest'], files, [
-         '-c', 'com.github.uiautomatorstub.Stub']))
+    def start(self):
+        files = self.download_and_push()
+        cmd = list(itertools.chain(["shell", "uiautomator", "runtest"],
+                                   files,
+                                   ["-c", "com.github.uiautomatorstub.Stub"]))
         self.uiautomator_process = self.adb.cmd(*cmd)
         self.adb.forward(self.local_port, self.device_port)
+
+        timeout = 5
         while not self.alive and timeout > 0:
             time.sleep(0.1)
             timeout -= 0.1
-
         if not self.alive:
-            raise IOError('RPC server not started!')
+            raise IOError("RPC server not started!")
 
     def ping(self):
         try:
-            return self._AutomatorServer__jsonrpc().ping()
+            return self.__jsonrpc().ping()
         except:
-            return
+            return None
 
     @property
     def alive(self):
-        """Check if the rpc server is alive."""
-        return self.ping() == 'pong'
+        '''Check if the rpc server is alive.'''
+        return self.ping() == "pong"
 
     def stop(self):
-        logger.info('stop the rpc server.')
-        logger.info(self.uiautomator_process)
+        '''Stop the rpc server.'''
         if self.uiautomator_process and self.uiautomator_process.poll() is None:
             res = None
             try:
-                try:
-                    res = urllib2.urlopen(self.stop_uri)
-                    self.uiautomator_process.wait()
-                except:
-                    self.uiautomator_process.kill()
-
+                res = urllib2.urlopen(self.stop_uri)
+                self.uiautomator_process.wait()
+            except:
+                self.uiautomator_process.kill()
             finally:
                 if res is not None:
                     res.close()
                 self.uiautomator_process = None
-
         try:
-            out = self.adb.cmd('shell', 'ps', '-C', 'uiautomator').communicate()[0].decode('utf-8').strip().splitlines()
+            out = self.adb.cmd("shell", "ps", "-C", "uiautomator").communicate()[0].decode("utf-8").strip().splitlines()
             if out:
-                index = out[0].split().index('PID')
+                index = out[0].split().index("PID")
                 for line in out[1:]:
                     if len(line.split()) > index:
-                        self.adb.cmd('shell', 'kill', '-9', line.split()[index]).wait()
-
+                        self.adb.cmd("shell", "kill", "-9", line.split()[index]).wait()
         except:
             pass
 
     @property
-    def monitor_uri(self):
-        return 'http://%s:%d/permission' % (self.adb.adb_server_host, self.local_port)
-
-    @property
     def stop_uri(self):
-        return 'http://%s:%d/stop' % (self.adb.adb_server_host, self.local_port)
+        return "http://localhost:%d/stop" % self.local_port
 
     @property
     def rpc_uri(self):
-        return 'http://%s:%d/jsonrpc/0' % (self.adb.adb_server_host, self.local_port)
-
-    @property
-    def screenshot_uri(self):
-        return 'http://%s:%d/screenshot/0' % (self.adb.adb_server_host, self.local_port)
-
-    def screenshot(self, filename=None, scale=1.0, quality=100):
-        if self.sdk_version() >= 18:
-            try:
-                req = urllib2.Request('%s?scale=%f&quality=%f' % (self.screenshot_uri, scale, quality))
-                result = urllib2.urlopen(req, timeout=30)
-                if filename:
-                    with open(filename, 'wb') as (f):
-                        f.write(result.read())
-                        return filename
-                else:
-                    return result.read()
-            except:
-                pass
+        return "http://localhost:%d/jsonrpc/0" % self.local_port
 
 
 class AutomatorDevice(object):
-    __doc__ = 'uiautomator wrapper of android device'
-    _AutomatorDevice__orientation = ((0, 'natural', 'n', 0), (1, 'left', 'l', 90),
-                                     (2, 'upsidedown', 'u', 180), (3, 'right', 'r', 270))
-    _AutomatorDevice__alias = {'width': 'displayWidth', 
-     'height': 'displayHeight'}
 
-    def __init__(self, serial=None, local_port=None, adb_server_host=None, adb_server_port=None):
-        self.server = AutomatorServer(serial=serial, local_port=local_port, adb_server_host=adb_server_host, adb_server_port=adb_server_port)
+    '''uiautomator wrapper of android device'''
+
+    __orientation = (  # device orientation
+        (0, "natural", "n", 0),
+        (1, "left", "l", 90),
+        (2, "upsidedown", "u", 180),
+        (3, "right", "r", 270)
+    )
+    __alias = {
+        "width": "displayWidth",
+        "height": "displayHeight"
+    }
+
+    def __init__(self, serial=None, local_port=None):
+        self.server = AutomatorServer(serial=serial, local_port=local_port)
 
     def __call__(self, **kwargs):
-        return AutomatorDeviceObject(self, Selector(**kwargs))
+        # return AutomatorDeviceObject(self, Selector(**kwargs))
+        return AutomatorDeviceXMLObject(self, Selector(**kwargs))
 
     def __getattr__(self, attr):
-        """alias of fields in info property."""
+        '''alias of fields in info property.'''
         info = self.info
         if attr in info:
             return info[attr]
-        if attr in self._AutomatorDevice__alias:
-            return info[self._AutomatorDevice__alias[attr]]
-        raise AttributeError('%s attribute not found!' % attr)
+        elif attr in self.__alias:
+            return info[self.__alias[attr]]
+        else:
+            raise AttributeError("%s attribute not found!" % attr)
 
     @property
     def info(self):
-        """Get the device info.
-        {u'model': u'HUAWEI P7-L00', u'displayRotation': 1, u'displaySizeDpY': 360, u'displaySizeDpX': 640, u'brand': u'Huawei', u'displayWidth': 1794,
-         u'productName': u'P7-L00', u'release': u'4.4.2',
-         u'currentPackageName': u'com.yhkd.jztkc', u'device': u'hwp7', u'sdkInt': 19, u'displayHeight': 1080, u'id': u'HuaweiP7-L00', u'naturalOrientation': False}
-        """
+        '''Get the device info.'''
         return self.server.jsonrpc.deviceInfo()
 
     def click(self, x, y):
-        """click at arbitrary coordinates."""
+        '''click at arbitrary coordinates.'''
         return self.server.jsonrpc.click(x, y)
 
     def long_click(self, x, y):
-        """long click at arbitrary coordinates."""
+        '''long click at arbitrary coordinates.'''
         return self.swipe(x, y, x + 1, y + 1)
 
     def swipe(self, sx, sy, ex, ey, steps=100):
         return self.server.jsonrpc.swipe(sx, sy, ex, ey, steps)
 
-    def swipePoints(self, points, steps=100):
-        ppoints = []
-        for p in points:
-            ppoints.append(p[0])
-            ppoints.append(p[1])
-
-        return self.server.jsonrpc.swipePoints(ppoints, steps)
-
     def drag(self, sx, sy, ex, ey, steps=100):
-        """Swipe from one point to another point."""
+        '''Swipe from one point to another point.'''
         return self.server.jsonrpc.drag(sx, sy, ex, ey, steps)
 
-    def dump(self, filename=None, compressed=True, pretty=True):
-        """dump device window and pull to local file."""
-        content = self.server.jsonrpc.dumpWindowHierarchy(compressed, None)
-        if content is None:
-            logger.info('uiauto dump content is none')
-            return
+    def dump(self, filename=None):
+        '''dump device window and pull to local file.'''
+        content = self.server.jsonrpc.dumpWindowHierarchy(True, None)
         if filename:
-            with open(filename, 'wb') as (f):
-                f.write(content.encode('utf-8'))
-        if pretty and '\n ' not in content:
-            xml_text = xml.dom.minidom.parseString(content.encode('utf-8'))
-            content = U(xml_text.toprettyxml(indent='  '))
+            with open(filename, "wb") as f:
+                f.write(content.encode("utf-8"))
         return content
 
-    def setdialogtextpattern(self, content):
-        if six.PY2:
-            content = content.decode('UTF-8')
-        logger.info('Set text check regex pattern = ' + content)
-        res = self.server.jsonmonitor.setTextPattern(content)
-
-    def setdialogtextgrouppattern(self, content):
-        if six.PY2:
-            content = content.decode('UTF-8')
-        logger.info('Set textgroup check regex pattern = ' + content)
-        res = self.server.jsonmonitor.setTextMatchGroups(content)
-
-    def setdialogpkgpattern(self, content):
-        if six.PY2:
-            content = content.decode('UTF-8')
-        logger.info('Set packge check regex pattern = ' + content)
-        res = self.server.jsonmonitor.setPackagePattern(content)
-
-    def setPermissionMonitor(self, resume):
-        logger.info('setPermissionMonitor = ' + str(resume))
-        res = self.server.jsonmonitor.setPermissionMonitor(resume)
-
     def screenshot(self, filename, scale=1.0, quality=100):
-        """take screenshot."""
-        result = self.server.screenshot(filename, scale, quality)
-        if result:
-            return result
-        device_file = self.server.jsonrpc.takeScreenshot('screenshot.png', scale, quality)
+        '''take screenshot.'''
+        device_file = self.server.jsonrpc.takeScreenshot("screenshot.png",
+                                                         scale, quality)
         if not device_file:
-            return
-        p = self.server.adb.cmd('pull', device_file, filename)
+            return None
+        p = self.server.adb.cmd("pull", device_file, filename)
         p.wait()
-        self.server.adb.cmd('shell', 'rm', device_file).wait()
-        if p.returncode is 0:
-            return filename
+        self.server.adb.cmd("shell", "rm", device_file).wait()
+        return filename if p.returncode is 0 else None
 
     def freeze_rotation(self, freeze=True):
-        """freeze or unfreeze the device rotation in current status."""
+        '''freeze or unfreeze the device rotation in current status.'''
         self.server.jsonrpc.freezeRotation(freeze)
 
     @property
     def orientation(self):
-        """
+        '''
         orienting the devie to left/right or natural.
         left/l:       rotation=90 , displayRotation=1
         right/r:      rotation=270, displayRotation=3
         natural/n:    rotation=0  , displayRotation=0
         upsidedown/u: rotation=180, displayRotation=2
-        """
-        return self._AutomatorDevice__orientation[self.info['displayRotation']][1]
+        '''
+        return self.__orientation[self.info["displayRotation"]][1]
 
     @orientation.setter
     def orientation(self, value):
-        """setter of orientation property."""
-        for values in self._AutomatorDevice__orientation:
+        '''setter of orientation property.'''
+        for values in self.__orientation:
             if value in values:
+                # can not set upside-down until api level 18.
                 self.server.jsonrpc.setOrientation(values[1])
                 break
         else:
-            raise ValueError('Invalid orientation.')
+            raise ValueError("Invalid orientation.")
 
     @property
     def last_traversed_text(self):
-        """get last traversed text. used in webview for highlighted text."""
+        '''get last traversed text. used in webview for highlighted text.'''
         return self.server.jsonrpc.getLastTraversedText()
 
     def clear_traversed_text(self):
-        """clear the last traversed text."""
+        '''clear the last traversed text.'''
         self.server.jsonrpc.clearLastTraversedText()
 
     @property
     def open(self):
-        """
+        '''
         Open notification or quick settings.
         Usage:
         d.open.notification()
         d.open.quick_settings()
-        """
-
-        @param_to_property(action=['notification', 'quick_settings'])
+        '''
+        @param_to_property(action=["notification", "quick_settings"])
         def _open(action):
-            if action == 'notification':
+            if action == "notification":
                 return self.server.jsonrpc.openNotification()
             else:
                 return self.server.jsonrpc.openQuickSettings()
-
         return _open
-
-    @property
-    def handlers(self):
-        obj = self
-
-        class Handlers(object):
-
-            def on(self, fn):
-                if fn not in obj.server.handlers['handlers']:
-                    obj.server.handlers['handlers'].append(fn)
-                obj.server.handlers['device'] = obj
-                return fn
-
-            def off(self, fn):
-                if fn in obj.server.handlers['handlers']:
-                    obj.server.handlers['handlers'].remove(fn)
-
-        return Handlers()
 
     @property
     def watchers(self):
@@ -765,7 +609,6 @@ class AutomatorDevice(object):
             def run(self):
                 obj.server.jsonrpc.runWatchers()
                 return self
-
         return Watchers()
 
     def watcher(self, name):
@@ -774,7 +617,7 @@ class AutomatorDevice(object):
         class Watcher(object):
 
             def __init__(self):
-                self._Watcher__selectors = []
+                self.__selectors = []
 
             @property
             def triggered(self):
@@ -784,26 +627,26 @@ class AutomatorDevice(object):
                 obj.server.jsonrpc.removeWatcher(name)
 
             def when(self, **kwargs):
-                self._Watcher__selectors.append(Selector(**kwargs))
+                self.__selectors.append(Selector(**kwargs))
                 return self
 
             def click(self, **kwargs):
-                obj.server.jsonrpc.registerClickUiObjectWatcher(name, self._Watcher__selectors, Selector(**kwargs))
+                obj.server.jsonrpc.registerClickUiObjectWatcher(name, self.__selectors, Selector(**kwargs))
 
             @property
             def press(self):
-
-                @param_to_property('home', 'back', 'left', 'right', 'up', 'down', 'center', 'search', 'enter', 'delete', 'del', 'recent', 'volume_up', 'menu', 'volume_down', 'volume_mute', 'camera', 'power')
+                @param_to_property(
+                    "home", "back", "left", "right", "up", "down", "center",
+                    "search", "enter", "delete", "del", "recent", "volume_up",
+                    "menu", "volume_down", "volume_mute", "camera", "power")
                 def _press(*args):
-                    obj.server.jsonrpc.registerPressKeyskWatcher(name, self._Watcher__selectors, args)
-
+                    obj.server.jsonrpc.registerPressKeyskWatcher(name, self.__selectors, args)
                 return _press
-
         return Watcher()
 
     @property
     def press(self):
-        """
+        '''
         press key via name or key code. Supported key name includes:
         home, back, left, right, up, down, center, menu, search, enter,
         delete(or del), recent(recent apps), volume_up, volume_down,
@@ -812,105 +655,69 @@ class AutomatorDevice(object):
         d.press.back()  # press back key
         d.press.menu()  # press home key
         d.press(89)     # press keycode
-        """
-
-        @param_to_property(key=[
-         'home', 'back', 'left', 'right', 'up', 'down', 'center',
-         'menu', 'search', 'enter', 'delete', 'del', 'recent',
-         'volume_up', 'volume_down', 'volume_mute', 'camera', 'power'])
+        '''
+        @param_to_property(
+            key=["home", "back", "left", "right", "up", "down", "center",
+                 "menu", "search", "enter", "delete", "del", "recent",
+                 "volume_up", "volume_down", "volume_mute", "camera", "power"]
+        )
         def _press(key, meta=None):
             if isinstance(key, int):
-                if meta:
-                    return self.server.jsonrpc.pressKeyCode(key, meta)
-                return self.server.jsonrpc.pressKeyCode(key)
+                return self.server.jsonrpc.pressKeyCode(key, meta) if meta else self.server.jsonrpc.pressKeyCode(key)
             else:
                 return self.server.jsonrpc.pressKey(str(key))
-
         return _press
 
     def wakeup(self):
-        """turn on screen in case of screen off."""
+        '''turn on screen in case of screen off.'''
         self.server.jsonrpc.wakeUp()
 
     def sleep(self):
-        """turn off screen in case of screen on."""
+        '''turn off screen in case of screen on.'''
         self.server.jsonrpc.sleep()
 
     @property
     def screen(self):
-        """
+        '''
         Turn on/off screen.
         Usage:
         d.screen.on()
         d.screen.off()
-
-        d.screen == 'on'  # Check if the screen is on, same as 'd.screenOn'
-        d.screen == 'off'  # Check if the screen is off, same as 'not d.screenOn'
-        """
-        devive_self = self
-
-        class _Screen(object):
-
-            def on(self):
-                return devive_self.wakeup()
-
-            def off(self):
-                return devive_self.sleep()
-
-            def __call__(self, action):
-                if action == 'on':
-                    return self.on()
-                if action == 'off':
-                    return self.off()
-                raise AttributeError('Invalid parameter: %s' % action)
-
-            def __eq__(self, value):
-                info = devive_self.info
-                if 'screenOn' not in info:
-                    raise EnvironmentError('Not supported on Android 4.3 and belows.')
-                if value in ('on', 'On', 'ON'):
-                    return info['screenOn']
-                if value in ('off', 'Off', 'OFF'):
-                    return not info['screenOn']
-                raise ValueError('Invalid parameter. It can only be compared with on/off.')
-
-            def __ne__(self, value):
-                return not self.__eq__(value)
-
-        return _Screen()
+        '''
+        @param_to_property(action=["on", "off"])
+        def _screen(action):
+            return self.wakeup() if action == "on" else self.sleep()
+        return _screen
 
     @property
     def wait(self):
-        """
+        '''
         Waits for the current application to idle or window update event occurs.
         Usage:
         d.wait.idle(timeout=1000)
         d.wait.update(timeout=1000, package_name="com.android.settings")
-        """
-
-        @param_to_property(action=['idle', 'update'])
+        '''
+        @param_to_property(action=["idle", "update"])
         def _wait(action, timeout=1000, package_name=None):
-            if timeout / 1000 + 5 > int(os.environ.get('JSONRPC_TIMEOUT', 90)):
-                http_timeout = timeout / 1000 + 5
-            else:
-                http_timeout = int(os.environ.get('JSONRPC_TIMEOUT', 90))
-            if action == 'idle':
-                return self.server.jsonrpc_wrap(timeout=http_timeout).waitForIdle(timeout)
-            if action == 'update':
-                return self.server.jsonrpc_wrap(timeout=http_timeout).waitForWindowUpdate(package_name, timeout)
-
+            if action == "idle":
+                return self.server.jsonrpc.waitForIdle(timeout)
+            elif action == "update":
+                return self.server.jsonrpc.waitForWindowUpdate(package_name, timeout)
         return _wait
 
     def exists(self, **kwargs):
-        """Check if the specified ui object by kwargs exists."""
+        '''Check if the specified ui object by kwargs exists.'''
         return self(**kwargs).exists
-
 
 Device = AutomatorDevice
 
+
 class AutomatorDeviceUiObject(object):
-    __doc__ = 'Represent a UiObject, on which user can perform actions, such as click, set text\n    '
-    _AutomatorDeviceUiObject__alias = {'description': 'contentDescription'}
+
+    '''Represent a UiObject, on which user can perform actions, such as click, set text
+    '''
+
+    __alias = {'description': "contentDescription"}
 
     def __init__(self, device, selector):
         self.device = device
@@ -919,191 +726,160 @@ class AutomatorDeviceUiObject(object):
 
     @property
     def exists(self):
-        """check if the object exists in current window."""
+        '''check if the object exists in current window.'''
         return self.jsonrpc.exist(self.selector)
 
     def __getattr__(self, attr):
-        """alias of fields in info property."""
+        '''alias of fields in info property.'''
         info = self.info
         if attr in info:
             return info[attr]
-        if attr in self._AutomatorDeviceUiObject__alias:
-            return info[self._AutomatorDeviceUiObject__alias[attr]]
-        raise AttributeError('%s attribute not found!' % attr)
+        elif attr in self.__alias:
+            return info[self.__alias[attr]]
+        else:
+            raise AttributeError("%s attribute not found!" % attr)
 
     @property
     def info(self):
-        """ui object info."""
+        '''ui object info.'''
         return self.jsonrpc.objInfo(self.selector)
 
     def set_text(self, text):
-        """set the text field."""
-        if text in (None, ''):
-            return self.jsonrpc.clearTextField(self.selector)
+        '''set the text field.'''
+        if text in [None, ""]:
+            return self.jsonrpc.clearTextField(self.selector)  # TODO no return
         else:
-            if isinstance(text, str):
-                text = imap_utf7.encode(text.decode('utf-8'))
-            else:
-                text = imap_utf7.encode(text)
             return self.jsonrpc.setText(self.selector, text)
 
     def clear_text(self):
-        """clear text. alias for set_text(None)."""
+        '''clear text. alias for set_text(None).'''
         self.set_text(None)
-
-    def get_text(self):
-        return self.jsonrpc.getText(self.selector)
 
     @property
     def click(self):
-        """
+        '''
         click on the ui object.
         Usage:
         d(text="Clock").click()  # click on the center of the ui object
         d(text="OK").click.wait(timeout=3000) # click and wait for the new window update
         d(text="John").click.topleft() # click on the topleft of the ui object
         d(text="John").click.bottomright() # click on the bottomright of the ui object
-        """
-
-        @param_to_property(action=['tl', 'topleft', 'br', 'bottomright', 'wait'])
+        '''
+        @param_to_property(action=["tl", "topleft", "br", "bottomright", "wait"])
         def _click(action=None, timeout=3000):
             if action is None:
                 return self.jsonrpc.click(self.selector)
+            elif action in ["tl", "topleft", "br", "bottomright"]:
+                return self.jsonrpc.click(self.selector, action)
             else:
-                if action in ('tl', 'topleft', 'br', 'bottomright'):
-                    return self.jsonrpc.click(self.selector, action)
                 return self.jsonrpc.clickAndWaitForNewWindow(self.selector, timeout)
-
         return _click
 
     @property
     def long_click(self):
-        """
+        '''
         Perform a long click action on the object.
         Usage:
         d(text="Image").long_click()  # long click on the center of the ui object
         d(text="Image").long_click.topleft()  # long click on the topleft of the ui object
         d(text="Image").long_click.bottomright()  # long click on the topleft of the ui object
-        """
-
-        @param_to_property(corner=['tl', 'topleft', 'br', 'bottomright'])
+        '''
+        @param_to_property(corner=["tl", "topleft", "br", "bottomright"])
         def _long_click(corner=None):
             info = self.info
-            if info['longClickable']:
+            if info["longClickable"]:
                 if corner:
                     return self.jsonrpc.longClick(self.selector, corner)
                 else:
                     return self.jsonrpc.longClick(self.selector)
             else:
-                bounds = info.get('visibleBounds') or info.get('bounds')
-                if corner in ('tl', 'topleft'):
-                    x = (5 * bounds['left'] + bounds['right']) / 6
-                    y = (5 * bounds['top'] + bounds['bottom']) / 6
+                bounds = info["visibleBounds"]
+                if corner in ["tl", "topleft"]:
+                    x = (5 * bounds["left"] + bounds["right"]) / 6
+                    y = (5 * bounds["top"] + bounds["bottom"]) / 6
+                elif corner in ["br", "bottomright"]:
+                    x = (bounds["left"] + 5 * bounds["right"]) / 6
+                    y = (bounds["top"] + 5 * bounds["bottom"]) / 6
                 else:
-                    if corner in ('br', 'bottomright'):
-                        x = (bounds['left'] + 5 * bounds['right']) / 6
-                        y = (bounds['top'] + 5 * bounds['bottom']) / 6
-                    else:
-                        x = (bounds['left'] + bounds['right']) / 2
-                        y = (bounds['top'] + bounds['bottom']) / 2
-                    return self.device.long_click(x, y)
-
+                    x = (bounds["left"] + bounds["right"]) / 2
+                    y = (bounds["top"] + bounds["bottom"]) / 2
+                return self.device.long_click(x, y)
         return _long_click
 
     @property
     def drag(self):
-        """
+        '''
         Drag the ui object to other point or ui object.
         Usage:
         d(text="Clock").drag.to(x=100, y=100)  # drag to point (x,y)
         d(text="Clock").drag.to(text="Remove") # drag to another object
-        """
-
+        '''
         def to(obj, *args, **kwargs):
-            if len(args) >= 2 or 'x' in kwargs or 'y' in kwargs:
+            if len(args) >= 2 or "x" in kwargs or "y" in kwargs:
                 drag_to = lambda x, y, steps=100: self.jsonrpc.dragTo(self.selector, x, y, steps)
             else:
                 drag_to = lambda steps=100, **kwargs: self.jsonrpc.dragTo(self.selector, Selector(**kwargs), steps)
             return drag_to(*args, **kwargs)
-
-        return type('Drag', (object,), {'to': to})()
+        return type("Drag", (object,), {"to": to})()
 
     def gesture(self, start1, start2, *args, **kwargs):
-        """
+        '''
         perform two point gesture.
         Usage:
         d().gesture(startPoint1, startPoint2).to(endPoint1, endPoint2, steps)
         d().gesture(startPoint1, startPoint2, endPoint1, endPoint2, steps)
-        """
-
+        '''
         def to(obj_self, end1, end2, steps=100):
-            ctp = lambda pt: point(*pt) if type(pt) == tuple else pt
-            s1, s2, e1, e2 = (ctp(start1), ctp(start2), ctp(end1), ctp(end2))
+            ctp = lambda pt: point(*pt) if type(pt) == tuple else pt  # convert tuple to point
+            s1, s2, e1, e2 = ctp(start1), ctp(start2), ctp(end1), ctp(end2)
             return self.jsonrpc.gesture(self.selector, s1, s2, e1, e2, steps)
-
-        obj = type('Gesture', (object,), {'to': to})()
-        if len(args) == 0:
-            return obj
-        return to(None, *args, **kwargs)
+        obj = type("Gesture", (object,), {"to": to})()
+        return obj if len(args) == 0 else to(None, *args, **kwargs)
 
     @property
     def pinch(self):
-        """
+        '''
         Perform two point gesture from edge to center(in) or center to edge(out).
         Usages:
         d().pinch.In(percent=100, steps=10)
         d().pinch.Out(percent=100, steps=100)
-        """
-
-        @param_to_property(in_or_out=['In', 'Out'])
-        def _pinch(in_or_out='Out', percent=100, steps=50):
-            if in_or_out in ('Out', 'out'):
+        '''
+        @param_to_property(in_or_out=["In", "Out"])
+        def _pinch(in_or_out="Out", percent=100, steps=50):
+            if in_or_out in ["Out", "out"]:
                 return self.jsonrpc.pinchOut(self.selector, percent, steps)
-            if in_or_out in ('In', 'in'):
+            elif in_or_out in ["In", "in"]:
                 return self.jsonrpc.pinchIn(self.selector, percent, steps)
-
         return _pinch
 
     @property
     def swipe(self):
-        """
-        Perform swipe action. if device platform greater than API 18, percent can be used and value between 0 and 1
+        '''
+        Perform swipe action.
         Usages:
         d().swipe.right()
         d().swipe.left(steps=10)
         d().swipe.up(steps=10)
         d().swipe.down()
         d().swipe("right", steps=20)
-        d().swipe("right", steps=20, percent=0.5)
-        """
-
-        @param_to_property(direction=['up', 'down', 'right', 'left'])
-        def _swipe(direction='left', steps=10, percent=1):
-            if percent == 1:
-                return self.jsonrpc.swipe(self.selector, direction, steps)
-            else:
-                return self.jsonrpc.swipe(self.selector, direction, percent, steps)
-
+        '''
+        @param_to_property(direction=["up", "down", "right", "left"])
+        def _swipe(direction="left", steps=10):
+            return self.jsonrpc.swipe(self.selector, direction, steps)
         return _swipe
 
     @property
     def wait(self):
-        """
+        '''
         Wait until the ui object gone or exist.
         Usage:
         d(text="Clock").wait.gone()  # wait until it's gone.
         d(text="Settings").wait.exists() # wait until it appears.
-        """
-
-        @param_to_property(action=['exists', 'gone'])
+        '''
+        @param_to_property(action=["exists", "gone"])
         def _wait(action, timeout=3000):
-            if timeout / 1000 + 5 > int(os.environ.get('JSONRPC_TIMEOUT', 90)):
-                http_timeout = timeout / 1000 + 5
-            else:
-                http_timeout = int(os.environ.get('JSONRPC_TIMEOUT', 90))
-            method = self.device.server.jsonrpc_wrap(timeout=http_timeout).waitUntilGone if action == 'gone' else self.device.server.jsonrpc_wrap(timeout=http_timeout).waitForExists
+            method = self.jsonrpc.waitUntilGone if action == "gone" else self.jsonrpc.waitForExists
             return method(self.selector, timeout)
-
         return _wait
 
 
@@ -1113,46 +889,78 @@ class AutomatorDeviceNamedUiObject(AutomatorDeviceUiObject):
         super(AutomatorDeviceNamedUiObject, self).__init__(device, name)
 
     def child(self, **kwargs):
-        return AutomatorDeviceNamedUiObject(self.device, self.jsonrpc.getChild(self.selector, Selector(**kwargs)))
+        return AutomatorDeviceNamedUiObject(
+            self.device,
+            self.jsonrpc.getChild(self.selector, Selector(**kwargs))
+        )
 
     def sibling(self, **kwargs):
-        return AutomatorDeviceNamedUiObject(self.device, self.jsonrpc.getFromParent(self.selector, Selector(**kwargs)))
+        return AutomatorDeviceNamedUiObject(
+            self.device,
+            self.jsonrpc.getFromParent(self.selector, Selector(**kwargs))
+        )
 
 
 class AutomatorDeviceObject(AutomatorDeviceUiObject):
-    __doc__ = 'Represent a generic UiObject/UiScrollable/UiCollection,\n    on which user can perform actions, such as click, set text\n    '
+
+    '''Represent a generic UiObject/UiScrollable/UiCollection,
+    on which user can perform actions, such as click, set text
+    '''
 
     def __init__(self, device, selector):
         super(AutomatorDeviceObject, self).__init__(device, selector)
 
     def child(self, **kwargs):
-        """set childSelector."""
-        return AutomatorDeviceObject(self.device, self.selector.clone().child(**kwargs))
+        '''set chileSelector.'''
+        self.selector.child(**kwargs)
+        return self
 
     def sibling(self, **kwargs):
-        """set fromParent selector."""
-        return AutomatorDeviceObject(self.device, self.selector.clone().sibling(**kwargs))
+        '''set fromParent selector.'''
+        self.selector.sibling(**kwargs)
+        return self
 
     child_selector, from_parent = child, sibling
 
     def child_by_text(self, txt, **kwargs):
-        if 'allow_scroll_search' in kwargs:
-            allow_scroll_search = kwargs.pop('allow_scroll_search')
-            name = self.jsonrpc.childByText(self.selector, Selector(**kwargs), txt, allow_scroll_search)
+        if "allow_scroll_search" in kwargs:
+            allow_scroll_search = kwargs.pop("allow_scroll_search")
+            name = self.jsonrpc.childByText(
+                self.selector,
+                Selector(**kwargs),
+                txt,
+                allow_scroll_search
+            )
         else:
-            name = self.jsonrpc.childByText(self.selector, Selector(**kwargs), txt)
+            name = self.jsonrpc.childByText(
+                self.selector,
+                Selector(**kwargs),
+                txt
+            )
         return AutomatorDeviceNamedUiObject(self.device, name)
 
     def child_by_description(self, txt, **kwargs):
-        if 'allow_scroll_search' in kwargs:
-            allow_scroll_search = kwargs.pop('allow_scroll_search')
-            name = self.jsonrpc.childByDescription(self.selector, Selector(**kwargs), txt, allow_scroll_search)
+        if "allow_scroll_search" in kwargs:
+            allow_scroll_search = kwargs.pop("allow_scroll_search")
+            name = self.jsonrpc.childByDescription(
+                self.selector,
+                Selector(**kwargs),
+                txt,
+                allow_scroll_search
+            )
         else:
-            name = self.jsonrpc.childByDescription(self.selector, Selector(**kwargs), txt)
+            name = self.jsonrpc.childByDescription(
+                self.selector,
+                Selector(**kwargs),
+                txt
+            )
         return AutomatorDeviceNamedUiObject(self.device, name)
 
     def child_by_instance(self, inst, **kwargs):
-        return AutomatorDeviceNamedUiObject(self.device, self.jsonrpc.childByInstance(self.selector, Selector(**kwargs), inst))
+        return AutomatorDeviceNamedUiObject(
+            self.device,
+            self.jsonrpc.childByInstance(self.selector, Selector(**kwargs), inst)
+        )
 
     @property
     def count(self):
@@ -1165,13 +973,12 @@ class AutomatorDeviceObject(AutomatorDeviceUiObject):
         count = self.count
         if index >= count:
             raise IndexError()
+        elif count == 1:
+            return self
         else:
-            if count == 1:
-                return self
-            else:
-                selector = self.selector.clone()
-                selector['instance'] = index
-                return AutomatorDeviceObject(self.device, selector)
+            selector = self.selector.clone()
+            selector["instance"] = index
+            return AutomatorDeviceObject(self.device, selector)
 
     def __iter__(self):
         obj, length = self, self.count
@@ -1185,65 +992,48 @@ class AutomatorDeviceObject(AutomatorDeviceUiObject):
                 self.index += 1
                 if self.index < length:
                     return obj[self.index]
-                raise StopIteration()
-
+                else:
+                    raise StopIteration()
             __next__ = next
 
         return Iter()
 
     def right(self, **kwargs):
-
         def onrightof(rect1, rect2):
             left, top, right, bottom = intersect(rect1, rect2)
-            if top < bottom:
-                return rect2['left'] - rect1['right']
-            return -1
-
-        return self._AutomatorDeviceObject__view_beside(onrightof, **kwargs)
+            return rect2["left"] - rect1["right"] if top < bottom else -1
+        return self.view_beside(onrightof, **kwargs)
 
     def left(self, **kwargs):
-
         def onleftof(rect1, rect2):
             left, top, right, bottom = intersect(rect1, rect2)
-            if top < bottom:
-                return rect1['left'] - rect2['right']
-            return -1
-
-        return self._AutomatorDeviceObject__view_beside(onleftof, **kwargs)
+            return rect1["left"] - rect2["right"] if top < bottom else -1
+        return self.view_beside(onleftof, **kwargs)
 
     def up(self, **kwargs):
-
         def above(rect1, rect2):
             left, top, right, bottom = intersect(rect1, rect2)
-            if left < right:
-                return rect1['top'] - rect2['bottom']
-            return -1
-
-        return self._AutomatorDeviceObject__view_beside(above, **kwargs)
+            return rect1["top"] - rect2["bottom"] if left < right else -1
+        return self.view_beside(above, **kwargs)
 
     def down(self, **kwargs):
-
         def under(rect1, rect2):
             left, top, right, bottom = intersect(rect1, rect2)
-            if left < right:
-                return rect2['top'] - rect1['bottom']
-            return -1
+            return rect2["top"] - rect1["bottom"] if left < right else -1
+        return self.view_beside(under, **kwargs)
 
-        return self._AutomatorDeviceObject__view_beside(under, **kwargs)
-
-    def __view_beside(self, onsideof, **kwargs):
-        bounds = self.info['bounds']
-        min_dist, found = (-1, None)
+    def view_beside(self, onsideof, **kwargs):
+        bounds = self.info["bounds"]
+        min_dist, found = -1, None
         for ui in AutomatorDeviceObject(self.device, Selector(**kwargs)):
-            dist = onsideof(bounds, ui.info['bounds'])
+            dist = onsideof(bounds, ui.info["bounds"])
             if dist >= 0 and (min_dist < 0 or dist < min_dist):
                 min_dist, found = dist, ui
-
         return found
 
     @property
     def fling(self):
-        """
+        '''
         Perform fling action.
         Usage:
         d().fling()  # default vertically, forward
@@ -1251,27 +1041,27 @@ class AutomatorDeviceObject(AutomatorDeviceUiObject):
         d().fling.vert.backward()
         d().fling.toBeginning(max_swipes=100) # vertically
         d().fling.horiz.toEnd()
-        """
-
-        @param_to_property(dimention=[
-         'vert', 'vertically', 'vertical', 'horiz', 'horizental', 'horizentally'], action=[
-         'forward', 'backward', 'toBeginning', 'toEnd'])
-        def _fling(dimention='vert', action='forward', max_swipes=1000):
-            vertical = dimention in ('vert', 'vertically', 'vertical')
-            if action == 'forward':
+        '''
+        @param_to_property(
+            dimention=["vert", "vertically", "vertical", "horiz", "horizental", "horizentally"],
+            action=["forward", "backward", "toBeginning", "toEnd"]
+        )
+        def _fling(dimention="vert", action="forward", max_swipes=1000):
+            vertical = dimention in ["vert", "vertically", "vertical"]
+            if action == "forward":
                 return self.jsonrpc.flingForward(self.selector, vertical)
-            if action == 'backward':
+            elif action == "backward":
                 return self.jsonrpc.flingBackward(self.selector, vertical)
-            if action == 'toBeginning':
+            elif action == "toBeginning":
                 return self.jsonrpc.flingToBeginning(self.selector, vertical, max_swipes)
-            if action == 'toEnd':
+            elif action == "toEnd":
                 return self.jsonrpc.flingToEnd(self.selector, vertical, max_swipes)
 
         return _fling
 
     @property
     def scroll(self):
-        """
+        '''
         Perfrom scroll action.
         Usage:
         d().scroll(steps=50) # default vertically and forward
@@ -1280,8 +1070,7 @@ class AutomatorDeviceObject(AutomatorDeviceUiObject):
         d().scroll.horiz.toBeginning(steps=100, max_swipes=100)
         d().scroll.vert.toEnd(steps=100)
         d().scroll.horiz.to(text="Clock")
-        """
-
+        '''
         def __scroll(vertical, forward, steps=100):
             method = self.jsonrpc.scrollForward if forward else self.jsonrpc.scrollBackward
             return method(self.selector, vertical, steps)
@@ -1295,18 +1084,201 @@ class AutomatorDeviceObject(AutomatorDeviceUiObject):
         def __scroll_to(vertical, **kwargs):
             return self.jsonrpc.scrollTo(self.selector, Selector(**kwargs), vertical)
 
-        @param_to_property(dimention=[
-         'vert', 'vertically', 'vertical', 'horiz', 'horizental', 'horizentally'], action=[
-         'forward', 'backward', 'toBeginning', 'toEnd', 'to'])
-        def _scroll(dimention='vert', action='forward', **kwargs):
-            vertical = dimention in ('vert', 'vertically', 'vertical')
-            if action in ('forward', 'backward'):
-                return _AutomatorDeviceObject__scroll(vertical, action == 'forward', **kwargs)
-            if action == 'toBeginning':
-                return _AutomatorDeviceObject__scroll_to_beginning(vertical, **kwargs)
-            if action == 'toEnd':
-                return _AutomatorDeviceObject__scroll_to_end(vertical, **kwargs)
-            if action == 'to':
-                return _AutomatorDeviceObject__scroll_to(vertical, **kwargs)
-
+        @param_to_property(
+            dimention=["vert", "vertically", "vertical", "horiz", "horizental", "horizentally"],
+            action=["forward", "backward", "toBeginning", "toEnd", "to"])
+        def _scroll(dimention="vert", action="forward", **kwargs):
+            vertical = dimention in ["vert", "vertically", "vertical"]
+            if action in ["forward", "backward"]:
+                return __scroll(vertical, action == "forward", **kwargs)
+            elif action == "toBeginning":
+                return __scroll_to_beginning(vertical, **kwargs)
+            elif action == "toEnd":
+                return __scroll_to_end(vertical, **kwargs)
+            elif action == "to":
+                return __scroll_to(vertical, **kwargs)
         return _scroll
+
+
+class AutomatorDeviceXMLObject(AutomatorDeviceObject):
+    '''use xml to do selector'''
+    @classmethod
+    def node_equal(clz, n1, n2, ignores=['bounds', 'instance']):
+        '''compare two xml nodes'''
+        return all(n1.get(k1) == n2.get(k1) for k1 in n1.keys() if k1 not in ignores)
+
+    @classmethod
+    def node_to_selector(clz, node):
+        '''convert a XML node to selector'''
+        # get all keys from nodes. different android version may returns different keys
+        # so we must get all possible keys in xml node
+        def traverse():
+            node_keys = node.keys()
+            for key, (key_node, func_match, func_convert) in clz.dict_sel2xml_simple.items():
+                if key_node in node_keys:
+                    value = func_convert(node.get(key_node))
+                    if value not in ['', None]:
+                        yield (key, value)
+        sel = dict(traverse())
+        sel['instance'] = node.get('instance') or 0
+        return Selector(**sel)
+
+    @classmethod
+    def filter_nodes(clz, root_em, sel):
+        '''get all matched nodes according the select_arg'''
+        def match(node, sel):
+            def _match_prop():
+                for key in sel:
+                    if key in clz.dict_sel2xml_all:
+                        key_node, func = clz.dict_sel2xml_all[key][:2]
+                        yield func(node.get(key_node), sel[key]) if key_node in node.keys() else False
+            return all(_match_prop())
+        nodes = [node for node in root_em.iter('node') if match(node, sel)]
+        if 'instance' in sel:
+            if sel['instance'] >= len(nodes):
+                raise IndexError()
+            else:
+                nodes = nodes[sel['instance']]
+        return nodes
+
+    check_attr = lambda node_value, sel_value: sel_value == node_value
+    check_contain = lambda node_value, sel_value: sel_value in node_value
+    check_match = lambda node_value, sel_value: re.compile(sel_value).match(node_value)
+    check_startwith = lambda node_value, sel_value: node_value.startswith(sel_value)
+
+    @classmethod
+    def rootxml_add_instance(clz, rootem):
+        '''add instance property to xml nodes'''
+        for f in rootem.iter('node'):
+            i = 0
+            for s in rootem.iter('node'):
+                if clz.node_equal(f, s):
+                    i += 1
+                elif s is f:
+                    f.set('instance', i)
+                    break
+        return rootem
+
+    dict_sel2xml_simple = {
+        'text':                  ['text', check_attr, u],
+        'className':             ['class', check_attr, u],
+        'description':           ['content-desc', check_attr, u],
+        'checkable':             ['checkable', check_attr, lambda s: s == 'true'],
+        'checked':               ['checked', check_attr, lambda s: s == 'true'],
+        'clickable':             ['clickable', check_attr, lambda s: s == 'true'],
+        'longClickable':         ['long-clickable', check_attr, lambda s: s == 'true'],
+        'scrollable':            ['scrollable', check_attr, lambda s: s == 'true'],
+        'enabled':               ['enabled', check_attr, lambda s: s == 'true'],
+        'focusable':             ['focusable', check_attr, lambda s: s == 'true'],
+        'focused':               ['focused', check_attr, lambda s: s == 'true'],
+        'selected':              ['selected', check_attr, lambda s: s == 'true'],
+        'packageName':           ['package', check_attr, u],
+        'resourceId':            ['resource-id', check_attr, u],
+        'index':                 ['index', check_attr, int]
+    }
+    dict_sel2xml_complex = {
+        'textContains':          ['text', check_contain],
+        'descriptionContains':   ['content-desc', check_contain],
+        'textMatches':           ['text', check_match],
+        'classNameMatches':      ['class', check_match],
+        'descriptionMatches':    ['content-desc', check_match],
+        'packageNameMatches':    ['package', check_match],
+        'resourceIdMatches':     ['resource-id', check_match],
+        'textStartsWith':        ['text', check_startwith],
+        'descriptionStartsWith': ['content-desc', check_startwith]
+    }
+    dict_sel2xml_all = dict(dict_sel2xml_simple, **dict_sel2xml_complex)
+
+    def __init__(self, device, selector, nodes=None):
+        super(AutomatorDeviceXMLObject, self).__init__(device, selector)
+        self.root_em = None
+        self.nodes = nodes or self.filter_nodes(self.rootxml, selector)
+
+    def get_nodes(self):
+        return self.__nodes
+
+    def set_nodes(self, value):
+        if len(value) > 0:
+            self.__nodes = value
+            self.selector = self.node_to_selector(value[0])
+        else:
+            raise Exception("Error response,Error message: UiSelector %s not found \n" % self.selector)
+
+    nodes = property(get_nodes, set_nodes)
+
+    def __len__(self):
+        return self.count
+
+    def __getitem__(self, index):
+        if index >= self.count:
+            raise IndexError()
+        elif self.count == 1:
+            return self
+        else:
+            self.nodes = [self.nodes[index]]
+            return AutomatorDeviceXMLObject(self.device, self.selector, self.nodes)
+
+    @property
+    def rootxml(self):
+        ''' return the root nodes'''
+        if self.root_em is None:
+            root = etree.fromstring(self.device.dump().encode("utf-8"))
+            self.root_em = self.rootxml_add_instance(root)
+        return self.root_em
+
+    def child(self, **kwargs):
+        '''set chileSelector.'''
+        childnodes = self.filter_nodes(self.rootxml, Selector(**kwargs))
+
+        def filter_child(nodes, childnodes):
+            ''' get childnodes which under the parent nodes'''
+            all_childs = set(node for parent in nodes for node in parent.iter('node'))
+            return filter(lambda n: n in all_childs, childnodes)
+        self.nodes = filter_child(self.nodes, childnodes)
+        return self
+
+    def sibling(self, **kwargs):
+        '''set fromParent selector.'''
+        def filter_sibling(nodes, siblings):
+            def _is_sibling(sibl):
+                for node in self.rootxml.iter('node'):
+                    childs = list(node.getchildren())
+                    if sibl in childs and any(n in childs for n in nodes if n is not sibl):
+                        return True
+                return False
+            return filter(_is_sibling, siblings)
+        siblings = self.filter_nodes(self.rootxml, Selector(**kwargs))
+        self.nodes = filter_sibling(self.nodes, siblings)
+        return self
+
+    child_selector, from_parent = child, sibling
+
+    @property
+    def exists(self):
+        return True if len(self.nodes) > 0 else False
+
+    @property
+    def count(self):
+        return len(self.nodes)
+
+    def view_beside(self, onsideof, **kwargs):
+        def to_bounds(bounds_str):
+            '''convert dumped bounds string to rect'''
+            match = re.search(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds_str)
+            return {
+                'top': int(match.group(2)),
+                'left': int(match.group(1)),
+                'bottom': int(match.group(4)),
+                'right': int(match.group(3))
+            }
+
+        origin_bounds = to_bounds(self.nodes[0].get('bounds'))
+        min_dist, found = -1, None
+        for node in self.filter_nodes(self.rootxml, Selector(**kwargs)):
+            dist = onsideof(origin_bounds, to_bounds(node.get("bounds")))
+            if dist >= 0 and (min_dist < 0 or dist < min_dist):
+                min_dist, found = dist, node
+        self.nodes = [found]
+        return AutomatorDeviceXMLObject(self.device, self.selector, self.nodes)
+
+device = AutomatorDevice()

@@ -14,6 +14,7 @@ import queue
 import threading
 import time
 from urllib import request
+from urllib.error import URLError, HTTPError
 
 LOG = logging.getLogger('IOService')
 
@@ -51,8 +52,8 @@ class HTTPThread(threading.Thread):
         except ResourceWarning as e:
             LOG.warning('Send POST to ASM failed err[%s], if you run AI SDK locally, please ignore', e)
             return False
-
-        if ret['error'] < 0:
+        LOG.info("Res result: {}".format(ret["error"]))
+        if int(ret["error"]) < 0:
             LOG.error('POST return err[%s/%s]', ret['error'], ret['errstr'])
             return False
         if 'msg_id' in ret['data']:
@@ -67,8 +68,17 @@ class HTTPThread(threading.Thread):
 
     def _RequestInfo(self, data=None):
         req = request.Request(self.__url, data, self.__HTTPHeader)
-        response = request.urlopen(req)
-        result = response.read().decode('utf-8')
+        try:
+            response = request.urlopen(req)
+        except URLError as e:
+            # do something
+            LOG.error('URLError: %s',req.full_url)
+            result = '{\"error\":-1, \"errstr\": \"server not found,  if you run AI SDK locally, please ignore\"}'
+            return result
+        else:
+            # do something
+            result = response.read().decode('utf-8')
+        
         return result
 
 

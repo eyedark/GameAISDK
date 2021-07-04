@@ -199,7 +199,7 @@ class DQNAIModel(AIModel):
             action[0] = 1
         else:
             action = self.brain.GetAction()  #get action from dqn
-
+        #TODO can implement openai here
         nextObservation, reward, terminal = self._FrameStep(action)
 
         if terminal is True:

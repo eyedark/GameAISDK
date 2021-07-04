@@ -44,13 +44,19 @@ def create_common_config(node_cfg: OrderedDict,
     return config
 
 
-def update_location_config(src_config_key, dst_config_key, node_cfg):
+def update_location_config(src_config_key, dst_config_key, node_cfg,src_node_value=None):
     node_cfg[dst_config_key] = OrderedDict()
-    location = get_value(node_cfg, src_config_key, OrderedDict())
-    node_cfg[dst_config_key]['x'] = get_value(location, 'x', 0)
-    node_cfg[dst_config_key]['y'] = get_value(location, 'y', 0)
-    node_cfg[dst_config_key]['w'] = get_value(location, 'w', 0)
-    node_cfg[dst_config_key]['h'] = get_value(location, 'h', 0)
+    if src_node_value is None:
+        location = get_value(node_cfg, src_config_key, OrderedDict())
+        node_cfg[dst_config_key]['x'] = get_value(location, 'x', 0)
+        node_cfg[dst_config_key]['y'] = get_value(location, 'y', 0)
+        node_cfg[dst_config_key]['w'] = get_value(location, 'w', 0)
+        node_cfg[dst_config_key]['h'] = get_value(location, 'h', 0)
+    else:
+        node_cfg[dst_config_key]['x'] = get_value(src_node_value, 'x', 0)
+        node_cfg[dst_config_key]['y'] = get_value(src_node_value, 'y', 0)
+        node_cfg[dst_config_key]['w'] = get_value(src_node_value, 'w', 0)
+        node_cfg[dst_config_key]['h'] = get_value(src_node_value, 'h', 0)
 
 
 class ReferNodeInfo(object):
@@ -76,7 +82,8 @@ class ReferNodeInfo(object):
     @staticmethod
     def init_detect_data(node_cfg: OrderedDict, obj_task=-1, obj_elements=None):
         cfg_data = create_common_config(node_cfg)
-        update_location_config('templateLocation', 'location', cfg_data)
+        
+        update_location_config('templateLocation', 'location', cfg_data,get_value(node_cfg,"templateLocation", OrderedDict()))
         cfg_data['objTask'] = obj_task
         if obj_elements is None:
             obj_elements = [0]
@@ -89,7 +96,7 @@ class ReferNodeInfo(object):
         if 'taskID' not in data_cfg:
             data_cfg['taskID'] = self.task_id
         cfg_data = create_common_config(data_cfg, detect_type="location", detect_algorithm="Detect")
-        update_location_config('location', 'templateLocation', cfg_data)
+        update_location_config('location', 'templateLocation', cfg_data,get_value(data_cfg,"location",OrderedDict()))
         if len(cfg_data['templates']) == 0:
             template = OrderedDict()
             template['path'] = ''
