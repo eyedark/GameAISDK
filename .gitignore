@@ -46,3 +46,16 @@ log/
 .vscode/
 tools/SDKTool/PlugIn/ai/UIAuto/ubuntu/DetectRefineNet/data/
 tools/SDKTool/PlugIn/ai/UIAuto/windows/DetectRefineNet/data/
+
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+*.zip

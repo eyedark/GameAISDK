@@ -47,7 +47,7 @@ for videoName in videos:
 
         if idx % skipFrame == 0:
             img = cv2.resize(frame, imgSize)
-            cv2.imwrite(imgDir + dateName + '-' + videoName + "_(" + str(idx) + ")" + '.png', img)
+            cv2.imwrite(imgDir + dateName + '-' + videoName + "_(" + str(idx) + ")" + '.jpg', img,[int(cv2.IMWRITE_JPEG_QUALITY), 90])
         idx = idx + 1
 
     cap.release()

@@ -236,7 +236,7 @@ class ReferNodeInfo(object):
     @staticmethod
     def init_blood_length_data(node_cfg, obj_task=-1, obj_elements=None):
         cfg_data = create_common_config(node_cfg, detect_type="bloodlengthreg", detect_algorithm="TemplateMatch")
-        update_location_config('templateLocation', 'location', cfg_data)
+        update_location_config('templateLocation', 'location', cfg_data,get_value(node_cfg,"templateLocation",OrderedDict()))
         cfg_data['objTask'] = obj_task
         if obj_elements is None:
             obj_elements = [0]
@@ -249,7 +249,7 @@ class ReferNodeInfo(object):
         if 'taskID' not in data_cfg:
             data_cfg['taskID'] = self.task_id
         cfg_data = create_common_config(data_cfg, detect_type="bloodlengthreg", detect_algorithm="TemplateMatch")
-        update_location_config('location', 'templateLocation', cfg_data)
+        update_location_config('location', 'templateLocation', cfg_data,get_value(data_cfg,"location",OrderedDict()))
         if len(cfg_data['templates']) == 0:
             template = OrderedDict()
             template['path'] = ''

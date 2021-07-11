@@ -35,7 +35,7 @@ echo "--------------jsoncpp end------------------"
 
 echo "--------------darnet start------------------"
 #build libdarknetV3_CPU.so or libdarknetV3_GPU.so
-cd $AI_SDK_ROOT/Modules/darknetV3/src
+cd $AI_SDK_ROOT/Modules/darknetV3
 
 chmod +x InstallYoloV3.sh
 if [ $# -gt 0 ]; then

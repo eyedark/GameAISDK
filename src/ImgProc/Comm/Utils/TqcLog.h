@@ -137,9 +137,9 @@ extern int g_logLevel;
                 char szTimeBuff[32];                                                              \
                 char szContent[256];                                                              \
                 SNPRINTF(szContent, sizeof(szContent), fmt, ##__VA_ARGS__);                       \
-                SNPRINTF(szErrLogBuf, sizeof(szErrLogBuf), "%s|%s|%s:%d|ERROR|%s\n",              \
+                SNPRINTF(szErrLogBuf, sizeof(szErrLogBuf), "%s|%s:%d|ERROR|%s\n",              \
                          CurTimeStamp(szTimeBuff, sizeof(szTimeBuff)),                            \
-                         __FILE__, __FUNCTION__, __LINE__, szContent);                            \
+                         __FILE__, __LINE__, szContent);                            \
                 printf("%s", szErrLogBuf);                                                        \
                 CLog::getInstance()->logWrite(CLog::LOG_PRIORITY_ERROR, szErrLogBuf,              \
                     strlen(szErrLogBuf));                                                         \
@@ -149,9 +149,9 @@ extern int g_logLevel;
                 char szTimeBuff[32];                                                              \
                 char szContent[256];                                                              \
                 SNPRINTF(szContent, sizeof(szContent), fmt, ##__VA_ARGS__);                       \
-                SNPRINTF(szWarnLogBuf, sizeof(szWarnLogBuf), "%s|%s|%s:%d|WARN|%s\n",             \
+                SNPRINTF(szWarnLogBuf, sizeof(szWarnLogBuf), "%s|%s|:%d|WARN|%s\n",             \
                          CurTimeStamp(szTimeBuff, sizeof(szTimeBuff)),                            \
-                         __FILE__, __FUNCTION__, __LINE__, szContent);                            \
+                         __FILE__, __LINE__, szContent);                            \
                 printf("%s", szWarnLogBuf);                                                       \
                 CLog::getInstance()->logWrite(CLog::LOG_PRIORITY_WARN, szWarnLogBuf,              \
                     strlen(szWarnLogBuf));                                                        \
@@ -161,9 +161,9 @@ extern int g_logLevel;
                 char szTimeBuff[32];                                                              \
                 char szContent[256];                                                              \
                 SNPRINTF(szContent, sizeof(szContent), fmt, ##__VA_ARGS__);                       \
-                SNPRINTF(szRunLogBuf, sizeof(szRunLogBuf), "%s|%s|%s:%d|INFO|%s\n",               \
+                SNPRINTF(szRunLogBuf, sizeof(szRunLogBuf), "%s|%s:%d|INFO|%s\n",               \
                          CurTimeStamp(szTimeBuff, sizeof(szTimeBuff)),                            \
-                         __FILE__, __FUNCTION__, __LINE__, szContent);                            \
+                         __FILE__, __LINE__, szContent);                            \
                 printf("%s", szRunLogBuf);                                                        \
                 CLog::getInstance()->logWrite(CLog::LOG_PRIORITY_RUN, szRunLogBuf,                \
                     strlen(szRunLogBuf));                                                         \
@@ -173,9 +173,9 @@ extern int g_logLevel;
                 char szTimeBuff[32];                                                              \
                 char szContent[256];                                                              \
                 SNPRINTF(szContent, sizeof(szContent), fmt, ##__VA_ARGS__);                       \
-                SNPRINTF(szDeLogBuf, sizeof(szDeLogBuf), "%s|%s|%s:%d|DEBUG|%s\n",                \
+                SNPRINTF(szDeLogBuf, sizeof(szDeLogBuf), "%s|%s:%d|DEBUG|%s\n",                \
                          CurTimeStamp(szTimeBuff, sizeof(szTimeBuff)),                            \
-                         __FILE__, __FUNCTION__, __LINE__, szContent);                            \
+                         __FILE__, __LINE__, szContent);                            \
                 printf("%s", szDeLogBuf);                                                         \
                 CLog::getInstance()->logWrite(CLog::LOG_PRIORITY_RUN, szDeLogBuf,                 \
                     strlen(szDeLogBuf));                                                          \
