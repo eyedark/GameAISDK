@@ -12,7 +12,7 @@ void train_compare(char *cfgfile, char *weightfile)
     srand(time(0));
     float avg_loss = -1;
     char *base = basecfg(cfgfile);
-    char *backup_directory = "/home/pjreddie/backup/";
+    char* backup_directory = "backup/";
     printf("%s\n", base);
     network net = parse_network_cfg(cfgfile);
     if(weightfile){
@@ -81,6 +81,7 @@ void train_compare(char *cfgfile, char *weightfile)
 void validate_compare(char *filename, char *weightfile)
 {
     int i = 0;
+    fprintf(stderr, "debug validate_compare\n");
     network net = parse_network_cfg(filename);
     if(weightfile){
         load_weights(&net, weightfile);
@@ -148,21 +149,21 @@ void validate_compare(char *filename, char *weightfile)
 typedef struct {
     network net;
     char *filename;
-    int class;
+    int class_id;
     int classes;
     float elo;
     float *elos;
 } sortable_bbox;
 
 int total_compares = 0;
-int current_class = 0;
+int current_class_id = 0;
 
 int elo_comparator(const void*a, const void *b)
 {
     sortable_bbox box1 = *(sortable_bbox*)a;
     sortable_bbox box2 = *(sortable_bbox*)b;
-    if(box1.elos[current_class] == box2.elos[current_class]) return 0;
-    if(box1.elos[current_class] >  box2.elos[current_class]) return -1;
+    if(box1.elos[current_class_id] == box2.elos[current_class_id]) return 0;
+    if(box1.elos[current_class_id] >  box2.elos[current_class_id]) return -1;
     return 1;
 }
 
@@ -172,40 +173,40 @@ int bbox_comparator(const void *a, const void *b)
     sortable_bbox box1 = *(sortable_bbox*)a;
     sortable_bbox box2 = *(sortable_bbox*)b;
     network net = box1.net;
-    int class   = box1.class;
+    int class_id   = box1.class_id;
 
     image im1 = load_image_color(box1.filename, net.w, net.h);
     image im2 = load_image_color(box2.filename, net.w, net.h);
-    float *X  = calloc(net.w*net.h*net.c, sizeof(float));
+    float* X = (float*)xcalloc(net.w * net.h * net.c, sizeof(float));
     memcpy(X,                   im1.data, im1.w*im1.h*im1.c*sizeof(float));
     memcpy(X+im1.w*im1.h*im1.c, im2.data, im2.w*im2.h*im2.c*sizeof(float));
     float *predictions = network_predict(net, X);
-    
+
     free_image(im1);
     free_image(im2);
     free(X);
-    if (predictions[class*2] > predictions[class*2+1]){
+    if (predictions[class_id*2] > predictions[class_id*2+1]){
         return 1;
     }
     return -1;
 }
 
-void bbox_update(sortable_bbox *a, sortable_bbox *b, int class, int result)
+void bbox_update(sortable_bbox *a, sortable_bbox *b, int class_id, int result)
 {
     int k = 32;
-    float EA = 1./(1+pow(10, (b->elos[class] - a->elos[class])/400.));
-    float EB = 1./(1+pow(10, (a->elos[class] - b->elos[class])/400.));
+    float EA = 1./(1+pow(10, (b->elos[class_id] - a->elos[class_id])/400.));
+    float EB = 1./(1+pow(10, (a->elos[class_id] - b->elos[class_id])/400.));
     float SA = result ? 1 : 0;
     float SB = result ? 0 : 1;
-    a->elos[class] += k*(SA - EA);
-    b->elos[class] += k*(SB - EB);
+    a->elos[class_id] += k*(SA - EA);
+    b->elos[class_id] += k*(SB - EB);
 }
 
-void bbox_fight(network net, sortable_bbox *a, sortable_bbox *b, int classes, int class)
+void bbox_fight(network net, sortable_bbox *a, sortable_bbox *b, int classes, int class_id)
 {
     image im1 = load_image_color(a->filename, net.w, net.h);
     image im2 = load_image_color(b->filename, net.w, net.h);
-    float *X  = calloc(net.w*net.h*net.c, sizeof(float));
+    float* X = (float*)xcalloc(net.w * net.h * net.c, sizeof(float));
     memcpy(X,                   im1.data, im1.w*im1.h*im1.c*sizeof(float));
     memcpy(X+im1.w*im1.h*im1.c, im2.data, im2.w*im2.h*im2.c*sizeof(float));
     float *predictions = network_predict(net, X);
@@ -213,12 +214,12 @@ void bbox_fight(network net, sortable_bbox *a, sortable_bbox *b, int classes, in
 
     int i;
     for(i = 0; i < classes; ++i){
-        if(class < 0 || class == i){
+        if(class_id < 0 || class_id == i){
             int result = predictions[i*2] > predictions[i*2+1];
             bbox_update(a, b, i, result);
         }
     }
-    
+
     free_image(im1);
     free_image(im2);
     free(X);
@@ -227,6 +228,7 @@ void bbox_fight(network net, sortable_bbox *a, sortable_bbox *b, int classes, in
 void SortMaster3000(char *filename, char *weightfile)
 {
     int i = 0;
+    fprintf(stderr, "debug SortMaster3000\n");
     network net = parse_network_cfg(filename);
     if(weightfile){
         load_weights(&net, weightfile);
@@ -239,12 +241,12 @@ void SortMaster3000(char *filename, char *weightfile)
     char **paths = (char **)list_to_array(plist);
     int N = plist->size;
     free_list(plist);
-    sortable_bbox *boxes = calloc(N, sizeof(sortable_bbox));
+    sortable_bbox* boxes = (sortable_bbox*)xcalloc(N, sizeof(sortable_bbox));
     printf("Sorting %d boxes...\n", N);
     for(i = 0; i < N; ++i){
         boxes[i].filename = paths[i];
         boxes[i].net = net;
-        boxes[i].class = 7;
+        boxes[i].class_id = 7;
         boxes[i].elo = 1500;
     }
     clock_t time=clock();
@@ -259,6 +261,7 @@ void BattleRoyaleWithCheese(char *filename, char *weightfile)
 {
     int classes = 20;
     int i,j;
+    fprintf(stderr, "debug BattleRoyaleWithCheese\n");
     network net = parse_network_cfg(filename);
     if(weightfile){
         load_weights(&net, weightfile);
@@ -274,13 +277,13 @@ void BattleRoyaleWithCheese(char *filename, char *weightfile)
     int N = plist->size;
     int total = N;
     free_list(plist);
-    sortable_bbox *boxes = calloc(N, sizeof(sortable_bbox));
+    sortable_bbox* boxes = (sortable_bbox*)xcalloc(N, sizeof(sortable_bbox));
     printf("Battling %d boxes...\n", N);
     for(i = 0; i < N; ++i){
         boxes[i].filename = paths[i];
         boxes[i].net = net;
         boxes[i].classes = classes;
-        boxes[i].elos = calloc(classes, sizeof(float));;
+        boxes[i].elos = (float*)xcalloc(classes, sizeof(float));
         for(j = 0; j < classes; ++j){
             boxes[i].elos[j] = 1500;
         }
@@ -297,12 +300,12 @@ void BattleRoyaleWithCheese(char *filename, char *weightfile)
         printf("Round: %f secs, %d remaining\n", sec(clock()-round_time), N);
     }
 
-    int class;
+    int class_id;
 
-    for (class = 0; class < classes; ++class){
+    for (class_id = 0; class_id < classes; ++class_id){
 
         N = total;
-        current_class = class;
+        current_class_id = class_id;
         qsort(boxes, N, sizeof(sortable_bbox), elo_comparator);
         N /= 2;
 
@@ -312,7 +315,7 @@ void BattleRoyaleWithCheese(char *filename, char *weightfile)
 
             sorta_shuffle(boxes, N, sizeof(sortable_bbox), 10);
             for(i = 0; i < N/2; ++i){
-                bbox_fight(net, boxes+i*2, boxes+i*2+1, classes, class);
+                bbox_fight(net, boxes+i*2, boxes+i*2+1, classes, class_id);
             }
             qsort(boxes, N, sizeof(sortable_bbox), elo_comparator);
             if(round <= 20) N = (N*9/10)/2*2;
@@ -320,10 +323,10 @@ void BattleRoyaleWithCheese(char *filename, char *weightfile)
             printf("Round: %f secs, %d remaining\n", sec(clock()-round_time), N);
         }
         char buff[256];
-        sprintf(buff, "results/battle_%d.log", class);
+        sprintf(buff, "results/battle_%d.log", class_id);
         FILE *outfp = fopen(buff, "w");
         for(i = 0; i < N; ++i){
-            fprintf(outfp, "%s %f\n", boxes[i].filename, boxes[i].elos[class]);
+            fprintf(outfp, "%s %f\n", boxes[i].filename, boxes[i].elos[class_id]);
         }
         fclose(outfp);
     }
