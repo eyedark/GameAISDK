@@ -9,7 +9,7 @@ fi
 
 cd ../src/ImgProc
 
-export CPATH=$CPATH:/usr/local/include:/usr/include/python3.7m
+export CPATH=$CPATH:/usr/local/include:/usr/include/python3.8
 export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib
 
 if [ $# -gt 0 ]; then

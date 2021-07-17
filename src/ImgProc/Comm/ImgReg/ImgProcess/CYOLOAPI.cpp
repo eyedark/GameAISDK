@@ -111,29 +111,25 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
 #endif
 
 #ifdef LINUX
-    for (int nIdx = 0; nIdx < g_nMaxResultSize; ++nIdx) {
+    for (int nIdx = 0; nIdx < 1; ++nIdx) {
         tagYoloNetWork stYoloNetWork;
 
         stYoloNetWork.Mutex = TqcOsCreateMutex();
 
         // load config
+        printf("LINUX Debug call max is");
         stYoloNetWork.pNet = parse_network_cfg(pszCfgPath);
-        if (stYoloNetWork.pNet == NULL) {
+        if (stYoloNetWork.pNet.workspace == NULL) {
             std::string strCfgPath = std::string(pszCfgPath);
             LOGE("load cfg of yolo failed: %s", strCfgPath.c_str());
             return -1;
         }
 
-        // load weights
-        if (-1 == load_weights(stYoloNetWork.pNet, pszWeightPath)) {
-            free_network(stYoloNetWork.pNet);
-            std::string strWeightPath = std::string(pszWeightPath);
-            LOGE("load weight of yolo failed: %s", strWeightPath.c_str());
-            return -1;
-        }
+        /// load weights
+        load_weights(&stYoloNetWork.pNet, pszWeightPath);
 
         // set batch size to 1
-        set_batch_network(stYoloNetWork.pNet, 1);
+        set_batch_network(&stYoloNetWork.pNet, 1);
 
         m_oVecNets.push_back(stYoloNetWork);
     }
@@ -212,42 +208,41 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
 #endif
 
 #ifdef LINUX
-    network *pFreeNet = NULL;
+    network pNet;
+    pNet.n = 0;
 
     // select free network
     int nIdx = 0;
     while (true) {
         for (; nIdx < g_nMaxResultSize; ++nIdx) {
             if (m_oVecNets[nIdx].IsFree()) {
-                pFreeNet = m_oVecNets[nIdx].pNet;
+                pNet = m_oVecNets[nIdx].pNet;
                 break;
             }
         }
 
-        if (pFreeNet != NULL) {
+        if (pNet.n != 0) {
             break;
         }
     }
 
     // convert cv::Mat to Image
     cv::Mat oImg;
-    cv::resize(oSrcImg, oImg, cv::Size(pFreeNet->w, pFreeNet->h));
+    cv::resize(oSrcImg, oImg, cv::Size(pNet.w, pNet.h));
     cv::cvtColor(oImg, oImg, CV_BGR2RGB);
     image stImg = make_image(oImg.cols, oImg.rows, oImg.channels());
     Mat2Image(oImg, stImg);
 
     // resize image
-    image stImgResize = letterbox_image(stImg, pFreeNet->w, pFreeNet->h);
+    image stImgResize = resize_image(stImg, pNet.w, pNet.h);
 
     // run inference in network
-    float *pDatas = stImgResize.data;
-    network_predict(pFreeNet, pDatas);
+    network_predict(pNet, stImgResize.data);
 
     // get detection results
-    detection *pDetResults = get_network_boxes(pFreeNet, oSrcImg.cols, oSrcImg.rows,
-        m_fThreshold, .5, 0, 1, &nBoxes);
-    layer     stLayer = pFreeNet->layers[pFreeNet->n - 1];
-    // printf("nBoxes %d\n", nBoxes);
+    detection *pDetResults = get_network_boxes(&pNet, oSrcImg.cols, oSrcImg.rows,
+        m_fThreshold, .5, 0, 1, &nBoxes, 0);
+    layer     stLayer = pNet.layers[pNet.n - 1];
 
     // set used network unwork
     m_oVecNets[nIdx].SetFree();
@@ -315,11 +310,8 @@ int CYOLO::Release() {
 
 #ifdef LINUX
     for (size_t nIdx = 0; nIdx < m_oVecNets.size(); ++nIdx) {
-        if (m_oVecNets[nIdx].pNet != NULL) {
-            free_network(m_oVecNets[nIdx].pNet);
-            m_oVecNets[nIdx].pNet = NULL;
-            TqcOsDeleteMutex(m_oVecNets[nIdx].Mutex);
-        }
+        free_network(m_oVecNets[nIdx].pNet);
+        TqcOsDeleteMutex(m_oVecNets[nIdx].Mutex);
     }
 #endif
 
@@ -409,7 +401,7 @@ int CYOLOAPI::Initialize(const CYOLOAPIParam &oParam) {
     // initialize method
     int nState = m_oYOLO.Initialize(pszCfgPath, pszWeightPath, pszNamePath, oParam.m_fThreshold);
     if (1 != nState) {
-        LOGE("task ID %d: CYOLO initialization failed", m_nTaskID);
+        LOGE("task ID %d: CYOLOAPI initialization failed", m_nTaskID);
         return nState;
     }
 
@@ -442,7 +434,7 @@ int CYOLOAPI::Predict(const CYOLOAPIData &oData, CYOLOAPIResult &oResult) {
     std::vector<tagBBox> oVecBBoxes;
     nState = m_oYOLO.Predict(oSrcImg(m_oROI), oVecBBoxes);
     if (1 != nState) {
-        LOGE("task ID %d: CYOLO predict failed, please check", m_nTaskID);
+        LOGE("task ID %d: CYOLOAPI predict failed, please check", m_nTaskID);
         return nState;
     }
 

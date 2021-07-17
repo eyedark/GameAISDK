@@ -19,6 +19,9 @@
 #include "Comm/Os/TqcOs.h"
 #include "GameRecognize/src/FrameWorkDefine.h"
 #include "Modules/darknetV3/include/darknet.h"
+extern "C" {
+#include "Modules/darknetV3/src/src/parser.h"
+}
 #endif
 
 #ifdef WINDOWS
@@ -46,13 +49,13 @@ struct tagYoloNetWork {
 #endif
 
 #ifdef LINUX
-    network      *pNet;
+    network      pNet;
 #endif
     LockerHandle Mutex;
 
     tagYoloNetWork() {
 #ifdef LINUX
-        pNet = NULL;
+        // pNet = NULL;
 #endif
         bState = true;
         Mutex = NULL;

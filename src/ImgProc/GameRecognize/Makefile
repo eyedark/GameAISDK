@@ -347,8 +347,9 @@ top_builddir = ..
 top_srcdir = ..
 AM_CXXFLAGS = -DLINUX -D_GNU_SOURCE -D$(GPUDEF) \
             -Wno-deprecated -fPIC -std=c++11 -g -pipe -DDEBUG -Woverloaded-virtual -Wpointer-arith -fno-strict-aliasing  -D__STDC_FORMAT_MACROS -Wno-write-strings \
-            -I../../../Modules/Json/include -I/usr/local/cuda/include \
+            -I../../../Modules/Json/include -I/opt/cuda/include \
             -I../ -I../../../ \
+            -I../../../Modules/darknetV3/include \
             -L./Lib -L../../../Modules/Json/jsoncpp-master/build/release/src/lib_json -L/usr/local/lib -O0
 
 AUTOMAKE_OPTIONS = subdir-objects
