@@ -19,7 +19,7 @@ list *get_paths(char *filename)
 {
     char *path;
     FILE *file = fopen(filename, "r");
-    fprintf(stderr, "Debug get_paths ");
+    fprintf(stderr, "Debug get_paths %s",filename);
     if(!file) file_error(filename);
     list *lines = make_list();
     while((path=fgetl(file))){
