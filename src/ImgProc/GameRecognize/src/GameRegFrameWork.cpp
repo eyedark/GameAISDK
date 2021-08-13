@@ -369,6 +369,7 @@ int CGameRegFrameWork::LoadTaskCfg(std::vector<CTaskMessage> *oVecTaskMsg, std::
         pstAgentMsg->uGroupID = nGroupID;
 
         // 依次加载配置项
+        //xdien Khoi dong dang ky task tai day
         for (int nIdx = 0; nIdx < nTaskSize; ++nIdx) {
             Json::Value oTask = oTaskList[nIdx];
             int         nTaskID = oTask["taskID"].asInt();

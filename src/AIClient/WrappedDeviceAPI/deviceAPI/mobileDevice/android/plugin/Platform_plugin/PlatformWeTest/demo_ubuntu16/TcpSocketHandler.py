@@ -6,6 +6,7 @@ import logging
 import struct
 import threading
 from queue import Queue
+from typing import final
 
 from .pb.touch.TouchPkgPB_pb2 import *
 from .pb.cloudscreen.CloudscreenPkgPB_pb2 import *
@@ -46,7 +47,10 @@ class TcpSocketHandler(threading.Thread):
         _buffer = bytearray(readlen)
         buffer = memoryview(_buffer)
         while recv_len < readlen:
-            ret = self.sock.recv_into(buffer[recv_len:], readlen - recv_len)
+            try:
+                ret = self.sock.recv_into(buffer[recv_len:], readlen - recv_len)
+            except socket.error as err:
+                ret = -1
             if ret < 0:
                 raise Exception("read error: readlen={}, get={}".format(readlen, recv_len))
 
@@ -91,8 +95,10 @@ class TcpSocketHandler(threading.Thread):
         return False
 
     def set_error(self):
-        with self.mutex:
-            self.error = RET_ERR_SOCKET_EXCEPTION
+        if self.is_screenmode:
+            with self.mutex:
+                self.error = RET_ERR_SOCKET_EXCEPTION
+        self.error = RET_ERR_SOCKET_EXCEPTION
 
     def get_error(self):
         with self.mutex:

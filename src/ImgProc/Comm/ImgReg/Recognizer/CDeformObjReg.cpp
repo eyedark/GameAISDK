@@ -8,6 +8,9 @@
 */
 
 #include "Comm/ImgReg/Recognizer/CDeformObjReg.h"
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
 
 CDeformObjReg::CDeformObjReg() {
     m_oVecParams.clear();  // clear vector of parameters
@@ -104,9 +107,12 @@ int CDeformObjReg::Predict(const tagRegData &stData, IRegResult *pResult) {
             m_nTaskID);
         return -1;
     }
+    // cv::imshow("Goi loi deform objst",stData.oSrcImg);
+    LOGE("goi ham Predict: CDeformObjReg");
 
     tagDeformObjRegResult szResults[MAX_ELEMENT_SIZE];
 
+    //Do tim voi yolo ne ----
     // run methods
     for (int i = 0; i < static_cast<int>(m_oVecYOLOAPIs.size()); i++) {
         CYOLOAPIData   oData;
