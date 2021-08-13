@@ -109,7 +109,7 @@ typedef enum {
 
 // parser.h
 typedef enum {
-    IOU, GIOU, MSE, DIOU, CIOU
+    IOU_, GIOU, MSE, DIOU, CIOU
 } IOU_LOSS;
 
 // parser.h
