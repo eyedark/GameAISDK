@@ -35,7 +35,8 @@ from ....common.define import START_TEST, STOP_TEST, TEST_NAME, PROCESS_NAMES, L
     REFER_PATH, TBUS_PATH
 from ....common.utils import backend_service_monitor
 from ....ui.tree.project_data_manager import g_project_data_mgr
-
+# __file_path = os.path.abspath(os.path.dirname(__file__))
+_dir_path = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger("sdktool")
 
 
@@ -398,10 +399,12 @@ class TestNode(QObject):
 
             # 进入bin目录
             current_path = os.getcwd()
+
+            # BIN_PATH = "{}/../../../../../../src".format(_dir_path)
             os.chdir(BIN_PATH)
 
             # 启动进程
-            logger.info('start multi processes')
+            logger.info('start multi processes bin dir %s',BIN_PATH)
             success = self._start_multi_process()
             os.chdir(current_path)
             if not success:

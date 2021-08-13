@@ -49,6 +49,7 @@ from .....common.utils import rm_dir_files
 from .....common.tool_timer import ToolTimer
 from .utils import filter_params
 from ....dialog.tip_dialog import show_warning_tips
+__file_path = os.path.abspath(os.path.dirname(__file__))
 
 logger = logging.getLogger("sdktool")
 
@@ -393,6 +394,7 @@ class UIExploreNode(object):
 
         self.backend_process_running = True
         # 进入bin目录
+        # BIN_PATH = "{}/../../../../" #run on source code not bin
         os.chdir(BIN_PATH)
         text = '******** start ui explore ********\n'
         set_log_text(text)
