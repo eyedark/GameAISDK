@@ -11,6 +11,8 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 import logging
 
 import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
+
 import numpy as np
 
 from .ReplayMemory import ReplayMemory
@@ -92,8 +94,8 @@ class QNetwork(object):
 
         # cost operation
         with tf.name_scope('cost'):
-            self.actionInput = tf.placeholder("float", [None, self.actionSpace])
-            self.yInput = tf.placeholder("float", [None])
+            self.actionInput = tf.compat.v1.placeholder("float", [None, self.actionSpace])
+            self.yInput = tf.compat.v1.placeholder("float", [None])
 
             qAction = tf.reduce_sum(tf.multiply(self.QValue, self.actionInput), reduction_indices=1)
             self.cost = tf.reduce_mean(tf.square(self.yInput - qAction))
@@ -261,7 +263,7 @@ class QNetwork(object):
         Build Q network use conv layer and fc layer
         """
         with tf.name_scope('input_layer'):
-            stateInput = tf.placeholder("float", [None,
+            stateInput = tf.compat.v1.placeholder("float", [None,
                                                   self.stateImgHeight,
                                                   self.stateImgWidth,
                                                   self.stateRecentFrame])

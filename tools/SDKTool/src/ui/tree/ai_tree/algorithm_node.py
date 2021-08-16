@@ -21,7 +21,7 @@ from ...main_window.tool_window import ui
 logger = logging.getLogger("sdktool")
 
 
-algorithms = ['IM', 'DQN', 'RAINBOW']
+algorithms = ['IM', 'DQN', 'RAINBOW', "OPENAI_PPO"]
 
 
 class AlgorithmNode(QObject):
@@ -81,6 +81,8 @@ class AlgorithmNode(QObject):
             self.update_right_tree('DQN')
         elif ai_type == AIType.RAIN_BOW_AI.value:
             self.update_right_tree('RAINBOW')
+        elif ai_type == AIType.OPENAI_PPO.value:
+            self.update_right_tree('OPENAI_PPO')
 
     def _select_algorithm_text(self, text):
         current_node = self.__right_tree.currentItem()
@@ -94,6 +96,8 @@ class AlgorithmNode(QObject):
             ai_mgr.set_ai_type(AIType.DQN_AI.value)
         elif text == 'RAINBOW':
             ai_mgr.set_ai_type(AIType.RAIN_BOW_AI.value)
+        elif text == 'OPENAI_PPO':
+            ai_mgr.set_ai_type(AIType.OPENAI_PPO.value)
 
         self.__action_node.clear()
         self.__action_node.create_node()

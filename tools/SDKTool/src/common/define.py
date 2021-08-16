@@ -383,18 +383,22 @@ class AIAlgorithmType(object):
     IM = 1
     DQN = 2
     RAINBOW = 3
+    OPENAI_PPO = 4
 
 AI_CONFIG_DIR = 'cfg/task/agent/'
 AI_CONFIG_ALGORITHM_PATH = "cfg/task/agent/Algorithm.json"
 AI_CONFIG_IM_ACTION_PATH = "cfg/task/agent/ImitationAction.json"
 AI_CONFIG_DQN_ACTION_PATH = "cfg/task/agent/DQNAction.json"
 AI_CONFIG_RAINBOW_ACTION_PATH = "cfg/task/agent/RainbowAction.json"
+AI_CONFIG_OPENAI_PPO_ACTION_PATH = "cfg/task/agent/OpenAIPPOAction.json"
 AI_CONFIG_IM_LEARNING_PATH = "cfg/task/agent/ImitationLearning.json"
 AI_CONFIG_DQN_LEARNING_PATH = "cfg/task/agent/DQNLearning.json"
 AI_CONFIG_RAINBOW_LEARNING_PATH = "cfg/task/agent/RainbowLearning.json"
+AI_CONFIG_OPENAI_PPO_LEARNING_PATH = "cfg/task/agent/OpenAIPPOLearning.json"
 AI_CONFIG_IM_ENV_PATH = "cfg/task/agent/ImitationEnv.json"
 AI_CONFIG_DQN_ENV_PATH = "cfg/task/agent/DQNEnv.json"
 AI_CONFIG_RAINBOW_ENV_PATH = "cfg/task/agent/RainbowEnv.json"
+AI_CONFIG_OPENAI_PPO_ENV_PATH = "cfg/task/agent/OpenAIPPOEnv.json"
 
 UI_PATH = 'cfg/task/ui/UIConfig.json'
 TASK_PATH = 'cfg/task/gameReg/Task.json'
@@ -449,7 +453,14 @@ DQN_ACTION_TYPES = [
     'swipe',
     'key'
 ]
-
+OPENAI_ACTION_TYPES = [
+    'down',
+    'up',
+    'click',
+    'swipe',
+    'joystick',
+    'key'
+]
 CONTACTS = [
     '0',
     '1',

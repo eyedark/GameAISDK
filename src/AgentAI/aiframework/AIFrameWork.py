@@ -109,7 +109,7 @@ class AIFrameWork(object):
         """
         Main framework, run AI test
         """
-        if self.__runAIFunc:
+        if self.__runAIFunc is not None:
             logging.debug("execute the run ai func")
             self.__runAIFunc(self.__agentEnv, self.__aiModel, isTestMode)
         else:

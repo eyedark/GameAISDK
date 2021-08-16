@@ -30,6 +30,7 @@ class AIType(Enum):
     IMITATION_AI = AIAlgorithmType.IM
     DQN_AI = AIAlgorithmType.DQN
     RAIN_BOW_AI = AIAlgorithmType.RAINBOW
+    OPENAI_PPO = AIAlgorithmType.OPENAI_PPO
 
 
 logger = logging.getLogger("sdktool")
@@ -41,23 +42,23 @@ class AIManager(metaclass=Singleton):
 
     def __init__(self):
         super(AIManager, self).__init__()
-        self.__ai_type = AIType.IMITATION_AI.value
+        self._ai_type = AIType.IMITATION_AI.value
         self.__ai_algorithm = Algorithm()
         self.__project_path = None
         self.__game_state_dict = {}
         self.__game_action_dict = {}
         self.__ai_action_dict = {}
         self.__ai_parameter_dict = {}
-        self.__resolution_dict = {}
+        self._resolution_dict = {}
         self.__task_mgr = TaskManager()
 
         self.init_config()
 
     def set_ai_type(self, ai_type):
-        self.__ai_type = ai_type
+        self._ai_type = ai_type
 
     def get_ai_type(self):
-        return self.__ai_type
+        return self._ai_type
 
     def get_game_state(self, alg_type):
         if self.__game_state_dict:
@@ -81,14 +82,14 @@ class AIManager(metaclass=Singleton):
         return self.__ai_algorithm
 
     def get_resolution(self, alg_type):
-        return self.__resolution_dict[alg_type]
+        return self._resolution_dict[alg_type]
 
     def clear_config(self) -> None:
         self.__game_action_dict.clear()
         self.__ai_action_dict.clear()
         self.__game_state_dict.clear()
         self.__ai_parameter_dict.clear()
-        self.__resolution_dict.clear()
+        self._resolution_dict.clear()
 
         # 清除后，重新初始化
         self.init_config()
@@ -96,18 +97,24 @@ class AIManager(metaclass=Singleton):
     def init_config(self):
         self.__game_state_dict = {AIAlgorithmType.IM: GameState(),
                                   AIAlgorithmType.DQN: GameState(),
-                                  AIAlgorithmType.RAINBOW: GameState()}
+                                  AIAlgorithmType.RAINBOW: GameState(),
+                                  AIAlgorithmType.OPENAI_PPO: GameState()}
         self.__game_action_dict = {AIAlgorithmType.IM: GameAction(),
                                    AIAlgorithmType.DQN: GameAction(),
-                                   AIAlgorithmType.RAINBOW: GameAction()}
+                                   AIAlgorithmType.RAINBOW: GameAction(),
+                                   AIAlgorithmType.OPENAI_PPO: GameAction()}
         self.__ai_action_dict = {AIAlgorithmType.IM: AIAction(),
                                  AIAlgorithmType.DQN: AIAction(),
-                                 AIAlgorithmType.RAINBOW: AIAction()}
+                                 AIAlgorithmType.RAINBOW: AIAction(),
+                                 AIAlgorithmType.OPENAI_PPO: AIAction()}
         self.__ai_parameter_dict = {AIAlgorithmType.IM: AiParameter(),
                                     AIAlgorithmType.DQN: AiParameter(),
-                                    AIAlgorithmType.RAINBOW: AiParameter()}
-        self.__resolution_dict = {AIAlgorithmType.DQN: AIResolution(),
-                                  AIAlgorithmType.RAINBOW: AIResolution()}
+                                    AIAlgorithmType.RAINBOW: AiParameter(),
+                                    AIAlgorithmType.OPENAI_PPO: AiParameter()}
+
+        self._resolution_dict = {AIAlgorithmType.DQN: AIResolution(),
+                                  AIAlgorithmType.RAINBOW: AIResolution(),
+                                  AIAlgorithmType.OPENAI_PPO: AIResolution()}
 
     def load_config(self, project_path: str) -> bool:
         """ 加载配置
@@ -130,6 +137,10 @@ class AIManager(metaclass=Singleton):
 
         if not self._load_rain_bow_config(project_path):
             logger.warning('failed to load rainbow config')
+
+        if not self._load_openai_ppo_config(project_path):
+            logger.warning('failed to load openai_ppo config')
+
 
         return True
 
@@ -181,7 +192,7 @@ class AIManager(metaclass=Singleton):
             if isinstance(action_cfg['actions'], list):
                 game_action.load(action_cfg['actions'])
 
-            resolution = self.__resolution_dict[AIAlgorithmType.DQN]
+            resolution = self._resolution_dict[AIAlgorithmType.DQN]
             resolution.load(action_cfg)
             return True
         except FileNotFoundError:
@@ -202,10 +213,36 @@ class AIManager(metaclass=Singleton):
                 game_action = self.__game_action_dict[AIAlgorithmType.RAINBOW]
                 game_action.load(action_cfg['actions'])
 
-            resolution = self.__resolution_dict[AIAlgorithmType.RAINBOW]
+            resolution = self._resolution_dict[AIAlgorithmType.RAINBOW]
             resolution.load(action_cfg)
             return True
 
+        except FileNotFoundError:
+            logger.error('file(%s) is not found', action_file)
+        except json.decoder.JSONDecodeError:
+            logger.error('unable to decode string')
+
+        return False
+    
+    def _load_openai_ppo_action_config(self, action_file: str):
+        game_action = self.__game_action_dict[AIAlgorithmType.OPENAI_PPO]
+
+        if not os.path.exists(action_file):
+            logger.warning('file(%s) not exists, set empty actions' % action_file)
+            game_action.load([])
+            return True
+
+        try:
+            with open(action_file, 'r', encoding='utf-8') as file:
+                json_str = file.read()
+            action_cfg = json.loads(json_str, object_pairs_hook=OrderedDict)
+
+            if isinstance(action_cfg['actions'], list):
+                game_action.load(action_cfg['actions'])
+
+            resolution = self._resolution_dict[AIAlgorithmType.OPENAI_PPO]
+            resolution.load(action_cfg)
+            return True
         except FileNotFoundError:
             logger.error('file(%s) is not found', action_file)
         except json.decoder.JSONDecodeError:
@@ -325,30 +362,51 @@ class AIManager(metaclass=Singleton):
 
         return True
 
+    
+    def _load_openai_ppo_config(self, project_path: str):
+        
+        openai_ppo_action_file = os.path.join(project_path, AI_ALG_ACTION_FILES[AIAlgorithmType.OPENAI_PPO])
+        openai_ppo_env_file = os.path.join(project_path, AI_ALG_ENV_FILES[AIAlgorithmType.OPENAI_PPO])
+
+        load_result = self.load_learning_config(AIAlgorithmType.OPENAI_PPO)
+        if not load_result:
+            return False
+            
+        #A successful return is required. if not with + height = null, could not load action config
+        load_result = self._load_openai_ppo_action_config(openai_ppo_action_file)#
+        if not load_result:
+            return False
+
+        load_result = self._load_game_state_config(openai_ppo_env_file, AIAlgorithmType.OPENAI_PPO)
+        if not load_result:
+            return False
+
+        return True
+
     def dump_config(self, project_path: str) -> bool:
 
-        if not self.__ai_algorithm.dump_algorithm_parameter(project_path, self.__ai_type):
+        if not self.__ai_algorithm.dump_algorithm_parameter(project_path, self._ai_type):
             return False
 
         action_file = self.__ai_algorithm.get_alg_action_file(project_path)
         learning_file = self.__ai_algorithm.get_alg_learning_file(project_path)
         env_file = self.__ai_algorithm.get_alg_env_file(project_path)
 
-        if self.__ai_type == AIType.DQN_AI.value or self.__ai_type == AIType.RAIN_BOW_AI.value:
+        if self._ai_type == AIType.DQN_AI.value or self._ai_type == AIType.RAIN_BOW_AI.value or self._ai_type == AIType.OPENAI_PPO.value:
             if not self._dump_dqn_action_config(action_file):
                 return False
-        elif self.__ai_type == AIType.IMITATION_AI.value:
+        elif self._ai_type == AIType.IMITATION_AI.value:
             if not self._dump_im_action_config(action_file):
                 return False
 
-        if not self._dump_json_config(self.__ai_parameter_dict[self.__ai_type], learning_file):
+        if not self._dump_json_config(self.__ai_parameter_dict[self._ai_type], learning_file):
             return False
 
         is_ok, check_content, task_id = self._check_env_config()
         if not is_ok:
             show_warning_tips('Task(%s) 已被删除，请在(%s)重新配置' % (task_id, check_content))
 
-        if not self._dump_json_config(self.__game_state_dict[self.__ai_type], env_file):
+        if not self._dump_json_config(self.__game_state_dict[self._ai_type], env_file):
             return False
 
         return True
@@ -380,7 +438,7 @@ class AIManager(metaclass=Singleton):
         :return:
         """
         task_inst = self.__task_mgr.get_task()
-        env_config = self.__game_state_dict[self.__ai_type].dump()
+        env_config = self.__game_state_dict[self._ai_type].dump()
 
         if 'beginTaskID' in env_config and env_config['beginTaskID']:
             for task_id in env_config['beginTaskID']:
@@ -394,8 +452,8 @@ class AIManager(metaclass=Singleton):
 
     def check_learning_config(self):
         task_inst = self.__task_mgr.get_task()
-        learning_config = self.__ai_parameter_dict[self.__ai_type].dump()
-        if self.__ai_type in [AIAlgorithmType.DQN, AIAlgorithmType.RAINBOW]:
+        learning_config = self.__ai_parameter_dict[self._ai_type].dump()
+        if self._ai_type in [AIAlgorithmType.DQN, AIAlgorithmType.RAINBOW, AIAlgorithmType.OPENAI_PPO]:
             if LEARNING_CONFIG_EXCITATIONFUNCTION_Key in learning_config:
                 excitation_function_config = learning_config[LEARNING_CONFIG_EXCITATIONFUNCTION_Key]
                 for k, v in excitation_function_config.items():
@@ -411,8 +469,8 @@ class AIManager(metaclass=Singleton):
     def _dump_im_action_config(self, action_file: str) -> bool:
         try:
             action_cfg = OrderedDict()
-            game_action = self.__game_action_dict[self.__ai_type].dump()
-            ai_action = self.__ai_action_dict[self.__ai_type].dump()
+            game_action = self.__game_action_dict[self._ai_type].dump()
+            ai_action = self.__ai_action_dict[self._ai_type].dump()
             is_ok, check_content, task_id = self._check_im_action(game_action, ai_action)
             if not is_ok:
                 show_warning_tips('Task(%s) 已被删除，请在(%s)重新配置' % (task_id, check_content))
@@ -431,13 +489,16 @@ class AIManager(metaclass=Singleton):
     def _dump_dqn_action_config(self, action_file: str) -> bool:
         try:
             action_cfg = OrderedDict()
-            action_cfg['screenHeight'] = self.__resolution_dict[self.__ai_type].dump()['screenHeight']
-            action_cfg['screenWidth'] = self.__resolution_dict[self.__ai_type].dump()['screenWidth']
-            action_cfg['actions'] = self.__game_action_dict[self.__ai_type].dump()
-            json_str = json.dumps(action_cfg, indent=4, ensure_ascii=False)
-            with open(action_file, 'w', encoding='utf-8') as fd:
-                fd.write(json_str)
-            return True
+            if hasattr(self, '_resolution_dict'):
+                action_cfg['screenHeight'] = self._resolution_dict[self._ai_type].dump()['screenHeight']
+                action_cfg['screenWidth'] = self._resolution_dict[self._ai_type].dump()['screenWidth']
+                action_cfg['actions'] = self.__game_action_dict[self._ai_type].dump()
+                json_str = json.dumps(action_cfg, indent=4, ensure_ascii=False)
+                with open(action_file, 'w', encoding='utf-8') as fd:
+                    fd.write(json_str)
+                return True
+            else:
+                raise ValueError('object has no attribute _resolution_dict')
 
         except FileNotFoundError:
             logger.error('file(%s) is not found', action_file)

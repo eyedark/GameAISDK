@@ -34,6 +34,7 @@ from ...main_window.tool_window import ui
 from ..ai_tree.action_im_data import ImActionData
 from ..ai_tree.action_dqn_data import DqnActionData
 from ..ai_tree.action_rain_bow_data import RainBowActionData
+from ..ai_tree.action_openai_ppo_data import OpenAIPPOActionData
 from ....context.app_context import g_app_context
 
 
@@ -54,6 +55,7 @@ class ActionNode(QObject):
         self.__im_action_data = ImActionData()
         self.__dqn_action_data = DqnActionData()
         self.__rain_bow_data = RainBowActionData()
+        self.__openai_ppo_data = OpenAIPPOActionData()
 
     def clear(self):
         self.__define_action_node = None
@@ -139,7 +141,7 @@ class ActionNode(QObject):
 
     def __create_out_action_node(self, action_node):
         ai_mgr = AIManager()
-        if ai_mgr.get_ai_type() == AIType.DQN_AI.value or ai_mgr.get_ai_type() == AIType.RAIN_BOW_AI.value:
+        if ai_mgr.get_ai_type() == AIType.DQN_AI.value or ai_mgr.get_ai_type() == AIType.RAIN_BOW_AI.value or  ai_mgr.get_ai_type() == AIType.OPENAI_PPO.value:
             return
 
         self.__out_action_node = create_tree_item(key=AI_OUT_ACTIONS, node_type=AI_OUT_ACTIONS, edit=False)
@@ -722,6 +724,8 @@ class ActionNode(QObject):
             ai_type_value = self.__dqn_action_data
         elif ai_type == AIType.RAIN_BOW_AI.value:
             ai_type_value = self.__rain_bow_data
+        elif ai_type == AIType.OPENAI_PPO.value:
+            ai_type_value = self.__openai_ppo_data
         return ai_type_value
 
     def new_canvas_shapes(self, nodes=None):

@@ -21,6 +21,7 @@ from ...dialog.tip_dialog import show_warning_tips
 from ...tree.ai_tree.im_parameter import IMParameter
 from ...tree.ai_tree.dqn_parameter import DQNParameter
 from ...tree.ai_tree.rain_bow_parameter import RainbowParameter
+from ...tree.ai_tree.openai_ppo_parameter import OpenAIPPOParameter
 from ...utils import get_sub_nodes, create_tree_item, get_tree_top_nodes, save_action, ExecResult
 from ...main_window.tool_window import ui
 
@@ -39,6 +40,7 @@ class ParameterNode(QObject):
         self.__im_parameter = IMParameter()
         self.__dqn_parameter = DQNParameter()
         self.__rain_bow_parameter = RainbowParameter()
+        self.__openai_ppo_parameter = OpenAIPPOParameter()
         self.__ai_tree = None
 
     def set_ai_tree(self, ai_tree):
@@ -119,6 +121,14 @@ class ParameterNode(QObject):
             return
 
         parameters = self.__rain_bow_parameter.get_parameters()
+        self._create_parameter_items(parameters)
+    
+    def create_openai_ppo_parameter_item(self):
+        if not self.__openai_ppo_parameter.init():
+            logger.error("openai_ppo parameter init failed")
+            return
+
+        parameters = self.__openai_ppo_parameter.get_parameters()
         self._create_parameter_items(parameters)
 
     def _create_parameter_items(self, parameters):
@@ -225,6 +235,9 @@ class ParameterNode(QObject):
 
         elif ai_type == AIType.RAIN_BOW_AI.value:
             self.create_rain_bow_parameter_item()
+            
+        elif ai_type == AIType.OPENAI_PPO.value:
+            self.create_openai_ppo_parameter_item()
 
     def _text_changed(self, text):
         current_item = self.__right_tree.currentItem()
@@ -251,6 +264,9 @@ class ParameterNode(QObject):
 
         elif ai_type == AIType.RAIN_BOW_AI.value:
             self.__rain_bow_parameter.save_parameter(out_params)
+        
+        elif ai_type == AIType.OPENAI_PPO.value:
+            self.__openai_ppo_parameter.save_parameter(out_params)
 
         is_ok, check_content, _ = ai_mgr.check_learning_config()
         if not is_ok:

@@ -95,7 +95,7 @@ class ProjectManager(metaclass=Singleton):
 
         return self.__project_property_file
 
-    # 加载配置
+    # 加载配置, init file config, create if not exits
     def load(self, project_file_path: str) -> bool:
         if not os.path.isfile(project_file_path):
             print('{} is not found!'.format(project_file_path))
@@ -182,6 +182,7 @@ class ProjectManager(metaclass=Singleton):
             return False
 
         ai_mgr = AIManager()
+        #save learning.json file
         if not ai_mgr.dump_config(self.__project_path):
             print('save ai file failed!')
             return False

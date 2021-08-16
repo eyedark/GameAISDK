@@ -15,7 +15,7 @@ from collections import OrderedDict
 
 from ...common.define import RunType, PROCESS_NAMES, DEFAULT_LONG_EDGE, UI_PATH, TASK_PATH, REFER_PATH, path_keys, \
     AI_CONFIG_IM_ACTION_PATH, AI_CONFIG_DQN_ACTION_PATH, AI_CONFIG_RAINBOW_ACTION_PATH, AI_CONFIG_IM_LEARNING_PATH, \
-    AI_CONFIG_DQN_LEARNING_PATH, AI_CONFIG_RAINBOW_LEARNING_PATH, DEFAULT_DATA_IMAGES_FOLDER
+    AI_CONFIG_DQN_LEARNING_PATH, AI_CONFIG_RAINBOW_LEARNING_PATH, DEFAULT_DATA_IMAGES_FOLDER, AI_CONFIG_OPENAI_PPO_ACTION_PATH, AI_CONFIG_OPENAI_PPO_LEARNING_PATH
 from ...common.singleton import Singleton
 
 
@@ -161,9 +161,13 @@ class ProjectDataManager(metaclass=Singleton):
         self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_IM_ACTION_PATH))
         self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_DQN_ACTION_PATH))
         self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_RAINBOW_ACTION_PATH))
+        self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_OPENAI_PPO_ACTION_PATH))
+
+
         self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_IM_LEARNING_PATH))
         self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_DQN_LEARNING_PATH))
         self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_RAINBOW_LEARNING_PATH))
+        self._convert_cfg_files(os.path.join(self.__project_dir_path, AI_CONFIG_OPENAI_PPO_LEARNING_PATH))
 
     def adjust_project_file_path(self):
         if self.__project_file_path is None:

@@ -8,6 +8,7 @@ For full details, please refer to the file "LICENSE.txt" which is provided as pa
 Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
+# from bin.PlugIn.ai.UIAuto.AppExploreAI import AI
 import os
 import json
 import logging
@@ -15,28 +16,31 @@ from collections import OrderedDict
 
 from ...common.singleton import Singleton
 from ...common.define import AIAlgorithmType, AI_CONFIG_IM_ACTION_PATH, AI_CONFIG_DQN_ACTION_PATH, \
-    AI_CONFIG_RAINBOW_ACTION_PATH, AI_CONFIG_IM_LEARNING_PATH, AI_CONFIG_DQN_LEARNING_PATH, \
+    AI_CONFIG_RAINBOW_ACTION_PATH,AI_CONFIG_OPENAI_PPO_ACTION_PATH, AI_CONFIG_IM_LEARNING_PATH, AI_CONFIG_DQN_LEARNING_PATH, \
     AI_CONFIG_RAINBOW_LEARNING_PATH, AI_CONFIG_IM_ENV_PATH, AI_CONFIG_DQN_ENV_PATH, AI_CONFIG_RAINBOW_ENV_PATH, \
-    AI_CONFIG_ALGORITHM_PATH
+    AI_CONFIG_ALGORITHM_PATH,AI_CONFIG_OPENAI_PPO_LEARNING_PATH,AI_CONFIG_OPENAI_PPO_ENV_PATH
 
 AI_ALG_TYPE_KEY_NAME = 'type'
 
 AI_ALG_ACTION_FILES = {
     AIAlgorithmType.IM: AI_CONFIG_IM_ACTION_PATH,
     AIAlgorithmType.DQN: AI_CONFIG_DQN_ACTION_PATH,
-    AIAlgorithmType.RAINBOW: AI_CONFIG_RAINBOW_ACTION_PATH
+    AIAlgorithmType.RAINBOW: AI_CONFIG_RAINBOW_ACTION_PATH,
+    AIAlgorithmType.OPENAI_PPO: AI_CONFIG_OPENAI_PPO_ACTION_PATH
 }
 
 AI_ALG_LEARNING_FILES = {
     AIAlgorithmType.IM: AI_CONFIG_IM_LEARNING_PATH,
     AIAlgorithmType.DQN: AI_CONFIG_DQN_LEARNING_PATH,
-    AIAlgorithmType.RAINBOW: AI_CONFIG_RAINBOW_LEARNING_PATH
+    AIAlgorithmType.RAINBOW: AI_CONFIG_RAINBOW_LEARNING_PATH,
+    AIAlgorithmType.OPENAI_PPO: AI_CONFIG_OPENAI_PPO_LEARNING_PATH
 }
 
 AI_ALG_ENV_FILES = {
     AIAlgorithmType.IM: AI_CONFIG_IM_ENV_PATH,
     AIAlgorithmType.DQN: AI_CONFIG_DQN_ENV_PATH,
-    AIAlgorithmType.RAINBOW: AI_CONFIG_RAINBOW_ENV_PATH
+    AIAlgorithmType.RAINBOW: AI_CONFIG_RAINBOW_ENV_PATH,
+    AIAlgorithmType.OPENAI_PPO: AI_CONFIG_OPENAI_PPO_ENV_PATH
 }
 
 
@@ -103,6 +107,8 @@ class Algorithm(metaclass=Singleton):
                     self.__alg_parameter[AI_ALG_TYPE_KEY_NAME] = AIAlgorithmType.DQN
                 elif key == 'Algorithm' and value == 'RAINBOW':
                     self.__alg_parameter[AI_ALG_TYPE_KEY_NAME] = AIAlgorithmType.RAINBOW
+                elif key == 'Algorithm' and value == 'OPENAI_PPO':
+                    self.__alg_parameter[AI_ALG_TYPE_KEY_NAME] = AIAlgorithmType.OPENAI_PPO
             return True, ''
 
         except KeyError as err:

@@ -12,6 +12,8 @@ class AIModelParameter(object):
     """
     Agent AI model parameter, including env, module, model package and class etc
     provider the data class manage the parameter
+
+    :use_default_run_func: to run train loop outside = 0, run built-in loop in AIFrameWork = 1
     """
     def __init__(self, use_plugin_env, env_package, env_module, env_class, use_plugin_model, model_package
                  ,model_module, model_class, use_default_run_func):
@@ -24,3 +26,4 @@ class AIModelParameter(object):
         self.model_module = model_module
         self.model_class = model_class
         self.use_default_run_func = use_default_run_func
+

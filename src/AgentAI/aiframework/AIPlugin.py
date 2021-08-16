@@ -31,7 +31,7 @@ class AIPlugin(object):
         self.__logger = logging.getLogger('agent')
         self.__usePluginEnv = False
         self.__usePluginAIModel = False
-        self.__useDefaultRunFunc = True
+        # self.__useDefaultRunFunc = True
 
         self.__action_file_list = [
             'ImitationAction.json',
@@ -45,7 +45,7 @@ class AIPlugin(object):
             2: AIModelParameter(0, 'agentenv', 'DQNEnv', 'DQNEnv', 0, 'dqn', 'DQNAIModel', 'DQNAIModel', 1),
             3: AIModelParameter(0, 'agentenv', 'RainbowEnv', 'RainbowEnv', 0, 'rainbow', 'RainbowAIModel',
                                 'RainbowAIModel', 1),
-            4: AIModelParameter(0, 'agentenv', 'NavEnv', 'NavEnv', 0, 'nav', 'TraversalNavAI', 'TraversalNavAI', 1)
+            4: AIModelParameter(0, 'agentenv', 'OpenAIEnv', 'OpenAIEnv', 0, 'openai', 'PPO', 'PPOModel', 1)
         }
 
         self.__envPackage = None
