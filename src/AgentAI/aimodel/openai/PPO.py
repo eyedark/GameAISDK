@@ -2,9 +2,12 @@ import time
 import gym
 
 from stable_baselines3 import PPO
+import numpy as np
 from stable_baselines3.common.env_util import make_vec_env
 
 from aimodel.AIModel import AIModel
+from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
+
 
 class PPOModel(AIModel):
     """
@@ -31,7 +34,10 @@ class PPOModel(AIModel):
         """
         self.agentEnv = agentEnv
         self.actionSpace = self.agentEnv.GetActionSpace()
+
+        
         self.aiModel = PPO("CnnPolicy", self.agentEnv)
+        
         return True
 
     def Finish(self):
@@ -189,43 +195,9 @@ class PPOModel(AIModel):
                                      .format(action, reward))
                     self.brain.SetPerception(nextObservation, action, reward, False)
 
-    def OnEpisodeStart(self):
-        """
-        Abstract interface implement, reset time of get frame when episode start
-        """
-        self.lastFrameTime = time.time()
-
-    def OnEpisodeOver(self):
-        """
-        Abstract interface implement, reset agent envwhen episode over
-        """
-        self.agentEnv.Reset()
-
-    def OnEnterEpisode(self):
-        """
-        Abstract interface implement, do nothing
-        """
-        pass
-
-    def OnLeaveEpisode(self):
-        """
-        Abstract interface implement, do nothing
-        """
-        pass
-
-    def TrainOneStep(self):
-        """
-        Abstract interface implement, run one step (usually means get a image frame)
-        when trian DQN AI model
-        """
-        self._RunOneStep()
-
-    def TestOneStep(self):
-        """
-        Abstract interface implement, run one step (usually means get a image frame)
-        when run AI test
-        """
-        self._RunOneStep()
+    def Learn(self, hookCallback):
+        self.callback = CallbackList([hookCallback])
+        self.aiModel.learn(total_timesteps=10000000,callback=self.callback)
 
 # Parallel environments
 # env = make_vec_env("CartPole-v1", n_envs=4)   

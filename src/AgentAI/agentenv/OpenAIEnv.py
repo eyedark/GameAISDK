@@ -9,6 +9,7 @@ from .GameEnv import GameEnv
 from gym import spaces
 import os
 import time
+import cv2
 ACTION_CFG_FILE = 'cfg/task/agent/OpenAIPPOAction.json'
 LEARNING_CFG_FILE = 'cfg/task/agent/OpenAIPPOLearning.json'
 TASK_CFG_FILE = 'cfg/task/gameReg/Task.json'
@@ -27,19 +28,22 @@ class OpenAIEnv(gym.Env,GameEnv):
         super(OpenAIEnv, self).__init__()
         self._LoadCfgFilePath()
         self._LoadEnvParams()
+        self.__gameState = None
         self.__actionController = ActionController.ActionController()
         self.__actionController.Initialize(self.__actionCfgFile)
         # self.Reset()#gym auto call reset() func
         self.__agentAPI = AgentAPIMgr.AgentAPIMgr()
 
+        self.logger.debug("Init action space %d", self.GetActionSpace())
         self.action_space = spaces.Discrete(self.GetActionSpace())
+        
         # Example for using image as input:
         self.observation_space = spaces.Box(low=0, high=255,
-                                            shape=(720, 1280, 3), dtype=np.uint8)
+                                            shape=(720, 1280,3), dtype=np.uint8)
 
     def step(self, action):
-        img, reward, is_done = self.GetState()
         self.DoAction(action)
+        img, reward, is_done = self.GetState()
         game_info = self._GetGameInfo()
         return img, reward, is_done, game_info
     #reset function
@@ -87,8 +91,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         Output game action use ActionAPI
         action: one hot vector
         """
-        actionIndex = np.argmax(action)
-        self.__actionController.DoAction(actionIndex, self.__frameIndex)
+        self.__actionController.DoAction(action, self.__frameIndex)
 
     def ResetAction(self):
         """
@@ -124,13 +127,13 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.logger.debug("the width %d and the height %d of real image", img_width, img_height)
         self.__actionController.SetSolution(img_width, img_height)
 
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        img = img[self.__beginRow:self.__endRow, self.__beginColumn:self.__endColumn]
-        if img_width < img_height:
-            img = cv2.transpose(img)
-            img = cv2.flip(img, 1)
+        # img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # img = img[self.__beginRow:self.__endRow, self.__beginColumn:self.__endColumn]
+        # if img_width < img_height:
+        #     img = cv2.transpose(img)
+        #     img = cv2.flip(img, 1)
 
-        img = cv2.resize(img, (176, 108))
+        # img = cv2.resize(img, (176, 108))
         reward = self._CaculateReward(data)
 
         self.__isTerminal = True
@@ -141,7 +144,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         elif state == GAME_STATE_RUN:
             self.__isTerminal = False
         else:
-            self.logger.error('error game state')
+            self.logger.error('error game state: %d', state)
 
         if data == -1 and self.__isTerminal is not True:
             self.logger.debug('detect data -1, set 0 reward')
@@ -149,7 +152,7 @@ class OpenAIEnv(gym.Env,GameEnv):
 
         self.logger.debug('data: {0} reward: {1}'.format(data, reward))
 
-        return img, reward, self.__isTerminal
+        return image, reward, self.__isTerminal
 
     def Reset(self):
         """
