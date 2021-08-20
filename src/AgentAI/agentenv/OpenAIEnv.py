@@ -1,6 +1,7 @@
 from time import time
-import gym  
-from actionmanager import ActionController
+import gym
+from numpy.lib.function_base import angle  
+from actionmanager import ActionOpenAIController
 from util import util
 import numpy as np
 from AgentAPI import AgentAPIMgr
@@ -10,6 +11,8 @@ from gym import spaces
 import os
 import time
 import cv2
+import collections
+
 ACTION_CFG_FILE = 'cfg/task/agent/OpenAIPPOAction.json'
 LEARNING_CFG_FILE = 'cfg/task/agent/OpenAIPPOLearning.json'
 TASK_CFG_FILE = 'cfg/task/gameReg/Task.json'
@@ -29,24 +32,30 @@ class OpenAIEnv(gym.Env,GameEnv):
         self._LoadCfgFilePath()
         self._LoadEnvParams()
         self.__gameState = None
-        self.__actionController = ActionController.ActionController()
+        self.__actionController = ActionOpenAIController.ActionOpenAIController()
         self.__actionController.Initialize(self.__actionCfgFile)
+        self.action_in_config = self.__actionController.get_action_dict()
         # self.Reset()#gym auto call reset() func
         self.__agentAPI = AgentAPIMgr.AgentAPIMgr()
 
-        self.logger.debug("Init action space %d", self.GetActionSpace())
-        self.action_space = spaces.Discrete(self.GetActionSpace())
+        # self.logger.debug("Init action space %d", self.GetActionSpace())
+        #Accepts multiple discrete or box,
+        #Because the joytick is circular, get the upper and lower bounds based on the length and width of the square
+        self.action_space = self.GetActionSpace()
         
         # Example for using image as input:
         self.observation_space = spaces.Box(low=0, high=255,
                                             shape=(720, 1280,3), dtype=np.uint8)
+        
+        
 
     def step(self, action):
+        #decode action
         self.DoAction(action)
         img, reward, is_done = self.GetState()
         game_info = self._GetGameInfo()
         return img, reward, is_done, game_info
-    #reset function
+    #reset function openai
     def reset(self):
         self.Reset()
         img, reward, is_done = self.GetState()
@@ -82,16 +91,63 @@ class OpenAIEnv(gym.Env,GameEnv):
 
     def GetActionSpace(self):
         """
-        Return number of game action
+        Return to gym space
+        Action dict like:
+        {4: {'id': 4, 'name': 'dichuyen', 'contact': 0, 'sceneTask': '', 'type': 'joystick', 'actionRegion': {'path': 'data/images/snapshot_1629207134.jpg', 'quantizeNumber': 1, 'center': {'x': 155, 'y': 590}, 'inner': {'x': 120, 'y': 558, 'w': 74, 'h': 69}, 'outer': {'x': 0, 'y': 442, 'w': 301, 'h': 277}}, 'durationMS': 0}, 1: {'id': 1, 'name': 'c1', 'contact': 0, 'sceneTask': '', 'type': 'click', 'actionRegion': {'path': 'data/images/daymau.jpg', 'region': {'x': 923, 'y': 592, 'w': 71, 'h': 75}}, 'durationMS': 0}, 2: {'id': 2, 'name': 'c2', 'contact': 0, 'sceneTask': '', 'type': 'click', 'actionRegion': {'path': 'data/images/daymau.jpg', 'region': {'x': 1007, 'y': 476, 'w': 52, 'h': 48}}, 'durationMS': 20}, 3: {'id': 3, 'name': 'danhthuong', 'contact': 0, 'sceneTask': '', 'type': 'click', 'actionRegion': {'path': 'data/images/snapshot_1629207134.jpg', 'region': {'x': 1167, 'y': 601, 'w': 50, 'h': 46}}, 'durationMS': 0}, 0: {'id': 0, 'name': 'none', 'type': 'none'}}
         """
-        return self.__actionController.GetActionNum()
+        
+        self._actions = []
+        di_chuyen_id = 4
+        for n in range(360):
+            self._actions.append([di_chuyen_id,n,0,0])#chi duy chuyen khong nhan nut
+        
+        for rdichuyen1 in range(360):#di chuyen c1, ID 1 trong giao dien
+            for lc1 in range(360):
+                self._actions.append([di_chuyen_id,rdichuyen1,1,lc1])
 
-    def DoAction(self, action, *args, **kwargs):
+        for rdichuyen2 in range(360):#di chuyen c2, ID 2 trong giao dien
+            for lc2 in range(360):
+                self._actions.append([di_chuyen_id,rdichuyen2,2,lc2])
+
+        for rdichuyen3 in range(360):#di chuyen c2, ID 5 trong giao dien
+            for lc3 in range(360):
+                self._actions.append([di_chuyen_id,rdichuyen3,5,lc3])
+        
+        #cai dat cac nut binh thuong 
+        self._actions.append([0,0,0,0])#khong di chuyen
+        self._actions.append([0,0,3,0])#danh thuong
+        self._actions.append([0,0,6,0])#nang chieu 1
+        self._actions.append([0,0,7,0])#nang chieu 2
+        self._actions.append([0,0,8,0])#nang chieu 3
+
+        self._actions.append([0,0,9,0])#boc pha id 9
+        self._actions.append([0,0,10,0])#goi mau id 10
+
+        self._actions.append([0,0,11,0])#bien ve nha 11
+        self._actions.append([0,0,12,0])#mua do 12
+
+
+        # spaces.MultiDiscrete([3,270,270,100])
+        return spaces.Discrete(len(self._actions))
+
+    def DoAction(self, actions, *args, **kwargs):
         """
         Output game action use ActionAPI
-        action: one hot vector
+        action: one hot vector [x,y,z...]
         """
-        self.__actionController.DoAction(action, self.__frameIndex)
+
+        acts = self._actions[actions]
+        right_action = acts[2]
+        left_action = acts[0]
+        if right_action == 0 and left_action == 0:
+            self.__actionController.DoAction(0, frameSeq=self.__frameIndex)#0 is none action
+        elif right_action == 0 and left_action != 0:
+            self.__actionController.DoAction(right_action, frameSeq=self.__frameIndex)#once action
+        elif right_action != 0 and left_action != 0:
+            self.__actionController.DoAction(left_action, angle=acts[1])#chay hanh dong ben trai action
+            self.__actionController.DoAction(right_action,angle=acts[3],frameSeq=self.__frameIndex,hold=False)#once action
+
+        
 
     def ResetAction(self):
         """
@@ -320,3 +376,33 @@ class OpenAIEnv(gym.Env,GameEnv):
 
 
 
+class LienQuanDiscretizer(gym.ActionWrapper):
+    """
+    Wrap a gym-retro environment and make it use discrete
+    actions for the "Lien quan".
+    ACtion LQ like [move, angle, chieu, angle], According to contact id ex: joystick right contact 1, and left joystick right contact 2, button right contact 2
+    """
+    def __init__(self, env):
+        super(LienQuanDiscretizer, self).__init__(env)
+        # SNES keys
+        buttons = ['C1', 'C2', 'C3', 'DANHLINH', 'DANHTHUONG', 'DANHTRU', 'NC1', 'NC2', 'NC3', 'BOCPHA', 'HOIMAU', 'BIENVE', 'MUADO', 'DICHUYEN']
+        actions = [['NOOP'],['C1'], ['C2'], ['C3'], ['DANHLINH'], ['DANHTHUONG'], ['DANHTRU'], ['NC1'], ['NC2'], ['NC3'], ['BOCPHA'],['HOIMAU'],['BIENVE'],['MUADO'],['DICHUYEN'],
+                   ['DICHUYEN','C1'],['DICHUYEN','C2'],['DICHUYEN','C3'],['DICHUYEN','DANHLINH'],['DICHUYEN','DANHTHUONG'],['DICHUYEN','DANHTRU'],['DICHUYEN','BOCPHA'],['DICHUYEN','HOIMAU']
+                   ] #
+                    #['Y', 'R', 'UP', 'LEFT'], ['Y', 'R', 'UP', 'RIGHT'], ['Y', 'R', 'DOWN', 'LEFT'], ['Y', 'R', 'DOWN', 'RIGHT']
+                    #['Y', 'L', 'R', 'RIGHT'], ['Y', 'L', 'R', 'LEFT'],  ['Y', 'UP', 'LEFT'], ['Y', 'DOWN', 'LEFT'], ['A'],
+        #23 actions, more than I would like but certain ones needed at specific moments
+        self._actions = []
+        for action in actions:
+            arr = np.array([False] * len(buttons))
+            if action == ['NOOP']:#None action 
+                self._actions.append(arr)
+                continue
+            for button in action:
+                arr[buttons.index(button)] = True
+            self._actions.append(arr)
+        self.action_space = spaces.Discrete(len(self._actions))
+
+
+    def action(self, a): # pylint: disable=W0221
+        return self._actions[a].copy()

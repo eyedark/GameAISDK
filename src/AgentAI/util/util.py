@@ -41,16 +41,20 @@ def get_button_state(result_dict, task_id):
 
     for item in reg_results:
         flag = item['flag']
-        if flag:
-            x = item['boxes'][0]['x']
-            y = item['boxes'][0]['y']
-            w = item['boxes'][0]['w']
-            h = item['boxes'][0]['h']
+        if flag and 'boxes' in item:
+            bb_index_at_0 = item['boxes'][0]
+            x = bb_index_at_0['x']
+            y = bb_index_at_0['y']
+            w = bb_index_at_0['w']
+            h = bb_index_at_0['h']
 
             state = True
             px = int(x + w/2)
             py = int(y + h/2)
             break
+        else:
+            logger.warn("start box not found, please reconfig sense task ")
+            # raise "Wont config for start task, recomend fix object "
 
     return state, px, py
 

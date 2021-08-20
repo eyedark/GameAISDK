@@ -17,6 +17,10 @@ from connect.BusConnect import BusConnect
 from .AIPlugin import AIPlugin
 from util import util
 
+from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
+
+
 ENV_STATE_WAITING_START = 0
 ENV_STATE_PLAYING = 1
 ENV_STATE_PAUSE_PLAYING = 2
@@ -136,22 +140,24 @@ class AIFrameWork(object):
     def _DefaultRun(self, isTestMode):
         self.__logger.debug("execute the default run")
         self.__agentEnv.UpdateEnvState(ENV_STATE_WAITING_START, 'Wait episode start')
-        while True:
-            #wait new episode start
-            self.__logger.debug("begin to wait the start")
-            self._WaitEpisode()
-            self.__logger.info('Episode start')
-            self.__agentEnv.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
-            self.__aiModel.OnEpisodeStart()
+        # while True:
+        #     #wait new episode start
+        #     self.__logger.debug("begin to wait the start")
+        #     self._WaitEpisode()
+        #     self.__logger.info('Episode start')
+        #     self.__agentEnv.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
+        #     self.__aiModel.OnEpisodeStart()#use callback 
 
-            #run episode accroding to AI, until episode over
-            self._RunEpisode(isTestMode)
-            self.__logger.info('Episode over')
-            self.__agentEnv.UpdateEnvState(ENV_STATE_OVER, 'Episode over')
-            self.__aiModel.OnEpisodeOver()
+        #     #run episode accroding to AI, until episode over
+        #     self._RunEpisode(isTestMode)
+        #     self.__logger.info('Episode over')
+        #     self.__agentEnv.UpdateEnvState(ENV_STATE_OVER, 'Episode over')#use callback to send sate
+        #     self.__aiModel.OnEpisodeOver()#reset 
 
-            self.__agentEnv.UpdateEnvState(ENV_STATE_WAITING_START, 'Wait episode start')
-
+        #     self.__agentEnv.UpdateEnvState(ENV_STATE_WAITING_START, 'Wait episode start')
+        #run openai
+        cb = CustomCallback(self)
+        self.__aiModel.Learn(cb)
         return
 
     def _WaitEpisode(self):
@@ -265,3 +271,81 @@ class AIFrameWork(object):
         if self.__connect.SendMsg(unRegMsg, BusConnect.PEER_NODE_MC) == 0:
             return True
         return False
+
+    def wait_for_start(self):
+        #wait new episode start
+        self.__logger.debug("begin to wait the start")
+        self._WaitEpisode()
+        self.__logger.info('Episode start')
+        self.__agentEnv.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
+        self.__aiModel.OnEpisodeStart()#use callback
+
+    def wait_for_end(self):
+        self.__logger.info('Episode over')
+        self.__agentEnv.UpdateEnvState(ENV_STATE_OVER, 'Episode over')#use callback to send sate
+        self.__aiModel.OnEpisodeOver()#reset 
+
+class CustomCallback(BaseCallback):
+    """
+    A custom callback that derives from ``BaseCallback``.
+
+    :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
+    """
+    def __init__(self,ai_framework, verbose=0):
+        super(CustomCallback, self).__init__(verbose)
+        # Those variables will be accessible in the callback
+        # (they are defined in the base class)
+        # The RL model
+        # self.model = None  # type: BaseAlgorithm
+        # An alias for self.model.get_env(), the environment used for training
+        # self.training_env = None  # type: Union[gym.Env, VecEnv, None]
+        # Number of time the callback was called
+        # self.n_calls = 0  # type: int
+        # self.num_timesteps = 0  # type: int
+        # local and global variables
+        # self.locals = None  # type: Dict[str, Any]
+        # self.globals = None  # type: Dict[str, Any]
+        # The logger object, used to report things in the terminal
+        # self.logger = None  # stable_baselines3.common.logger
+        # # Sometimes, for event callback, it is useful
+        # # to have access to the parent object
+        # self.parent = None  # type: Optional[BaseCallback]
+        self.ai_framework = ai_framework
+
+    def _on_training_start(self) -> None:
+        """
+        This method is called before the first rollout starts.
+        """
+        pass
+
+    def _on_rollout_start(self) -> None:
+        """
+        A rollout is the collection of environment interaction
+        using the current policy.
+        This event is triggered before collecting new samples.
+        """
+        self.ai_framework.wait_for_start()
+
+    def _on_step(self) -> bool:
+        """
+        This method will be called by the model after each call to `env.step()`.
+
+        For child callback (of an `EventCallback`), this will be called
+        when the event is triggered.
+
+        :return: (bool) If the callback returns False, training is aborted early.
+        """
+        return True
+
+    def _on_rollout_end(self) -> None:
+        """
+        This event is triggered before updating the policy.
+        """
+        self.ai_framework.wait_for_end()
+
+    def _on_training_end(self) -> None:
+        """
+        This event is triggered before exiting the `learn()` method.
+        """
+        pass
+

@@ -10,9 +10,9 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 
 import json
 import logging
+import math
 import os
-
-from AgentAI.aimodel.ImitationLearning.CfgParse import ACTION_TYPE_JOY_STICK
+import time
 
 from .MobileActionMgrExt import MobileActionMgrExt
 from .PCActionMgrExt import PCActionMgrExt
@@ -26,6 +26,8 @@ ACTION_TYPE_PRESS_UP = 'up'
 ACTION_TYPE_CLICK = 'click'
 ACTION_TYPE_SWIPE_ONCE = 'swipe'
 ACTION_TYPE_KEY = 'key'
+ACTION_TYPE_JOY_STICK = 'joystick'
+
 
 
 class DeviceType(object):
@@ -34,7 +36,7 @@ class DeviceType(object):
     WINDOWS = "Windows"
 
 
-class ActionController(object):
+class ActionOpenAIController(object):
     """
     ActionController implement for GIE, based on MobileActionMgrExt
     """
@@ -53,6 +55,9 @@ class ActionController(object):
         self.__height = -1
         self.__real_width = -1
         self.__real_height = -1
+        self.resetWaitTime = 5
+        self.timeInit = -1
+        
 
     def Initialize(self, cfgFilePath):
         """
@@ -83,10 +88,10 @@ class ActionController(object):
         """
         self.__actionMgr.Reset(frameSeq)
 
-    def DoAction(self, actionID, frameSeq=-1):
+    def DoAction(self, actions, hold=True, angle=0, frameSeq=-1):
         """
         Do the specific action corresponding to the actionID
-        :param actionID: actionID enum:
+        :param actionID: actionID array frist index execute action, Each successive index updates according to the corresponding x, y     :
                             ACTION_TYPE_NONE = none
                             ACTION_TYPE_PRESS_DOWN = down
                             ACTION_TYPE_PRESS_UP = up
@@ -95,9 +100,9 @@ class ActionController(object):
         :param frameSeq: the frame sequence, default is -1
         :return:
         """
-        if actionID not in range(self.__actionsNum):
-            return
-
+        actionID = actions
+        
+        
         actionContext = self.__actionsDict.get(actionID)
         actionType = actionContext.get('type')
         LOG.debug("the actionID is {0} and type is {1}".format(actionID, actionType))
@@ -128,9 +133,9 @@ class ActionController(object):
 
         elif actionType == ACTION_TYPE_CLICK:
             contact = actionContext.get('contact')
-            if 'updateBtn' in self.__actionsDict[actionID] and self.__actionsDict[actionID]['updateBtn'] is True:
-                px = self.__actionsDict[actionID]['updateBtnX']
-                py = self.__actionsDict[actionID]['updateBtnY']
+            if 'updateBtn' in actionContext and actionContext['updateBtn'] is True:
+                px = actionContext['updateBtnX']
+                py = actionContext['updateBtnY']
                 real_px = int(float(px) * float(self.__real_width) / float(self.__width))
                 real_py = int(float(py) * float(self.__real_height) / float(self.__height))
                 LOG.debug("press down real_px:{0}, real_py:{1}, contact:{2}".format(px, py, contact))
@@ -173,8 +178,48 @@ class ActionController(object):
                 self.SwipeOnce(sx, sy, ex, ey, contact=contact, frameSeq=frameSeq, durationMS=duration_ms)
             else:
                 self.SwipeOnce(sx, sy, ex, ey, contact=contact, frameSeq=frameSeq)
-        
-        
+            
+        elif actionType == ACTION_TYPE_JOY_STICK:
+            #check pressed if not press and hold down
+            timeNow = time.time()
+            if actionID == 4:#hardcode action di chuyen
+                if timeNow - self.timeInit > self.resetWaitTime:
+                    actionRegion = actionContext.get('actionRegion')
+                    centerx = actionRegion.get('center').get('x')
+                    centery = actionRegion.get('center').get('y')
+                    inner = actionRegion.get('inner')
+                    outer = actionRegion.get('outer')
+                    rangeInner = int((inner['w'] + inner['h']) * 0.25)
+                    rangeOuter = int((outer['w'] + outer['h']) * 0.25)
+                    radius = int(0.5 * (rangeInner+rangeOuter) )
+
+                    contactJoyStick = actionContext['contact']#need a ID contact 
+
+                    self.__actionMgr.MovingInit(centerx, centery,
+                                        radius, contact=contactJoyStick,
+                                        frameSeq=-1, waitTime=100)
+                    self.timeInit = timeNow
+                self.__actionMgr.Moving(angle)#TODO need fix if more than one joystick
+            else:
+                if 0 <= angle < 360:
+                    actionRegion = actionContext.get('actionRegion')
+                    centerx = actionRegion.get('center').get('x')
+                    centery = actionRegion.get('center').get('y')
+                    inner = actionRegion.get('inner')
+                    outer = actionRegion.get('outer')
+                    rangeInner = int((inner['w'] + inner['h']) * 0.25)
+                    rangeOuter = int((outer['w'] + outer['h']) * 0.25)
+                    radius = int(0.5 * (rangeInner+rangeOuter) )
+                    dx = radius * math.sin(math.radians(angle))
+                    dy = radius * math.cos(math.radians(angle))
+                else:
+                    dx = 0
+                    dy = 0
+
+                px = int(centerx + dx)
+                py = int(centery - dy)
+                self.SwipeOnce(centerx,centery,px,py,contact=actionContext['contact'],frameSeq=frameSeq)
+            
 
     def __get_real_x(self, action_context):
         px = action_context.get('actionRegion').get('region').get('x')
@@ -311,3 +356,4 @@ class ActionController(object):
 
     def get_config_height(self):
         return self.__height
+    
