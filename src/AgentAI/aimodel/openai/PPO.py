@@ -1,14 +1,17 @@
+import os
 import time
 import gym
+import json
 
 from stable_baselines3 import PPO
 import numpy as np
 from stable_baselines3.common.env_util import make_vec_env
+from util import util
 
 from aimodel.AIModel import AIModel
 from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
 
-
+LEARN_CFG_FILE = 'cfg/task/agent/OpenAIPPOLearning.json'
 class PPOModel(AIModel):
     """
     DQN AIModel implement, train AI model and predict action
@@ -32,11 +35,12 @@ class PPOModel(AIModel):
         """
         Init DQN AIModel after object created
         """
+        self._learnArgs = self._LoadPPOPrams()
         self.agentEnv = agentEnv
         self.actionSpace = self.agentEnv.GetActionSpace()
 
         
-        self.aiModel = PPO("CnnPolicy", self.agentEnv)
+        self.aiModel = PPO("MlpPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv)
         
         return True
 
@@ -46,7 +50,7 @@ class PPOModel(AIModel):
         """
         pass
 
-    def _LoadDQNPrams(self):
+    def _LoadPPOPrams(self):
         learnArgs = {}
 
         learnCfgFile = util.ConvertToProjectFilePath(LEARN_CFG_FILE)
@@ -196,8 +200,13 @@ class PPOModel(AIModel):
                     self.brain.SetPerception(nextObservation, action, reward, False)
 
     def Learn(self, hookCallback):
-        self.callback = CallbackList([hookCallback])
-        self.aiModel.learn(total_timesteps=10000000,callback=self.callback)
+        self.aiModel.learn(total_timesteps=10000000, callback=hookCallback)
+        
+    def setMSGID(self,msgid):
+        self.agentEnv.setMSGID(msgid)
+    
+    def getArgs(self):
+        return self._learnArgs[1]#dont know is array at 1
 
 # Parallel environments
 # env = make_vec_env("CartPole-v1", n_envs=4)   

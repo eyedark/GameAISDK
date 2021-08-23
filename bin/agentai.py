@@ -91,7 +91,7 @@ def RunFrameWork(runMode):
         logger.info('run the model, runMode:{0}'.format(runMode))
         if aiFramework.Init() is True:
             logger.info('after init, runMode:{0}'.format(runMode))
-            aiFramework.Run(True)
+            aiFramework.Run(True)#call train openai
         logger.info('finish run ai framework, runMode:{0}'.format(runMode))
         aiFramework.Finish()
 

@@ -366,7 +366,7 @@ class PlatformWeTest(IPlatformProxy):
                 nx, ny = x, y
 
         # _x, _y = int(nx / self.__scale), int(ny / self.__scale)
-        print("game size", self.__game_height, self.__game_width)
+        # print("game size", self.__game_height, self.__game_width)
         if self.__game_width > self.__game_height:
             _touch_scale_x = nx / self.__game_height
             _touch_scale_y = ny / self.__game_width

@@ -87,10 +87,10 @@ class AIPlugin(object):
             self.__logger.warning("load the algorithm failed, please check other plugin file")
             return False
 
-        alg_type = config['type']
-        model_parameter = self.__model_parameter_dict[alg_type]
+        self.alg_type = config['type']
+        model_parameter = self.__model_parameter_dict[self.alg_type]
         if model_parameter is None:
-            self.__logger.warning("get the model parameter failed, alg_type:{}".format(alg_type))
+            self.__logger.warning("get the model parameter failed, alg_type:{}".format(self.alg_type))
             return False
 
         if model_parameter.use_plugin_env == 0:
@@ -285,3 +285,6 @@ class AIPlugin(object):
         Whether or not use defualt run function
         """
         return self.__useDefaultRunFunc
+    
+    def getAlgType(self):
+        return self.alg_type

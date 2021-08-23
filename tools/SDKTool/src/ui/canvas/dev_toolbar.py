@@ -11,6 +11,7 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 import logging
 import os
 import time
+from ...ui.tree.project_data_manager import ProjectDataManager
 
 import cv2
 from PyQt5.QtCore import QPoint
@@ -127,8 +128,7 @@ class DeviceOperationToolbar(QFrame):
             img_data = self._data_source.get_frame()
             if img_data is not None:
                 project_path = g_project_manager.get_project_path()
-                project_name = os.path.split(project_path.strip(os.path.sep).strip('/'))[1]
-                dst_dir = os.path.join(project_path, 'data', project_name)
+                dst_dir = os.path.join(project_path, ProjectDataManager().get_sdk_data_path())
                 if not os.path.exists(dst_dir):
                     os.makedirs(dst_dir)
                 file_path = os.path.join(dst_dir, 'snapshot_%s.jpg' % int(time.time()))

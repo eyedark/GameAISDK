@@ -1,6 +1,8 @@
 from time import time
 import gym
-from numpy.lib.function_base import angle  
+from numpy.lib.function_base import angle
+from AgentAI.connect.BusConnect import BusConnect
+from aiframework.AIFrameWork import ENV_STATE_OVER, ENV_STATE_PLAYING  
 from actionmanager import ActionOpenAIController
 from util import util
 import numpy as np
@@ -12,6 +14,7 @@ import os
 import time
 import cv2
 import collections
+from protocol import common_pb2
 
 ACTION_CFG_FILE = 'cfg/task/agent/OpenAIPPOAction.json'
 LEARNING_CFG_FILE = 'cfg/task/agent/OpenAIPPOLearning.json'
@@ -21,6 +24,7 @@ GAME_STATE_INVALID = 0
 GAME_STATE_RUN = 1
 GAME_STATE_WIN = 2
 GAME_STATE_LOSE = 3
+GAME_STATE_DIE = 4
 
 
 class OpenAIEnv(gym.Env,GameEnv):
@@ -32,6 +36,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         self._LoadCfgFilePath()
         self._LoadEnvParams()
         self.__gameState = None
+        self._msgid = -1
         self.__actionController = ActionOpenAIController.ActionOpenAIController()
         self.__actionController.Initialize(self.__actionCfgFile)
         self.action_in_config = self.__actionController.get_action_dict()
@@ -45,7 +50,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         
         # Example for using image as input:
         self.observation_space = spaces.Box(low=0, high=255,
-                                            shape=(720, 1280,3), dtype=np.uint8)
+                                            shape=(self._inputImgHeight, self._inputImgWidth), dtype=np.uint8)
         
         
 
@@ -54,10 +59,16 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.DoAction(action)
         img, reward, is_done = self.GetState()
         game_info = self._GetGameInfo()
+        
+        if self._msgid == common_pb2.MSG_UI_GAME_OVER and is_done == False:
+            is_done = True
+        if is_done == True:
+            self.UpdateEnvState(ENV_STATE_OVER, 'Episode over')#use callback to send sate
         return img, reward, is_done, game_info
     #reset function openai
     def reset(self):
         self.Reset()
+        
         img, reward, is_done = self.GetState()
         return img  # reward, done, info can't be included
 
@@ -145,7 +156,7 @@ class OpenAIEnv(gym.Env,GameEnv):
             self.__actionController.DoAction(right_action, frameSeq=self.__frameIndex)#once action
         elif right_action != 0 and left_action != 0:
             self.__actionController.DoAction(left_action, angle=acts[1])#chay hanh dong ben trai action
-            self.__actionController.DoAction(right_action,angle=acts[3],frameSeq=self.__frameIndex,hold=False)#once action
+            self.__actionController.DoAction(right_action,angle=acts[3],frameSeq=self.__frameIndex,joystick_like_swipe=True)#once action
 
         
 
@@ -171,6 +182,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         """
         Return (s, r, t): game image, reward, terminal
         """
+        is_done = False
         game_info = self._GetGameInfo()
         data = game_info['result'].get(self.__scoreTaskID)[0]['num']
         image = game_info['image']
@@ -183,19 +195,21 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.logger.debug("the width %d and the height %d of real image", img_width, img_height)
         self.__actionController.SetSolution(img_width, img_height)
 
-        # img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # img = img[self.__beginRow:self.__endRow, self.__beginColumn:self.__endColumn]
-        # if img_width < img_height:
-        #     img = cv2.transpose(img)
-        #     img = cv2.flip(img, 1)
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        img = img[self.__beginRow:self.__endRow, self.__beginColumn:self.__endColumn]
+        if img_width < img_height:
+            img = cv2.transpose(img)
+            img = cv2.flip(img, 1)
 
-        # img = cv2.resize(img, (176, 108))
+        img = cv2.resize(img, (self._inputImgWidth, self._inputImgHeight),interpolation=cv2.INTER_AREA)
         reward = self._CaculateReward(data)
 
         self.__isTerminal = True
         if state == GAME_STATE_LOSE:
+            is_done = True
             reward = self.__loseReward
         elif state == GAME_STATE_WIN:
+            is_done = True
             reward = self.__winReward
         elif state == GAME_STATE_RUN:
             self.__isTerminal = False
@@ -207,8 +221,10 @@ class OpenAIEnv(gym.Env,GameEnv):
             reward = 0
 
         self.logger.debug('data: {0} reward: {1}'.format(data, reward))
+        if is_done == True:
+            print("goi loi ne ")
+        return img, reward, is_done
 
-        return image, reward, self.__isTerminal
 
     def Reset(self):
         """
@@ -220,6 +236,10 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.__isTerminal = True
         self.__gameState = GAME_STATE_INVALID
         self.__actionController.Reset()
+        while self.IsEpisodeStart() == False:
+            pass#do nothing waiting for game start
+        self.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
+
 
     def IsTrainable(self):
         """
@@ -235,7 +255,9 @@ class OpenAIEnv(gym.Env,GameEnv):
         if self.__gameState == GAME_STATE_RUN:
             self.__isTerminal = False
             return True
-
+        # if self.__gameState == GAME_STATE_WIN or self.__gameState == GAME_STATE_LOSE:
+        #     self.__isTerminal = True
+        #     return False
         return False
 
     def IsEpisodeOver(self):
@@ -297,6 +319,8 @@ class OpenAIEnv(gym.Env,GameEnv):
             self.__cutHeight = config['roiRegion']['region']['h']
             self.__endColumn = self.__beginColumn + self.__cutWidth
             self.__endRow = self.__beginRow + self.__cutHeight
+            self._inputImgWidth = config['network']['inputImgWidth']
+            self._inputImgHeight = config['network']['inputImgHeight']
 
             self.__initScore = config['excitationFunction']['initScore']
             self.__maxScoreRepeatedTimes = config['excitationFunction']['maxScoreRepeatedTimes']
@@ -373,36 +397,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.__actionCfgFile = util.ConvertToProjectFilePath(ACTION_CFG_FILE)
         self.__envCfgFile = util.ConvertToProjectFilePath(LEARNING_CFG_FILE)
         self.__recognizeCfgFile = util.ConvertToProjectFilePath(TASK_CFG_FILE)
-
-
-
-class LienQuanDiscretizer(gym.ActionWrapper):
-    """
-    Wrap a gym-retro environment and make it use discrete
-    actions for the "Lien quan".
-    ACtion LQ like [move, angle, chieu, angle], According to contact id ex: joystick right contact 1, and left joystick right contact 2, button right contact 2
-    """
-    def __init__(self, env):
-        super(LienQuanDiscretizer, self).__init__(env)
-        # SNES keys
-        buttons = ['C1', 'C2', 'C3', 'DANHLINH', 'DANHTHUONG', 'DANHTRU', 'NC1', 'NC2', 'NC3', 'BOCPHA', 'HOIMAU', 'BIENVE', 'MUADO', 'DICHUYEN']
-        actions = [['NOOP'],['C1'], ['C2'], ['C3'], ['DANHLINH'], ['DANHTHUONG'], ['DANHTRU'], ['NC1'], ['NC2'], ['NC3'], ['BOCPHA'],['HOIMAU'],['BIENVE'],['MUADO'],['DICHUYEN'],
-                   ['DICHUYEN','C1'],['DICHUYEN','C2'],['DICHUYEN','C3'],['DICHUYEN','DANHLINH'],['DICHUYEN','DANHTHUONG'],['DICHUYEN','DANHTRU'],['DICHUYEN','BOCPHA'],['DICHUYEN','HOIMAU']
-                   ] #
-                    #['Y', 'R', 'UP', 'LEFT'], ['Y', 'R', 'UP', 'RIGHT'], ['Y', 'R', 'DOWN', 'LEFT'], ['Y', 'R', 'DOWN', 'RIGHT']
-                    #['Y', 'L', 'R', 'RIGHT'], ['Y', 'L', 'R', 'LEFT'],  ['Y', 'UP', 'LEFT'], ['Y', 'DOWN', 'LEFT'], ['A'],
-        #23 actions, more than I would like but certain ones needed at specific moments
-        self._actions = []
-        for action in actions:
-            arr = np.array([False] * len(buttons))
-            if action == ['NOOP']:#None action 
-                self._actions.append(arr)
-                continue
-            for button in action:
-                arr[buttons.index(button)] = True
-            self._actions.append(arr)
-        self.action_space = spaces.Discrete(len(self._actions))
-
-
-    def action(self, a): # pylint: disable=W0221
-        return self._actions[a].copy()
+    
+    def setMSGID(self,msgid):
+        self._msgid = msgid
+    

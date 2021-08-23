@@ -117,7 +117,10 @@ class AIFrameWork(object):
             logging.debug("execute the run ai func")
             self.__runAIFunc(self.__agentEnv, self.__aiModel, isTestMode)
         else:
-            self._DefaultRun(isTestMode)
+            if self.__aiPlugin.getAlgType() == 4:# hardcode config AIAlgorithmType.OPENAI_PPO in SDKtool define
+                self._DefaultRun(isTestMode,is_open_ai=True)
+            else:   
+                self._DefaultRun(isTestMode)
 
     def StopAIAction(self):
         """
@@ -137,27 +140,39 @@ class AIFrameWork(object):
         self.__logger.info('Restart ai action')
         self.__agentEnv.UpdateEnvState(ENV_STATE_RESTORE_PLAYING, 'Resume ai playing')
 
-    def _DefaultRun(self, isTestMode):
+    def _DefaultRun(self, isTestMode, is_open_ai=False):
         self.__logger.debug("execute the default run")
         self.__agentEnv.UpdateEnvState(ENV_STATE_WAITING_START, 'Wait episode start')
-        # while True:
-        #     #wait new episode start
-        #     self.__logger.debug("begin to wait the start")
-        #     self._WaitEpisode()
-        #     self.__logger.info('Episode start')
-        #     self.__agentEnv.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
-        #     self.__aiModel.OnEpisodeStart()#use callback 
+        if is_open_ai == False:
+            while True:
+                #wait new episode start
+                self.__logger.debug("begin to wait the start")
+                self._WaitEpisode()
+                self.__logger.info('Episode start')
+                self.__agentEnv.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
+                self.__aiModel.OnEpisodeStart()#use callback 
 
-        #     #run episode accroding to AI, until episode over
-        #     self._RunEpisode(isTestMode)
-        #     self.__logger.info('Episode over')
-        #     self.__agentEnv.UpdateEnvState(ENV_STATE_OVER, 'Episode over')#use callback to send sate
-        #     self.__aiModel.OnEpisodeOver()#reset 
+                #run episode accroding to AI, until episode over
+                self._RunEpisode(isTestMode)
+                self.__logger.info('Episode over')
+                self.__agentEnv.UpdateEnvState(ENV_STATE_OVER, 'Episode over')#use callback to send sate
+                self.__aiModel.OnEpisodeOver()#reset 
 
-        #     self.__agentEnv.UpdateEnvState(ENV_STATE_WAITING_START, 'Wait episode start')
-        #run openai
-        cb = CustomCallback(self)
-        self.__aiModel.Learn(cb)
+                self.__agentEnv.UpdateEnvState(ENV_STATE_WAITING_START, 'Wait episode start')
+        else:
+            #run openai
+            cb = CustomCallback(self)
+            # Save a checkpoint
+            learnParam = self.__aiModel.getArgs()
+            if os.environ.get('AI_SDK_PROJECT_FULL_PATH') is not None:
+                project_path = os.getenv('AI_SDK_PROJECT_FULL_PATH')
+            else:
+                raise "AI_SDK_PROJECT_FULL_PATH not set"
+            
+            checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=os.path.join(project_path,learnParam['checkpoint_path']),
+                                            name_prefix='rl_model_ppo')
+            callback = CallbackList([cb,checkpoint_callback])
+            self.__aiModel.Learn(callback)
         return
 
     def _WaitEpisode(self):
@@ -167,7 +182,7 @@ class AIFrameWork(object):
             if self.__agentEnv.IsEpisodeStart() is True:
                 break
             time.sleep(0.1)
-
+        
         return
 
     def _RunEpisode(self, isTestMode):
@@ -190,6 +205,7 @@ class AIFrameWork(object):
 
         return
 
+    #public use for openai  callback check state when run on step
     def _HandleMsg(self):
         msg = self.__connect.RecvMsg(BusConnect.PEER_NODE_MC)
         if msg is None:
@@ -208,6 +224,8 @@ class AIFrameWork(object):
             self.__logger.info('Unknown msg id')
 
         return msgID
+    def getAIModel(self):
+        return self.__aiModel
 
     def _send_resource_info(self):
         self.__logger.info('send source info to mc, project_path: {}'.format(os.environ.get('AI_SDK_PROJECT_FILE_PATH')))
@@ -280,10 +298,15 @@ class AIFrameWork(object):
         self.__agentEnv.UpdateEnvState(ENV_STATE_PLAYING, 'Episode start, ai playing')
         self.__aiModel.OnEpisodeStart()#use callback
 
-    def wait_for_end(self):
+    #dont use function
+    def wait_for_end(self):#TODO need fix
         self.__logger.info('Episode over')
         self.__agentEnv.UpdateEnvState(ENV_STATE_OVER, 'Episode over')#use callback to send sate
         self.__aiModel.OnEpisodeOver()#reset 
+
+    def set_msgid_callback(self):
+        msgid = self._HandleMsg()
+        self.__aiModel.setMSGID(msgid)
 
 class CustomCallback(BaseCallback):
     """
@@ -324,7 +347,8 @@ class CustomCallback(BaseCallback):
         using the current policy.
         This event is triggered before collecting new samples.
         """
-        self.ai_framework.wait_for_start()
+        # self.ai_framework.wait_for_start()
+        pass
 
     def _on_step(self) -> bool:
         """
@@ -335,13 +359,16 @@ class CustomCallback(BaseCallback):
 
         :return: (bool) If the callback returns False, training is aborted early.
         """
+        
+        self.ai_framework.set_msgid_callback()#set msgid for env
         return True
 
     def _on_rollout_end(self) -> None:
         """
         This event is triggered before updating the policy.
         """
-        self.ai_framework.wait_for_end()
+        # self.ai_framework.wait_for_end()
+        pass
 
     def _on_training_end(self) -> None:
         """

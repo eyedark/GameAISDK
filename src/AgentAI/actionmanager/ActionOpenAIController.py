@@ -88,7 +88,7 @@ class ActionOpenAIController(object):
         """
         self.__actionMgr.Reset(frameSeq)
 
-    def DoAction(self, actions, hold=True, angle=0, frameSeq=-1):
+    def DoAction(self, actions, joystick_like_swipe=False, angle=0, frameSeq=-1):
         """
         Do the specific action corresponding to the actionID
         :param actionID: actionID array frist index execute action, Each successive index updates according to the corresponding x, y     :
@@ -182,7 +182,7 @@ class ActionOpenAIController(object):
         elif actionType == ACTION_TYPE_JOY_STICK:
             #check pressed if not press and hold down
             timeNow = time.time()
-            if actionID == 4:#hardcode action di chuyen
+            if joystick_like_swipe == False:
                 if timeNow - self.timeInit > self.resetWaitTime:
                     actionRegion = actionContext.get('actionRegion')
                     centerx = actionRegion.get('center').get('x')
