@@ -305,3 +305,6 @@ class AgentAPIMgr(object):
         self.__debug = args.debug
 
         LOG.info("argv is %s, debug is %s,type is %s", sys.argv, self.__debug, type(self.__debug))
+    #Using for OpenAIEnv
+    def getTaskInConfig(self):
+        return self.__taskList

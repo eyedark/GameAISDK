@@ -439,6 +439,17 @@ int CGameRegFrameWork::LoadTaskCfg(std::vector<CTaskMessage> *oVecTaskMsg, std::
                     LOGE("load number task failed");
                     return -1;
                 }
+            } else if (strType == "king glory blood") {
+                pstAgentMsg->mapTaskParams[nTaskID].SetType(TYPE_KINGGLORYBLOOD);
+                IRegParam          *pRegParam
+                    = pstAgentMsg->mapTaskParams[nTaskID].GetInstance(TYPE_KINGGLORYBLOOD);
+                CDeformObjRegParam *pDeformObjRegParam
+                    = dynamic_cast<CDeformObjRegParam*>(pRegParam);
+
+                if (-1 == LoadTaskDeform(oTask["elements"], pDeformObjRegParam)) {
+                    LOGE("load deform king glory blood task failed");
+                    return -1;
+                }
             } else {
                 LOGE("wrong type: %s", strType.c_str());
                 return -1;

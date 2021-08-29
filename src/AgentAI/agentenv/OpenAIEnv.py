@@ -25,6 +25,7 @@ GAME_STATE_RUN = 1
 GAME_STATE_WIN = 2
 GAME_STATE_LOSE = 3
 GAME_STATE_DIE = 4
+POSSIBLE_TIME_COOLDOWN = 90#Thoi gian hoi chieu dai nhat co the
 
 
 class OpenAIEnv(gym.Env,GameEnv):
@@ -47,11 +48,17 @@ class OpenAIEnv(gym.Env,GameEnv):
         #Accepts multiple discrete or box,
         #Because the joytick is circular, get the upper and lower bounds based on the length and width of the square
         self.action_space = self.GetActionSpace()
-        
-        # Example for using image as input:
-        self.observation_space = spaces.Box(low=0, high=255,
-                                            shape=(self._inputImgHeight, self._inputImgWidth), dtype=np.uint8)
-        
+        #hardcode HSV detect map object 
+        #full map 
+        # H 0,180
+        # S 135,255
+        # V 114,255
+        self._low_H = 0
+        self._high_H = 180
+        self._low_S = 135
+        self._high_S = 255
+        self._low_V = 114
+        self._high_V = 255
         
 
     def step(self, action):
@@ -91,6 +98,31 @@ class OpenAIEnv(gym.Env,GameEnv):
         if not ret:
             self.logger.error('send message failed')
             return False
+        
+        ###
+        # Example for using image as input:
+        # Chi su dung map tren hinh anh
+        # Nó đã bao gồm
+        # - Vị trí tướng ta, tướng địch
+        # - Mau dich, mau ta
+        # - Vị Trí lính, quái
+        # - Máu trụ, vị trí trự
+        # xác đinh size của bản đồ làm observer space
+        # hardcode TaskID của bản đồ trong SDK UI là: 6 at index 2
+        taskConfigs = self.__agentAPI.getTaskInConfig()
+        # tim taskid 6
+        for i in taskConfigs:
+            if i['taskID'] == 6:
+                # taskConfig[2] 'ROI': {'x': 0, 'y': 0, 'w': 231, 'h': 237}
+                map_ROI = i['elements'][0]['ROI']
+                self._map_ROI_w =  map_ROI['w']
+                self._map_ROI_h =  map_ROI['h']
+                self._map_ROI_x =  map_ROI['x']
+                self._map_ROI_y =  map_ROI['y']
+                full_path_to_mask = util.ConvertToSDKFilePath(i['elements'][0]['templates'][0]['path'])
+                self._map_mask = cv2.imread(full_path_to_mask,cv2.IMREAD_GRAYSCALE)
+                self.observation_space = spaces.Box(low=0, high=255,
+                                                    shape=(self._map_ROI_h, self._map_ROI_w), dtype=np.uint8)
 
         return True
 
@@ -113,20 +145,20 @@ class OpenAIEnv(gym.Env,GameEnv):
             self._actions.append([di_chuyen_id,n,0,0])#chi duy chuyen khong nhan nut
         
         for rdichuyen1 in range(360):#di chuyen c1, ID 1 trong giao dien
-            for lc1 in range(360):
-                self._actions.append([di_chuyen_id,rdichuyen1,1,lc1])
+            self._actions.append([di_chuyen_id,rdichuyen1,1])
 
         for rdichuyen2 in range(360):#di chuyen c2, ID 2 trong giao dien
-            for lc2 in range(360):
-                self._actions.append([di_chuyen_id,rdichuyen2,2,lc2])
+            self._actions.append([di_chuyen_id,rdichuyen2,2])
 
         for rdichuyen3 in range(360):#di chuyen c2, ID 5 trong giao dien
-            for lc3 in range(360):
-                self._actions.append([di_chuyen_id,rdichuyen3,5,lc3])
+            self._actions.append([di_chuyen_id,rdichuyen3,5])
+
+        for rdichuyen3 in range(360):# danh thuong va di chuyen
+            self._actions.append([di_chuyen_id,rdichuyen3,3])  
         
         #cai dat cac nut binh thuong 
         self._actions.append([0,0,0,0])#khong di chuyen
-        self._actions.append([0,0,3,0])#danh thuong
+        # self._actions.append([0,0,3,0])#danh thuong
         self._actions.append([0,0,6,0])#nang chieu 1
         self._actions.append([0,0,7,0])#nang chieu 2
         self._actions.append([0,0,8,0])#nang chieu 3
@@ -156,7 +188,7 @@ class OpenAIEnv(gym.Env,GameEnv):
             self.__actionController.DoAction(right_action, frameSeq=self.__frameIndex)#once action
         elif right_action != 0 and left_action != 0:
             self.__actionController.DoAction(left_action, angle=acts[1])#chay hanh dong ben trai action
-            self.__actionController.DoAction(right_action,angle=acts[3],frameSeq=self.__frameIndex,joystick_like_swipe=True)#once action
+            self.__actionController.DoAction(right_action,angle=acts[1],frameSeq=self.__frameIndex,joystick_like_swipe=True)#once action
 
         
 
@@ -167,7 +199,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.__actionController.Reset()
 
     def StopAction(self):
-        """
+        """1
         Stop game action when receive special msg or signal
         """
         self.__actionController.Reset()
@@ -181,10 +213,12 @@ class OpenAIEnv(gym.Env,GameEnv):
     def GetState(self):
         """
         Return (s, r, t): game image, reward, terminal
+        [result] {"1": [{"flag": true, "ROI": {"x": 541, "y": 240, "w": 193, "h": 64}, "boxes": [{"tmplName": "", "score": 0.8268243074417114, "scale": 1.0, "classID": 0, "x": 594, "y": 270, "w": 101, "h": 11}]}], "2": [{"flag": false, "ROI": {"x": 447, "y": 594, "w": 387, "h": 101}, "boxes": []}], "3": [{"flag": false, "ROI": {"x": 221, "y": 216, "w": 771, "h": 256}, "boxes": []}], "4": [{"flag": false, "ROI": {"x": 293, "y": 230, "w": 679, "h": 258}, "boxes": []}], "5": [{"flag": true, "num": 352.0, "x": 5, "y": 306, "w": 88, "h": 35}], "6": [{"flag": true, "ROI": {"x": 0, "y": 0, "w": 231, "h": 237}, "boxes": [{"tmplName": "", "score": 0.8643749952316284, "scale": 1.3571428060531616, "classID": 0, "x": 73, "y": 129, "w": 19, "h": 19}, {"tmplName": "", "score": 0.8487499952316284, "scale": 1.3717105388641357, "classID": 0, "x": 13, "y": 177, "w": 26, "h": 33}, {"tmplName": "", "score": 0.8487499952316284, "scale": 1.3571428060531616, "classID": 0, "x": 61, "y": 145, "w": 19, "h": 19}, {"tmplName": "", "score": 0.8331249952316284, "scale": 1.3717105388641357, "classID": 0, "x": 109, "y": 89, "w": 26, "h": 33}]}], "7": [{"flag": true, "percent": 100.0, "ROI": {"x": 558, "y": 257, "w": 164, "h": 36}, "box": {"x": 596, "y": 272, "w": 120, "h": 8}}]}
         """
         is_done = False
         game_info = self._GetGameInfo()
-        data = game_info['result'].get(self.__scoreTaskID)[0]['num']
+        ressults = game_info['result']
+        data = ressults.get(self.__scoreTaskID)[0]['num']
         image = game_info['image']
         self.__frameIndex = game_info['frameSeq']
         state = self.__gameState
@@ -195,13 +229,47 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.logger.debug("the width %d and the height %d of real image", img_width, img_height)
         self.__actionController.SetSolution(img_width, img_height)
 
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        img = img[self.__beginRow:self.__endRow, self.__beginColumn:self.__endColumn]
-        if img_width < img_height:
-            img = cv2.transpose(img)
-            img = cv2.flip(img, 1)
+        #crop only map image
+        # Use therhold by HSV to locate objects like houses, enemy champions, our champions, health etc 
 
-        img = cv2.resize(img, (self._inputImgWidth, self._inputImgHeight),interpolation=cv2.INTER_AREA)
+        #full map 
+        # H 0,180
+        # S 135,255
+        # V 114,255
+        img = image[self._map_ROI_y:self._map_ROI_y+self._map_ROI_h, self._map_ROI_x:self._map_ROI_x+self._map_ROI_w]
+        frame_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        frame_threshold = cv2.inRange(frame_HSV, (self._low_H, self._low_S, self._low_V), (self._high_H, self._high_S, self._high_V))
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # img = img[self.__beginRow:self.__endRow, self.__beginColumn:self.__endColumn]
+        # if img_width < img_height:
+        #     img = cv2.transpose(img)
+        #     img = cv2.flip(img, 1)
+        
+        # Them maunv idstask 7 vao obs
+        
+        #add to mask 
+        cv2.add(frame_threshold,self._map_mask,dst=frame_threshold)
+        #dilaton
+        dilatation_size = 1
+        dilation_shape = cv2.MORPH_RECT
+        element_dilatatio = cv2.getStructuringElement(dilation_shape, (2 * dilatation_size + 1, 2 * dilatation_size + 1),
+                                        (dilatation_size, dilatation_size))
+        frame_threshold = cv2.dilate(frame_threshold, element_dilatatio)
+
+        tgian_hoi_chieu_1 = util.get_number_dict(ressults,8)
+        tgian_hoi_chieu_2 = util.get_number_dict(ressults,9)
+        tgian_hoi_chieu_3 = util.get_number_dict(ressults,10)
+
+        #scale to 255
+        frame_threshold[0][1] = int(util.get_number_percent(ressults,7)*255/100)#phan tram mau nhan vat
+        frame_threshold[2][1] = int((tgian_hoi_chieu_1 / POSSIBLE_TIME_COOLDOWN *100)*255/100)
+        frame_threshold[3][1] = int((tgian_hoi_chieu_2 / POSSIBLE_TIME_COOLDOWN *100)*255/100)
+        frame_threshold[4][1] = int((tgian_hoi_chieu_3 / POSSIBLE_TIME_COOLDOWN *100)*255/100)
+
+        # Xem obs
+        cv2.imshow("Openai LQ obs space", frame_threshold)
+        cv2.waitKey(1)
+        # img = cv2.resize(img, (self._inputImgWidth, self._inputImgHeight),interpolation=cv2.INTER_AREA)
         reward = self._CaculateReward(data)
 
         self.__isTerminal = True
@@ -223,7 +291,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.logger.debug('data: {0} reward: {1}'.format(data, reward))
         if is_done == True:
             print("goi loi ne ")
-        return img, reward, is_done
+        return frame_threshold, reward, is_done
 
 
     def Reset(self):
@@ -393,7 +461,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         self.logger.debug("the reward is %s", str(reward))
         return reward
 
-    def _LoadCfgFilePath(self):
+    def _LoadCfgFilePath(self): 
         self.__actionCfgFile = util.ConvertToProjectFilePath(ACTION_CFG_FILE)
         self.__envCfgFile = util.ConvertToProjectFilePath(LEARNING_CFG_FILE)
         self.__recognizeCfgFile = util.ConvertToProjectFilePath(TASK_CFG_FILE)

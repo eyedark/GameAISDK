@@ -58,6 +58,38 @@ def get_button_state(result_dict, task_id):
 
     return state, px, py
 
+def get_number_dict(result_dict, task_id) -> float:
+    score = 0
+    reg_results = result_dict.get(task_id)
+    if reg_results is None:
+        return score
+    for item in reg_results:
+        flag = item['flag']
+        if flag and 'num' in item:
+            score = item['num']
+            break
+        else:
+            logger.warn("Cant find score in box")
+            # raise "Wont config for start task, recomend fix object "
+
+    return score
+
+def get_number_percent(result_dict, task_id) -> float:
+    percent = 0
+    reg_results = result_dict.get(task_id)
+    if reg_results is None:
+        return percent
+    for item in reg_results:
+        flag = item['flag']
+        if flag and 'percent' in item:
+            percent = item['percent']
+            break
+        else:
+            logger.warn("Cant find number percent in box")
+            # raise "Wont config for start task, recomend fix object "
+
+    return percent
+
 
 def create_source_response(source_dict):
     source_res_message = common_pb2.tagMessage()

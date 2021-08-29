@@ -4,12 +4,15 @@ import gym
 import json
 
 from stable_baselines3 import PPO
+
 import numpy as np
 from stable_baselines3.common.env_util import make_vec_env
 from util import util
 
 from aimodel.AIModel import AIModel
 from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
+from .retro_wrappers import StochasticFrameSkip,RewardScaler
+from .atari_wrappers import WarpFrame, FrameStack
 
 LEARN_CFG_FILE = 'cfg/task/agent/OpenAIPPOLearning.json'
 class PPOModel(AIModel):
@@ -36,12 +39,26 @@ class PPOModel(AIModel):
         Init DQN AIModel after object created
         """
         self._learnArgs = self._LoadPPOPrams()
-        self.agentEnv = agentEnv
+        
+        #ent_coef=0.003,#0.003, 0.001, 0.005 #many actions #0.01
+        # env = PPO("MlpPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv,ent_coef=0.003)
+        skip_prob = 0.0
+        stochastic_frame_skip = 4
+        env = StochasticFrameSkip(agentEnv,stochastic_frame_skip,skip_prob)
+        scale_reward = 0.01
+        env = RewardScaler(env,scale=scale_reward)
+        # if clip_rewards:
+        #     env = ClipRewardEnv(env)
+        # if warp_frame:
+        #     env = WarpFrame(env,width=self.getArgs()['input_img_width'],height=self.getArgs()['input_img_height']) #,grayscale=False
+        stack = 4
+        if stack:
+            env = FrameStack(env, stack)
+        
+        self.agentEnv = env
         self.actionSpace = self.agentEnv.GetActionSpace()
 
-        
-        self.aiModel = PPO("MlpPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv)
-        
+        self.aiModel = PPO("MlpPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv ,ent_coef=0.003)
         return True
 
     def Finish(self):
@@ -199,7 +216,11 @@ class PPOModel(AIModel):
                                      .format(action, reward))
                     self.brain.SetPerception(nextObservation, action, reward, False)
 
-    def Learn(self, hookCallback):
+    def Learn(self, hookCallback,lastTrainFile=None):
+        #find last file data train
+        
+        if lastTrainFile != None:
+            self.aiModel.load(lastTrainFile)
         self.aiModel.learn(total_timesteps=10000000, callback=hookCallback)
         
     def setMSGID(self,msgid):

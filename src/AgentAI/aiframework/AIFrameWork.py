@@ -11,6 +11,7 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 import logging
 import time
 import os
+import glob
 
 from protocol import common_pb2
 from connect.BusConnect import BusConnect
@@ -168,11 +169,19 @@ class AIFrameWork(object):
                 project_path = os.getenv('AI_SDK_PROJECT_FULL_PATH')
             else:
                 raise "AI_SDK_PROJECT_FULL_PATH not set"
-            
-            checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=os.path.join(project_path,learnParam['checkpoint_path']),
-                                            name_prefix='rl_model_ppo')
+            trained_file_location = os.path.join(project_path,learnParam['checkpoint_path'])
+            name_prefix = 'rl_model_ppo'
+            checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=trained_file_location,
+                                            name_prefix=name_prefix)
             callback = CallbackList([cb,checkpoint_callback])
-            self.__aiModel.Learn(callback)
+            #find last train file
+            trainedFilenamesList = glob.glob(trained_file_location+'/'+name_prefix+'*.zip')
+            last_file = None
+            for file_path in trainedFilenamesList:
+                print(file_path)
+            if len(trainedFilenamesList) >= 1:
+                last_file = trainedFilenamesList[len(trainedFilenamesList)-1]
+            self.__aiModel.Learn(callback,lastTrainFile=last_file)
         return
 
     def _WaitEpisode(self):
