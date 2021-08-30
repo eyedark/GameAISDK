@@ -60,3 +60,7 @@ CTestTestfile.cmake
 _deps
 *.zip
 src/ImgProc/autom4te.cache/requests
+Modules/darknetV3/src/build/uselib
+Modules/darknetV3/src/build/uselib_track
+Modules/darknetV3/src/build/DarknetConfigVersion.cmake
+Modules/darknetV3/src/build/DarknetConfig.cmake
