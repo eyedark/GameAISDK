@@ -14,6 +14,7 @@ import os
 import time
 import cv2
 import collections
+import math
 from protocol import common_pb2
 
 ACTION_CFG_FILE = 'cfg/task/agent/OpenAIPPOAction.json'
@@ -59,6 +60,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         self._high_S = 255
         self._low_V = 114
         self._high_V = 255
+        self._timeout_ha_tru = 0
         
 
     def step(self, action):
@@ -121,8 +123,10 @@ class OpenAIEnv(gym.Env,GameEnv):
                 self._map_ROI_y =  map_ROI['y']
                 full_path_to_mask = util.ConvertToSDKFilePath(i['elements'][0]['templates'][0]['path'])
                 self._map_mask = cv2.imread(full_path_to_mask,cv2.IMREAD_GRAYSCALE)
+                # self.observation_space = spaces.Box(low=0, high=255,
+                #                                     shape=(self._map_ROI_h, self._map_ROI_w), dtype=np.uint8)
                 self.observation_space = spaces.Box(low=0, high=255,
-                                                    shape=(self._map_ROI_h, self._map_ROI_w), dtype=np.uint8)
+                                                    shape=(128, 128), dtype=np.uint8)
 
         return True
 
@@ -141,19 +145,23 @@ class OpenAIEnv(gym.Env,GameEnv):
         
         self._actions = []
         di_chuyen_id = 4
-        for n in range(360):
+        duong_tron_dos = []
+        for d in range(60):
+            duong_tron_dos.append(d*6)
+
+        for n in duong_tron_dos:
             self._actions.append([di_chuyen_id,n,0,0])#chi duy chuyen khong nhan nut
         
-        for rdichuyen1 in range(360):#di chuyen c1, ID 1 trong giao dien
+        for rdichuyen1 in duong_tron_dos:#di chuyen c1, ID 1 trong giao dien
             self._actions.append([di_chuyen_id,rdichuyen1,1])
 
-        for rdichuyen2 in range(360):#di chuyen c2, ID 2 trong giao dien
+        for rdichuyen2 in duong_tron_dos:#di chuyen c2, ID 2 trong giao dien
             self._actions.append([di_chuyen_id,rdichuyen2,2])
 
-        for rdichuyen3 in range(360):#di chuyen c2, ID 5 trong giao dien
+        for rdichuyen3 in duong_tron_dos:#di chuyen c2, ID 5 trong giao dien
             self._actions.append([di_chuyen_id,rdichuyen3,5])
 
-        for rdichuyen3 in range(360):# danh thuong va di chuyen
+        for rdichuyen3 in duong_tron_dos:# danh thuong va di chuyen
             self._actions.append([di_chuyen_id,rdichuyen3,3])  
         
         #cai dat cac nut binh thuong 
@@ -237,6 +245,7 @@ class OpenAIEnv(gym.Env,GameEnv):
         # S 135,255
         # V 114,255
         img = image[self._map_ROI_y:self._map_ROI_y+self._map_ROI_h, self._map_ROI_x:self._map_ROI_x+self._map_ROI_w]
+        
         frame_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         frame_threshold = cv2.inRange(frame_HSV, (self._low_H, self._low_S, self._low_V), (self._high_H, self._high_S, self._high_V))
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -246,22 +255,43 @@ class OpenAIEnv(gym.Env,GameEnv):
         #     img = cv2.flip(img, 1)
         
         # Them maunv idstask 7 vao obs
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
-        #add to mask 
-        cv2.add(frame_threshold,self._map_mask,dst=frame_threshold)
+        
+        # mask rececure
+        # H 0,180
+        # S 0,93
+        # V 0,43
+        
+        re_mask = cv2.inRange(frame_HSV, (0, 0, 0), (180, 93, 43))
+        # cv2.add(re_mask,gray_img,dst=frame_threshold)
+        # add to mask 
+        cv2.add(gray_img,self._map_mask,dst=frame_threshold)
+        
         #dilaton
         dilatation_size = 1
         dilation_shape = cv2.MORPH_RECT
         element_dilatatio = cv2.getStructuringElement(dilation_shape, (2 * dilatation_size + 1, 2 * dilatation_size + 1),
                                         (dilatation_size, dilatation_size))
         frame_threshold = cv2.dilate(frame_threshold, element_dilatatio)
+        frame_threshold = cv2.resize(frame_threshold,(128, 128))
 
         tgian_hoi_chieu_1 = util.get_number_dict(ressults,8)
         tgian_hoi_chieu_2 = util.get_number_dict(ressults,9)
         tgian_hoi_chieu_3 = util.get_number_dict(ressults,10)
 
+        #lay thong tin mau, toa do dich
+        # taskID 7 su dung yolo do tim mau nhan vat
+        # "7": [{"flag": true, "ROI": {"x": 0, "y": 1, "w": 1280, "h": 720}, "bloods": [{"level": 0, "score": 0.9458652138710022, "percent": 60.0, "classID": 1, "name": "GreenBlood", "x": 567, "y": 260, "w": 161, "h": 34}]}]
+        # max 4 blue
+        # max 5 red co the la rong
+        # Mỗi nhân vật sẽ có. khoảng cách(px), góc 360ĐỘ, phần trăm(0-100) máu từ nhân vật chính đến nhân vật được dò tìm.
+        # Tinh từ GreenBlood  nhân vật chính
+
+
         #scale to 255
-        frame_threshold[0][1] = int(util.get_number_percent(ressults,7)*255/100)#phan tram mau nhan vat
+        # frame_threshold[0][1] = int(util.get_number_percent(ressults,7)*255/100)#phan tram mau nhan vat
+        mau_nv = ressults.get(7)
         frame_threshold[2][1] = int((tgian_hoi_chieu_1 / POSSIBLE_TIME_COOLDOWN *100)*255/100)
         frame_threshold[3][1] = int((tgian_hoi_chieu_2 / POSSIBLE_TIME_COOLDOWN *100)*255/100)
         frame_threshold[4][1] = int((tgian_hoi_chieu_3 / POSSIBLE_TIME_COOLDOWN *100)*255/100)
@@ -271,6 +301,19 @@ class OpenAIEnv(gym.Env,GameEnv):
         cv2.waitKey(1)
         # img = cv2.resize(img, (self._inputImgWidth, self._inputImgHeight),interpolation=cv2.INTER_AREA)
         reward = self._CaculateReward(data)
+
+        #Nếu trụ bị phá thì +maxreward
+        state_ha_tru,px, py =  util.get_button_state(ressults,11)
+        if state_ha_tru:
+            if self._timeout_ha_tru == 0:
+                if reward < self.__maxRunningReward:
+                    reward == self.__maxRunningReward
+            self._timeout_ha_tru = 1
+        else:
+            self._timeout_ha_tru = 0
+        ##################################
+        #han che cach hanhg dong khong can thiet
+        
 
         self.__isTerminal = True
         if state == GAME_STATE_LOSE:
@@ -469,3 +512,34 @@ class OpenAIEnv(gym.Env,GameEnv):
     def setMSGID(self,msgid):
         self._msgid = msgid
     
+    def nhanVatDetect(self,results_dict):
+        # bloods: [{"level": 0, "score": 0.9458652138710022, "percent": 60.0, "classID": 1, "name": "GreenBlood", "x": 567, "y": 260, "w": 161, "h": 34}]}]
+        # Tim  GreenBlood 
+        bloods_lists = results_dict[0]['bloods']
+        {k: v for k, v in sorted(bloods_lists.items(), key=lambda item: item[1])}
+        greemBlood = {}
+        for bl in  bloods_lists:
+            if bl['name'] == 'GreenBlood':
+                greemBlood = bl
+                break
+        
+        # for i in range(4):#4 tuong ta
+            
+
+    def _angle_between(p1, p2):
+        ang1 = np.arctan2(*p1[::-1])
+        ang2 = np.arctan2(*p2[::-1])
+        return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+
+    def distance_2_object(self, rect_obj1, rect_obj2):
+        x1, y1 = self._calulator_center_point(rect_obj1)
+        x2, y2 = self._calulator_center_point(rect_obj2)
+        #tinh khoan cach
+        distance  = math.sqrt(pow(x2 -x1) + pow(y2-y1))
+        point1 = (x1,y1)
+        point2 = (x2, y2)
+        angle = self._angle_between(point1,point2)
+        return distance,angle
+
+    def _calulator_center_point(self,rect):
+        return int(rect['x']+(rect['w']/2)), int(rect['y']-(rect['h']/2))

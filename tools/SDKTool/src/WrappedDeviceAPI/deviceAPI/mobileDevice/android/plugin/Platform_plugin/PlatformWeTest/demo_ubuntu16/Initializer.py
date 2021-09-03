@@ -105,8 +105,18 @@ class Initializer:
 
     def setup(self, install=False):
         if install:
-            self.__install_touch_server()
-            self.__install_cloudscreen_server()
+            res = self.__adb.cmd_wait("shell","ls /data/local/tmp/touchserver")
+            if "No such" in res.decode("utf-8"): 
+                self.__install_touch_server()
+            else:
+                logger.info("touchserver already exist!")
+
+            res = self.__adb.cmd_wait("shell","ls /data/local/tmp/cloudscreen")
+            if "No such" in res.decode("utf-8"): 
+                self.__install_cloudscreen_server()
+            else:
+                logger.info("cloudscreen already exist!")
+
             self.__adb.cmd_wait("shell", "killall", "touchserver")
             self.__adb.cmd_wait("shell", "killall", "cloudscreen")
             self.__touch_future = (self.__thread_pool.submit(self.__launch_touchserver))
