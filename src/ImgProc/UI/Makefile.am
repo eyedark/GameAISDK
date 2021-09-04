@@ -59,4 +59,4 @@ UIRecognize_SOURCES=../Comm/Utils/TqcCommon.cpp \
                     ../Protobuf/gameregProtoc.pb.cc
 
 
-LIBS=-L/usr/local/lib64 $(UIRECOGNIZELIBFLAG) $(LIBDARKNET) -ljsoncpp -L/usr/lib64 -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -Wl,-Bdynamic
+LIBS=-L/usr/local/lib64 $(UIRECOGNIZELIBFLAG) $(LIBDARKNET) -ljsoncpp -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -Wl,-Bdynamic

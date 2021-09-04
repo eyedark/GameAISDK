@@ -83,7 +83,7 @@ class AdbTool(object):
         if not self.default_serial:
             devices = self.devices()
             if devices:
-                if len(devices) is 1:
+                if len(devices) == 1:
                     self.default_serial = list(devices.keys())[0]
                 else:
                     raise EnvironmentError("Multiple devices attached but default android serial not set.")

@@ -18,6 +18,7 @@ echo "--------------libtbus end------------------"
 echo "--------------pytbus start------------------"
 #build tbus.so for python3
 cd $AI_SDK_ROOT/Modules/tbus/pytbus/linux-cp3
+rm -rf build/*
 python3 setup.py build
 LIB_DIR=`ls build | grep lib | grep -v grep`
 cp -f build/$LIB_DIR/tbus.*.so $AI_SDK_ROOT/bin

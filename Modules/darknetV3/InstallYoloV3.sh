@@ -28,7 +28,7 @@ rm -rf build
 mkdir build
 cd build
 #cmake -DCMAKE_INSTALL_PREFIX=/usr/local ../
-cmake -DCMAKE_INSTALL_PREFIX=/usr/local ../
+cmake -DOpenCV_DIR=/usr/local/share/OpenCV -DCMAKE_INSTALL_PREFIX=/usr/local ../
 make -j12
 
 if [ $# -gt 0 ]; then
