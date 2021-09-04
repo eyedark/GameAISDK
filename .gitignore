@@ -1109,3 +1109,5 @@ dkms.conf
 *.status
 tools/SDKTool/src/WrappedDeviceAPI/deviceAPI/mobileDevice/android/PlatformMinicap/adb/Windows/_let_the_adb_executable_file 
 tools/SDKTool/src/WrappedDeviceAPI/deviceAPI/mobileDevice/android/PlatformMinicap/adb/Linux/adb
+*.avi
+*.tar.gz
