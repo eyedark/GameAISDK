@@ -29,8 +29,8 @@ def GetPlatformInstance(serial=None, platform_type=None):
         logger = logging.getLogger(serial)
 
     if platform_type in [Platform.Local.value, Platform.WeTest.value]:
-        # module_class = importlib.import_module('PlatformWeTest')
-        module_class = importlib.import_module('PlatformMiniCap')
+        module_class = importlib.import_module('PlatformWeTest')
+        # module_class = importlib.import_module('PlatformMiniCap')
         get_instance = getattr(module_class, "GetInstance")
         return get_instance()
 

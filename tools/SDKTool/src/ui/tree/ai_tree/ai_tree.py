@@ -285,7 +285,6 @@ class AITree(metaclass=Singleton):
             shutil.copy(file_path, project_file_path)
         node = self.__right_tree.currentItem()
         node.setText(1, project_file_path)
-        # node.setText(3, project_file_path)
 
         frame = QtGui.QImage(project_file_path)
         pix = QtGui.QPixmap.fromImage(frame)

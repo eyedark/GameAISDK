@@ -16,7 +16,7 @@ import traceback
 import shutil
 import tempfile
 # from WrappedDeviceAPI.devicePlatform.IPlatformProxy import IPlatformProxy, DeviceInfo
-from platform_minicap.screen.ScreenMinicap import ScreenMinicap
+from PlatformMinicap.screen.ScreenMinicap import ScreenMinicap
 
 from APIDefine import *
 # from .MinitouchInstall import *
