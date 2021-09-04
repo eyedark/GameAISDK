@@ -39,7 +39,6 @@ tools/SDKTool/project/LQ/data/ImitationModel/*.h5
 Class_valid/
 Class_train/
 output/
-project/
 tools/AIClient/
 src/AIClient/WrappedDeviceAPI/deviceAPI/mobileDevice/android/plugin/Platform_plugin/PlatformWeTest/demo/TcpSocketHandler.py
 log/

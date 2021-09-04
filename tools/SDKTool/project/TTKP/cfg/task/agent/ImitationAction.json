@@ -12,7 +12,7 @@
             "sceneTask": "",
             "type": "click",
             "actionRegion": {
-                "path": "data/KPIM/_0_0.jpg",
+                "path": "data/images/_0_0.jpg",
                 "region": {
                     "x": 46,
                     "y": 532,
@@ -28,7 +28,7 @@
             "sceneTask": "",
             "type": "click",
             "actionRegion": {
-                "path": "data/KPIM/_1_0.jpg",
+                "path": "data/images/_1_0.jpg",
                 "region": {
                     "x": 1085,
                     "y": 527,

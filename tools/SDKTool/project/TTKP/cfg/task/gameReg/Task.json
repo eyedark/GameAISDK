@@ -12,7 +12,7 @@
                     "elements": [
                         {
                             "elementName": "",
-                            "roiImg": "data/KPIM/_start_1.jpg",
+                            "roiImg": "data/images/_start_1.jpg",
                             "ROI": {
                                 "x": 1168,
                                 "y": 14,
@@ -28,7 +28,7 @@
                                 {
                                     "templateID": "12",
                                     "templateName": "",
-                                    "path": "data/KPIM/_start_2.jpg",
+                                    "path": "data/images/_start_2.jpg",
                                     "name": "",
                                     "location": {
                                         "x": 1180,
@@ -51,7 +51,7 @@
                     "elements": [
                         {
                             "elementName": "",
-                            "roiImg": "data/KPIM/_over_1.jpg",
+                            "roiImg": "data/images/_over_1.jpg",
                             "ROI": {
                                 "x": 330,
                                 "y": 476,
@@ -67,7 +67,7 @@
                                 {
                                     "templateID": "12",
                                     "templateName": "",
-                                    "path": "data/KPIM/_over_2.jpg",
+                                    "path": "data/images/_over_2.jpg",
                                     "name": "",
                                     "location": {
                                         "x": 345,

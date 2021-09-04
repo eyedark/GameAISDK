@@ -1,10 +1,10 @@
 {
     "Debug":true,
     "GameName":"output",
-    "SavePath":"/home/xdien/workspace/GameAISDK/tools/SDKTool/project/LQ/",
+    "SavePath":"/home/xdien/workspace/GameAISDK/tools/SDKTool/project/TTKP/",
     "FrameFPS":10,
-    "FrameHeight":720,
-    "FrameWidth":1280,
+    "FrameHeight":360,
+    "FrameWidth":640,
     "ActionCfgFile":"cfg/action.json",
     "OutputAsVideo":false,
     "LogTimestamp":false

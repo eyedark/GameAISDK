@@ -76,7 +76,6 @@
         "cfgPath":"",
         "weightPath":"",
         "namePath":"",
-        "maskPath":"",
         "threshold":0.35
 
     },
@@ -263,5 +262,73 @@
         "bloodLength":"123",
         "filterSize":3,
         "maxPointNum":512
+    },
+"king glory blood":
+    {
+        "elementName": "MOBA Game",
+        "roiImg": "",
+        "ROI": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+        },
+        "cfgPath": "",
+        "weightPath": "",
+        "namePath": "",
+        "threshold": 0.35,
+        "condition": "",
+        "bloodLength": 100,
+        "filterSize": 1,
+        "maxPointNum": 512,
+        "minScale":1.0,
+        "maxScale":1.0,
+        "scaleLevel":1,
+        "templates": [
+            {
+                "templateID": "0",
+                "templateName": "RedBlood",
+                "path": "",
+                "name": "",
+                "location": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                },
+                "threshold": 0.8,
+                "classID": 0
+            },
+            {
+                "templateID": "0",
+                "templateName": "GreenBlood",
+                "path": "",
+                "name": "",
+                "location": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                },
+                "threshold": 0.8,
+                "classID": 0
+            },
+            {
+                "templateID": "0",
+                "templateName": "BlueBlood",
+                "path": "",
+                "name": "",
+                "location": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                },
+                "threshold": 0.8,
+                "classID": 0
+            }
+        ]
     }
 }
+
+
