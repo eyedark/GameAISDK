@@ -19,4 +19,4 @@
 # Donation
 This project helps you to play with RL in a simple way, you can give me a coffee ;) 
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=JFWXC8NGC6894)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xdienw@gmail.com&lc=US&item_name=Donation+to+project+GameSDK&no_note=0&cn=&currency_code=USD&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted)
