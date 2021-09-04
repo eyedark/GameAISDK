@@ -14,8 +14,9 @@
 - Only linux, android (Not tested on other platforms windows, MacOS, IOS)
 - Docker support 
 # Help
-- Old help info [OLD_README.md]: https://github.com/xdien/GameAISDK/blob/master/README.md
+- Old help info [OLD_README.md]: (https://github.com/xdien/GameAISDK/blob/master/README.md)
 
 # Donation
 This project helps you to play with RL in a simple way, you can give me a coffee ;) 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](JFWXC8NGC6894)
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JFWXC8NGC6894)
