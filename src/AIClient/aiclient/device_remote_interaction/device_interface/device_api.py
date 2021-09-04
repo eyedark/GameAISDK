@@ -8,8 +8,7 @@
 # Size of source mod 2**32: 12768 bytes
 import sys, json, logging, os, traceback
 from .config import Platform, DeviceType, IniConfigParser
-from WrappedDeviceAPI.deviceAdapter import DeviceAdapter
-from WrappedDeviceAPI.deviceAPI.mobileDevice.android.APIDefine import *
+from ..tools.SDKTool.src.WrappedDeviceAPI.deviceAdapter import DeviceAdapter
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.dirname(os.path.dirname(__dir__))
 DEVICE_CFG_PATH = os.path.join(WORK_DIR, 'cfg/device_cfg/device.ini')
@@ -221,19 +220,19 @@ class DeviceAPI(object):
 
     def log_level_parse(self, log_level_str):
         if log_level_str == 'LOG_DEBUG':
-            return LOG_DEBUG
+            return logging.DEBUG
         else:
             if log_level_str == 'LOG_INFO':
-                return LOG_INFO
+                return logging.INFO
             else:
                 if log_level_str == 'LOG_WARNING':
-                    return LOG_WARNING
+                    return logging.WARN
                 if log_level_str == 'LOG_ERROR':
-                    return LOG_ERROR
+                    return logging.ERROR
                 if log_level_str == 'LOG_CRITICAL':
-                    return LOG_CRITICAL
+                    return logging.CRITICAL
             self.MAIN_THREAD_LOGGER.warning('log level is not correct, using info level')
-            return LOG_INFO
+            return logging.INFO
 
     def GetFrame(self):
         if not self.ready:

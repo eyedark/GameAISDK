@@ -1,0 +1,1 @@
+Make the adb executable suitable for each platform, do not push to git 

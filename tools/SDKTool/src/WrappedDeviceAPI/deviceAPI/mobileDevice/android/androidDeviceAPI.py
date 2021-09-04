@@ -9,7 +9,7 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
 from .APIDefine import WAITTIME_MS
-from .devicePlatform.WrappedPlatform import PlatformWrapper
+from .PlatformCloudScreen.WrappedPlatform import PlatformWrapper
 from ..iMobileDeviceAPI import IMobileDeviceAPI
 
 WINDOW_DUMP_PATH = 'window_dump.xml'
