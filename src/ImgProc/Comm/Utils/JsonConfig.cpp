@@ -46,7 +46,7 @@ bool CJsonConfig::loadFile(const char *pstrConfName) {
 }
 
 bool CJsonConfig::GetData(const char *strKey, const Json::Value &JsonRoot, Json::Value *pval) {
-    if (pval == NULL) {
+    if (pval == nullptr) {
         return false;
     }
 
@@ -246,7 +246,7 @@ bool CJsonConfig::GetArrayValue(const char *pArrayPath, const int nIndex, const 
     // set length zero or you can add other case process here
     default:
     {
-        pszRst = NULL;
+        pszRst = nullptr;
         *pnLen = 0;
     }
     break;
@@ -346,7 +346,7 @@ bool CJsonConfig::GetConfValue(const char *pszSrcPath, char *pszDst, int *pnDstL
     // set length zero or you can add other case process here
     default:
     {
-        pszDst = NULL;
+        pszDst = nullptr;
         *pnDstLen = 0;
     }
     break;

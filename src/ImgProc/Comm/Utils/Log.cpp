@@ -27,7 +27,7 @@
 
 
 CLog::CLog() {
-    m_pfLogfile = NULL;
+    m_pfLogfile = nullptr;
     m_nFileSize = -1;
     m_nLogPriotify = -1;
     m_nMaxRollNum = -1;
@@ -44,7 +44,7 @@ int CLog::init(const char *pszLogFileName, int eLogLevel, int nLogFileSize, int 
         std::string logFolderName;
         std::string fileName;
 
-        m_pfLogfile = NULL;
+        m_pfLogfile = nullptr;
         m_nLogPriotify = eLogLevel;
         m_nFileSize = nLogFileSize;
         m_nMaxRollNum = nLogRollNum;
@@ -205,7 +205,7 @@ void CLog::logRun(const char *pszLogContent, size_t uLogContentLen) {
 void CLog::closeLog() {
     if (m_pfLogfile) {
         fclose(m_pfLogfile);
-        m_pfLogfile = NULL;
+        m_pfLogfile = nullptr;
     }
 }
 

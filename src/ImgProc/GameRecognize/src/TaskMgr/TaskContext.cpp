@@ -20,7 +20,7 @@ TaskContext::TaskContext() {
     m_nOverload = -1;
     m_stState.eTaskExecState = TASK_STATE_RUNNING;
     m_stState.bState = true;
-    m_pRecognizer = NULL;
+    m_pRecognizer = nullptr;
     m_bSendResult = false;
 }
 
@@ -177,7 +177,7 @@ bool TaskContext::CreateRecognizer(int nTaskID) {
     }
 
     // 初始化识别器
-    if (m_pRecognizer != NULL) {
+    if (m_pRecognizer != nullptr) {
         IRegParam *pRegParam = m_stParms.GetInstance(m_stParms.GetType());
         pRegParam->m_nTaskID = nTaskID;
         int nRst = m_pRecognizer->Initialize(pRegParam);
@@ -199,10 +199,10 @@ void TaskContext::Release() {
 }
 
 void TaskContext::ReleaseRecognizer() {
-    if (m_pRecognizer != NULL) {
+    if (m_pRecognizer != nullptr) {
         m_pRecognizer->Release();
         delete m_pRecognizer;
-        m_pRecognizer = NULL;
+        m_pRecognizer = nullptr;
     } else {
         LOGW("recognizer is NULL");
     }
@@ -230,7 +230,7 @@ void TaskContext::SetParam(const CTaskParam &stParms) {
 
 bool TaskContext::Process(tagRuntimeVar stRuntimeVar) {
     //    LOGI("exec process............... %d", stRuntimeVar.nFrameSeq);
-    if (m_pRecognizer != NULL) {
+    if (m_pRecognizer != nullptr) {
         // 设置参数
         tagRegData stRegData;
         stRegData.nFrameIdx = stRuntimeVar.nFrameSeq;
@@ -240,7 +240,7 @@ bool TaskContext::Process(tagRuntimeVar stRuntimeVar) {
         oTaskResult.SetTaskID(stRuntimeVar.nTaskID);
         IRegResult *pRegResult = oTaskResult.GetInstance(m_stParms.GetType());
         //        printf("address:%p\n", pRegResult);
-        if (pRegResult == NULL) {
+        if (pRegResult == nullptr) {
             LOGW("get instance failed, FrameIdx: %d, taskID: %d",
                 stRuntimeVar.nFrameSeq, stRuntimeVar.nTaskID);
             return false;

@@ -55,7 +55,7 @@ class CThreadPool {
         m_pGotOne = new bool[nThreadNum];
         m_pWorkerThreads = new boost::thread[nThreadNum];
 
-        if (m_pIsDone == NULL || m_pGotOne == NULL || m_pWorkerThreads == NULL) {
+        if (m_pIsDone == nullptr || m_pGotOne == nullptr || m_pWorkerThreads == nullptr) {
             LOGE("Cannot allocate resources for threads.");
             return;
         }
@@ -79,15 +79,15 @@ class CThreadPool {
         for (int i = 0; i < m_nThreadNum; i++)
             m_pWorkerThreads[i].join();
 
-        if (m_pWorkerThreads != NULL) {
+        if (m_pWorkerThreads != nullptr) {
             delete[] m_pWorkerThreads;
         }
 
-        if (m_pIsDone != NULL) {
+        if (m_pIsDone != nullptr) {
             delete[] m_pIsDone;
         }
 
-        if (m_pGotOne != NULL) {
+        if (m_pGotOne != nullptr) {
             delete[] m_pGotOne;
         }
 
@@ -170,7 +170,7 @@ class CThreadPool {
         int end, int m_nStepSize = 0) {
         memset(&m_stats, 0, sizeof(Result));
 
-        if (m_pIsDone == NULL || m_pGotOne == NULL || m_pWorkerThreads == NULL) {
+        if (m_pIsDone == nullptr || m_pGotOne == nullptr || m_pWorkerThreads == nullptr) {
             LOGE("Cannot allocate resources for threads.");
             return;
         }

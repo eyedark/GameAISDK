@@ -173,7 +173,7 @@ class CGameRegMemPool : public TSingleton<CGameRegMemPool> {
     */
     template <typename T>
     T *AllocPoolMemory() {
-        void *pBuf = NULL;
+        void *pBuf = nullptr;
 
         TqcOsAcquireMutex(m_MemPoolLock);
         pBuf = GetMemory(sizeof(T), m_pMemPool);
@@ -191,7 +191,7 @@ class CGameRegMemPool : public TSingleton<CGameRegMemPool> {
     */
     template <typename T>
     void FreePoolMemory(T *ptrMemoryBlock) {
-        if (ptrMemoryBlock == NULL) {
+        if (ptrMemoryBlock == nullptr) {
             LOGE("memory block is NULL");
             return;
         }

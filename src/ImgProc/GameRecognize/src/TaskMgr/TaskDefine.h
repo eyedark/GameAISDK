@@ -41,7 +41,7 @@ class CTaskParam {
     CTaskParam() {
         m_nTaskID = 0;
         m_eType = TYPE_BEGIN;
-        m_pRegParam = NULL;
+        m_pRegParam = nullptr;
         m_nSkipFrame = -1;
     }
 
@@ -49,9 +49,9 @@ class CTaskParam {
     }
 
     void Release() {
-        if (m_pRegParam != NULL) {
+        if (m_pRegParam != nullptr) {
             delete m_pRegParam;
-            m_pRegParam = NULL;
+            m_pRegParam = nullptr;
         }
     }
 

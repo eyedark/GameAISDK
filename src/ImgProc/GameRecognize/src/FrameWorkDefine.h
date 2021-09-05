@@ -118,9 +118,9 @@ struct tagTaskState {
 #define KEY_MSG_VALUE "value"
 
 #define TQC_DELETE(ptr) {    \
-        if ((ptr) != NULL) { \
+        if ((ptr) != nullptr) { \
             delete ((ptr)); \
-            (ptr) = NULL;   \
+            (ptr) = nullptr;   \
         }                   \
 }
 

@@ -158,7 +158,7 @@ bool CCommonUIReg::FillRegParam(const UIStateArray &oVecCfg) {
         }
 
         cv::Ptr<cv::ORB> pOrb = cv::ORB::create();
-        if (pOrb == NULL) {
+        if (pOrb == nullptr) {
             LOGE("%s(%d): cannot allocate ORB detector.", __FUNCTION__, __LINE__);
             return false;
         }

@@ -39,12 +39,12 @@ CSerialFrameResult::~CSerialFrameResult() {
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialShootBloodReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pShootBloodRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -87,12 +87,12 @@ int CSerialFrameResult::SerialShootBloodReg(tagPBResult *pstPBResult, IRegResult
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialShootHurtReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pShootHurtRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -128,12 +128,12 @@ int CSerialFrameResult::SerialShootHurtReg(tagPBResult *pstPBResult, IRegResult 
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialMapReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pMapRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -182,12 +182,12 @@ int CSerialFrameResult::SerialMapReg(tagPBResult *pstPBResult, IRegResult *pRegR
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialMapDirectionReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pMapRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -230,12 +230,12 @@ int CSerialFrameResult::SerialMapDirectionReg(tagPBResult *pstPBResult, IRegResu
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialMultColorVarReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pMultColorVarRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -270,12 +270,12 @@ int CSerialFrameResult::SerialMultColorVarReg(tagPBResult *pstPBResult, IRegResu
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialKingGloryBloodReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pKingGloryBloodRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -327,12 +327,12 @@ int CSerialFrameResult::SerialKingGloryBloodReg(tagPBResult *pstPBResult, IRegRe
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialFixBloodReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pFixBloodRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -374,12 +374,12 @@ int CSerialFrameResult::SerialFixBloodReg(tagPBResult *pstPBResult, IRegResult *
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialFixObjReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pFixObjRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -428,12 +428,12 @@ int CSerialFrameResult::SerialFixObjReg(tagPBResult *pstPBResult, IRegResult *pR
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialPixReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pPixRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -468,12 +468,12 @@ int CSerialFrameResult::SerialPixReg(tagPBResult *pstPBResult, IRegResult *pRegR
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialStuckReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pStuckRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -508,12 +508,12 @@ int CSerialFrameResult::SerialStuckReg(tagPBResult *pstPBResult, IRegResult *pRe
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialNumberReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pNumRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -549,12 +549,12 @@ int CSerialFrameResult::SerialNumberReg(tagPBResult *pstPBResult, IRegResult *pR
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialDeformReg(tagPBResult *pstPBResult, IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pDeformRegResult is NULL");
         return -1;
     }
 
-    if (pstPBResult == NULL) {
+    if (pstPBResult == nullptr) {
         LOGE("pstPBResult is NULL");
         return -1;
     }
@@ -734,7 +734,7 @@ int CSerialFrameResult::Serialize(std::string *pstrDataBuf, const tagFrameResult
   * @return 0表示成功，-1表示失败
 */
 int CSerialFrameResult::SerialRect(tagPBRect *pPBRect, const cv::Rect &oRect) {
-    if (pPBRect == NULL) {
+    if (pPBRect == nullptr) {
         LOGE("pPBRect is NULL");
         return -1;
     }
@@ -761,12 +761,12 @@ CUnSerialSrcImg::~CUnSerialSrcImg() {
   * @return 0表示成功，-1表示失败，1表示没有收到数据
 */
 int CUnSerialSrcImg::UnSerialize(tagSrcImgInfo *pSrcImgInfo, char *pDataBuf, int nSize) {
-    if (pSrcImgInfo == NULL) {
+    if (pSrcImgInfo == nullptr) {
         LOGE("pSrcImgInfo is empty");
         return -1;
     }
 
-    if (pDataBuf == NULL) {
+    if (pDataBuf == nullptr) {
         LOGE("databuf is empty");
         return -1;
     }
@@ -826,12 +826,12 @@ CUnSerialTaskMsg::~CUnSerialTaskMsg() {
   * @return 0表示成功，-1表示失败，1表示没有收到数据
 */
 int CUnSerialTaskMsg::UnSerialize(CTaskMessage *pTaskMsg, char *pDataBuf, int nSize) {
-    if (pTaskMsg == NULL) {
+    if (pTaskMsg == nullptr) {
         LOGE("pTaskMsg is empty");
         return -1;
     }
 
-    if (pDataBuf == NULL) {
+    if (pDataBuf == nullptr) {
         LOGE("databuf is empty");
         return -1;
     }
@@ -944,7 +944,7 @@ int CUnSerialTaskMsg::UnSerialize(CTaskMessage *pTaskMsg, char *pDataBuf, int nS
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgent(tagAgentMsg *pstAgentMsg,
     const tagPBAgentMsg &stPBAgentMsg) {
-    if (pstAgentMsg == NULL) {
+    if (pstAgentMsg == nullptr) {
         LOGE("pstAgentMsg is NULL");
         return -1;
     }
@@ -981,7 +981,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgent(tagAgentMsg *pstAgentMsg,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentFixObjElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poFixObjRegParam is NULL");
         return -1;
     }
@@ -1028,7 +1028,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentFixObjElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentPixElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poPixRegParam is NULL");
         return -1;
     }
@@ -1066,7 +1066,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentPixElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentStuckElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poStuckRegParam is NULL");
         return -1;
     }
@@ -1104,7 +1104,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentStuckElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentNumberElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poNumRegParam is NULL");
         return -1;
     }
@@ -1150,7 +1150,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentNumberElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentDeformElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poDeformRegParam is NULL");
         return -1;
     }
@@ -1201,7 +1201,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentDeformElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentFixBloodElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poFixBloodRegParam is NULL");
         return -1;
     }
@@ -1241,7 +1241,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentFixBloodElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentKGBloodElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poKingGloryBloodRegParam is NULL");
         return -1;
     }
@@ -1303,7 +1303,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentKGBloodElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentMapRegElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poMapRegParam is NULL");
         return -1;
     }
@@ -1357,7 +1357,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentMapRegElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentMpDRegElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poMapRegParam is NULL");
         return -1;
     }
@@ -1409,7 +1409,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentMpDRegElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentMltClVarElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poMultColorVarRegParam is NULL");
         return -1;
     }
@@ -1443,7 +1443,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentMltClVarElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentShootBloodElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poShootBloodParam is NULL");
         return -1;
     }
@@ -1493,7 +1493,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgAgentShootBloodElmts(IRegParam *pBaseParam,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgAgentShootHurtElmts(IRegParam *pBaseParam,
     const tagPBAgentTaskTsk &stPBAgentTaskTsk) {
-    if (pBaseParam == NULL) {
+    if (pBaseParam == nullptr) {
         LOGE("poShootHurtParam is NULL");
         return -1;
     }
@@ -1577,7 +1577,7 @@ int CUnSerialTaskMsg::UnSerialTemplate(std::vector<tagTmpl> *oVecTmpls,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgFlag(tagTaskFlagMsg *pstFlagMsg,
     const tagPBAgentMsg &stPBAgentMsg) {
-    if (pstFlagMsg == NULL) {
+    if (pstFlagMsg == nullptr) {
         LOGE("pstFlagMsg is NULL");
         return -1;
     }
@@ -1600,7 +1600,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgFlag(tagTaskFlagMsg *pstFlagMsg,
 */
 int CUnSerialTaskMsg::UnSerialTaskMsgDEL(tagDelTaskMsg *pstDelMsg,
     const tagPBAgentMsg &stPBAgentMsg) {
-    if (pstDelMsg == NULL) {
+    if (pstDelMsg == nullptr) {
         LOGE("pstDelMsg is NULL");
         return -1;
     }
@@ -1622,7 +1622,7 @@ int CUnSerialTaskMsg::UnSerialTaskMsgDEL(tagDelTaskMsg *pstDelMsg,
 */
 int CUnSerialTaskMsg::UnSerialTaskConf(tagConfTaskMsg *pstConfTaskMsg,
     const tagPBAgentMsg &stPBAgentMsg) {
-    if (pstConfTaskMsg == NULL) {
+    if (pstConfTaskMsg == nullptr) {
         LOGE("pstConfTaskMsg is NULL");
         return -1;
     }

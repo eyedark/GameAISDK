@@ -138,7 +138,7 @@ int CNetWorkManager::SendTaskReport(bool bState) {
 }
 
 int CNetWorkManager::RecvTaskMsg(std::vector<CTaskMessage> *pVecTaskMsg, int nAddr) {
-    if (pVecTaskMsg == NULL) {
+    if (pVecTaskMsg == nullptr) {
         LOGE("pVecTaskMsg is NULL");
         return -1;
     }
@@ -175,7 +175,7 @@ int CNetWorkManager::RecvTaskMsg(std::vector<CTaskMessage> *pVecTaskMsg, int nAd
 
 int CNetWorkManager::RecvFromSDKTool(tagSrcImgInfo *pSrcImageInfo,
     std::vector<CTaskMessage> *pVecTaskMsg, int nAddr) {
-    if (pSrcImageInfo == NULL) {
+    if (pSrcImageInfo == nullptr) {
         LOGE("pSrcImageInfo is NULL");
         return -1;
     }
@@ -231,7 +231,7 @@ int CNetWorkManager::RecvFromSDKTool(tagSrcImgInfo *pSrcImageInfo,
 }
 
 int CNetWorkManager::RecvSrcImg(tagSrcImgInfo *pSrcImageInfo, int nAddr) {
-    if (pSrcImageInfo == NULL) {
+    if (pSrcImageInfo == nullptr) {
         LOGE("pSrcImageInfo is NULL");
         return -1;
     }
@@ -312,12 +312,12 @@ int CNetWorkManager::GetTbusAddr(char *pAddrName, int *nAddr) {
 
 int CNetWorkManager::UpdateForSDKTool(std::vector<CTaskMessage> *pVecTaskMsg,
     tagSrcImgInfo *pSrcImageInfo, const tagFrameResult &stFrameResult) {
-    if (pVecTaskMsg == NULL) {
+    if (pVecTaskMsg == nullptr) {
         LOGE("pVecTaskMsg is NULL");
         return -1;
     }
 
-    if (pSrcImageInfo == NULL) {
+    if (pSrcImageInfo == nullptr) {
         LOGE("pSrcImageInfo is NULL");
         return -1;
     }
@@ -348,17 +348,17 @@ int CNetWorkManager::UpdateForSDKTool(std::vector<CTaskMessage> *pVecTaskMsg,
 
 int CNetWorkManager::Update(std::vector <CTaskMessage> *pVecTaskMsg, tagSrcImgInfo *pSrcImageInfo,
     const tagFrameResult &stFrameResult, ESendTaskReportToMC *pSendTaskReportToMC) {
-    if (pVecTaskMsg == NULL) {
+    if (pVecTaskMsg == nullptr) {
         LOGE("pVecTaskMsg is NULL");
         return -1;
     }
 
-    if (pSrcImageInfo == NULL) {
+    if (pSrcImageInfo == nullptr) {
         LOGE("pSrcImageInfo is NULL");
         return -1;
     }
 
-    if (pSendTaskReportToMC == NULL) {
+    if (pSendTaskReportToMC == nullptr) {
         LOGE("pSendTaskReportToMC is NULL");
         return -1;
     }

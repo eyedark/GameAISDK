@@ -36,7 +36,7 @@ bool CPOPUICfg::Initialize(const char *pszRootDir, const char *pszCfgFile) {
     int         nValue = 0;
     char        buf[TQC_PATH_STR_LEN] = { 0 };
     // Cannot create json config parser.
-    if (pConfig == NULL) {
+    if (pConfig == nullptr) {
         LOGE("Cannot create json config parser.");
         return false;
     }
@@ -45,7 +45,7 @@ bool CPOPUICfg::Initialize(const char *pszRootDir, const char *pszCfgFile) {
     SNPRINTF(szPath, TQC_PATH_STR_LEN, "%s/%s", pszRootDir, pszCfgFile);
     // Check if UI config file exists.
     FILE *pFile = fopen(szPath, "r");
-    if (pFile == NULL) {
+    if (pFile == nullptr) {
         LOGE("UI states definition file is not exist: %s", szPath);
         delete pConfig;
         return false;

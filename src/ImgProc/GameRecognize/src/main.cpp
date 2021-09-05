@@ -31,7 +31,7 @@ std::string                  g_userCfgFilePath = "";
 int                          g_nMaxResultSize = 5;
 
 
-static CGameRegFrameWork *gs_poFramework = NULL;
+static CGameRegFrameWork *gs_poFramework = nullptr;
 
 // 信号处理函数，收到信号(SIGUSR1， SIGUSR2， SIGINT)时退出
 static void SigHandle(int iSigNo) {

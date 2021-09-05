@@ -465,7 +465,7 @@ int CGameRegFrameWork::LoadTaskCfg(std::vector<CTaskMessage> *oVecTaskMsg, std::
 int CGameRegFrameWork::LoadTaskFixObj(Json::Value oTaskFixObjElements,
     CFixObjRegParam *pFixObjRegParam) {
     // 检查输入参数的合法性
-    if (pFixObjRegParam == NULL) {
+    if (pFixObjRegParam == nullptr) {
         LOGE("pFixObjRegParam is NULL");
         return -1;
     }
@@ -499,7 +499,7 @@ int CGameRegFrameWork::LoadTaskFixObj(Json::Value oTaskFixObjElements,
 
 int CGameRegFrameWork::LoadTaskPix(Json::Value oTaskPixElements, CPixRegParam *pPixRegParam) {
     // 检查输入参数的合法性
-    if (pPixRegParam == NULL) {
+    if (pPixRegParam == nullptr) {
         LOGE("pPixRegParam is NULL");
         return -1;
     }
@@ -527,7 +527,7 @@ int CGameRegFrameWork::LoadTaskPix(Json::Value oTaskPixElements, CPixRegParam *p
 
 int CGameRegFrameWork::LoadTaskNumber(Json::Value oTaskNumberElements, CNumRegParam *pNumRegParam) {
     // 检查输入参数的合法性
-    if (pNumRegParam == NULL) {
+    if (pNumRegParam == nullptr) {
         LOGE("pNumRegParam is NULL");
         return -1;
     }
@@ -562,7 +562,7 @@ int CGameRegFrameWork::LoadTaskNumber(Json::Value oTaskNumberElements, CNumRegPa
 int CGameRegFrameWork::LoadTaskStuck(Json::Value oTaskStuckElements,
     CStuckRegParam *pStuckRegParam) {
     // 检查输入参数的合法性
-    if (pStuckRegParam == NULL) {
+    if (pStuckRegParam == nullptr) {
         LOGE("pStuckRegParam is NULL");
         return -1;
     }
@@ -591,7 +591,7 @@ int CGameRegFrameWork::LoadTaskStuck(Json::Value oTaskStuckElements,
 int CGameRegFrameWork::LoadTaskDeform(Json::Value oTaskDeformElements,
     CDeformObjRegParam *pDeformRegParam) {
     // 检查输入参数的合法性
-    if (pDeformRegParam == NULL) {
+    if (pDeformRegParam == nullptr) {
         LOGE("pDeformRegParam is NULL");
         return -1;
     }
@@ -622,7 +622,7 @@ int CGameRegFrameWork::LoadTaskDeform(Json::Value oTaskDeformElements,
 int CGameRegFrameWork::LoadTaskFixBlood(Json::Value oTaskFixBloodElements,
     CFixBloodRegParam *pFixBloodRegParam) {
     // 检查输入参数的合法性
-    if (pFixBloodRegParam == NULL) {
+    if (pFixBloodRegParam == nullptr) {
         LOGE("pFixBloodRegParam is NULL");
         return -1;
     }

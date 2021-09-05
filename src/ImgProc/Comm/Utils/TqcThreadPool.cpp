@@ -10,7 +10,7 @@
 #include "Comm/Utils/TqcThreadPool.h"
 
 CDefaultTask::CDefaultTask() {
-    m_pFunc = NULL;
+    m_pFunc = nullptr;
 }
 
 CDefaultTask::~CDefaultTask() {
@@ -95,7 +95,7 @@ void CDefaultTaskList::Push(CDefaultTask *task) {
 // Pop one task from task queue
 //
 CDefaultTask* CDefaultTaskList::Pop() {
-    CDefaultTask *pTask = NULL;
+    CDefaultTask *pTask = nullptr;
 
     if (m_funcQueue.size() == 0)
         return NULL;
@@ -145,7 +145,7 @@ void CThreadPoolDispatch::PushDefaultTask(CDefaultTask *pTask, TaskDispatchType 
 // sample code to show task setting.
 //
 CDefaultTask* CThreadPoolDispatch::PopDefaultTask() {
-    CDefaultTask *pTask = NULL;
+    CDefaultTask *pTask = nullptr;
 
     if (m_funcQueue.size() == 0)
         return NULL;
@@ -188,7 +188,7 @@ tagTask CThreadPoolDispatch::PopTask() {
 
 CThreadPoolMgr::CThreadPoolMgr() {
     m_bShouldRelease = false;
-    m_pThreadPool = NULL;
+    m_pThreadPool = nullptr;
 }
 
 CThreadPoolMgr::~CThreadPoolMgr() {
@@ -196,7 +196,7 @@ CThreadPoolMgr::~CThreadPoolMgr() {
 
 bool CThreadPoolMgr::Initialize(int nThreadNum) {
     m_pThreadPool = new CThreadPool<CMultiThreadResult>(nThreadNum);
-    if (m_pThreadPool == NULL) {
+    if (m_pThreadPool == nullptr) {
         LOGE("Allocation failed for thread pool.");
         return false;
     }
@@ -206,13 +206,13 @@ bool CThreadPoolMgr::Initialize(int nThreadNum) {
 }
 
 bool CThreadPoolMgr::Release() {
-    if (m_pThreadPool == NULL)
+    if (m_pThreadPool == nullptr)
         return true;
 
     m_pThreadPool->WaitAllTask();
     m_pThreadPool->Release();
     delete m_pThreadPool;
-    m_pThreadPool = NULL;
+    m_pThreadPool = nullptr;
     return true;
 }
 
@@ -222,7 +222,7 @@ void CThreadPoolMgr::Update(CDefaultTaskList *pList) {
     for (int i = 0; i < taskNum; i++) {
         CDefaultTask *pTask = pList->Pop();
 
-        if (pTask == NULL)
+        if (pTask == nullptr)
             break;
 
         m_threadPoolDispatch.PushDefaultTask(pTask);

@@ -14,10 +14,10 @@
 #define SIGUSR1 10
 #define SIGUSR2 12
 
-char* g_rootDataPath = NULL;
-char* g_userCfgPath = NULL;
+char* g_rootDataPath = nullptr;
+char* g_userCfgPath = nullptr;
 int          g_nMaxResultSize = 1;
-CUIFrameWork *g_poFramework = NULL;
+CUIFrameWork *g_poFramework = nullptr;
 bool         g_bExit = false;
 
 extern CDataManager  g_dataMgr;

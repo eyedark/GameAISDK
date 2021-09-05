@@ -12,7 +12,7 @@
 using namespace std;
 
 TaskDataDeal::TaskDataDeal() {
-    m_pCurImage = NULL;
+    m_pCurImage = nullptr;
 }
 
 TaskDataDeal::~TaskDataDeal() {

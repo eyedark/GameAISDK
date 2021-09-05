@@ -25,7 +25,7 @@ CDataManager::CDataManager() {
     m_bExit = false;
     m_nGameState = -1;
     m_screenOrient = PB_SCREEN_ORI_LANDSCAPE;
-    m_pCurrentFrame = NULL;
+    m_pCurrentFrame = nullptr;
 }
 
 CDataManager::~CDataManager() {
@@ -157,7 +157,7 @@ void CDataManager::Release(enSourceType type) {
 // Get the next frame from frame source.
 //
 cv::Mat* CDataManager::GetNextFrame(int step) {
-    cv::Mat *pFrame = NULL;
+    cv::Mat *pFrame = nullptr;
     cv::Mat frame;
 
     bool res = GetNextFrame(&frame, step);
@@ -165,7 +165,7 @@ cv::Mat* CDataManager::GetNextFrame(int step) {
     if (res) {
         pFrame = &m_currentFrame;
     } else {
-        pFrame = NULL;
+        pFrame = nullptr;
     }
 
     m_pCurrentFrame = pFrame;
@@ -176,7 +176,7 @@ cv::Mat* CDataManager::GetNextFrame(int step) {
 // Check if there is no next frame.
 //
 bool CDataManager::IsEndFrame() {
-    if (m_pCurrentFrame == NULL)
+    if (m_pCurrentFrame == nullptr)
         return true;
     else
         return false;
@@ -219,7 +219,7 @@ bool CDataManager::GetNextFrame(cv::Mat *pFrame, int step) {
 // Get the next frame from the video.
 //
 bool CDataManager::GetNextFrameByVideo(cv::Mat *pFrame) {
-    if (pFrame == NULL) {
+    if (pFrame == nullptr) {
         return false;
     }
 
@@ -238,7 +238,7 @@ bool CDataManager::GetNextFrameByVideo(cv::Mat *pFrame) {
 // Get the next frame from the pictures.
 //
 bool CDataManager::GetNextFrameByPicture(cv::Mat *pFrame) {
-    if (pFrame == NULL) {
+    if (pFrame == nullptr) {
         return false;
     }
 
@@ -277,7 +277,7 @@ void CDataManager::SetExit(bool bExit) {
 bool CDataManager::GetNextFrameByTBus(cv::Mat *pFrame) {
     stFrame frame1;
 
-    if (pFrame == NULL) {
+    if (pFrame == nullptr) {
         return false;
     }
 

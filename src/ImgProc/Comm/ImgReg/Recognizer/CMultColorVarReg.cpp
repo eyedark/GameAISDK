@@ -64,6 +64,7 @@ int CMultColorVarRegCalculate::Predict(const cv::Mat &oSrcImg, const int nFrameI
 
 
     cv::Mat oSrcImgCopy = oSrcImg.clone();
+    LOGI("Img size (cols: %d, rows: %d)",m_oTmplMask[0].rows,m_oTmplMask[0].cols);
     cv::resize(oSrcImg, oSrcImgCopy, m_oTmplMask[0].size());
 
     double szColorMean[DIRECTION_SIZE][3];

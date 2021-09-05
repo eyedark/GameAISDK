@@ -333,8 +333,8 @@ bool CAction::DoDragCheckAction(const tagFrameContext &stFramectx, const tagUISt
 bool CAction::DoScript(const tagFrameContext &stFramectx, tagUIState &stSrcUIState) {
     try {
         cv::Mat  oFrame = stFramectx.oFrame;
-        PyObject *pModule = NULL;
-        PyObject *pFunc = NULL;
+        PyObject *pModule = nullptr;
+        PyObject *pFunc = nullptr;
 
         const unsigned int unMaxScriptLength = 1024;
         char szScriptPath[TQC_PATH_STR_LEN] = { 0 };
@@ -386,7 +386,7 @@ bool CAction::DoScript(const tagFrameContext &stFramectx, tagUIState &stSrcUISta
         PyObject* pyVarSysPath = PyObject_GetAttrString(pyMainModule, "sys_path");
         if (PyUnicode_Check(pyVarSysPath)) {
             PyObject *pTempBytes2 = PyUnicode_AsEncodedString(pyVarSysPath, "UTF-8", "strict");
-            if (pTempBytes2 != NULL) {
+            if (pTempBytes2 != nullptr) {
                 char szVarSysPath[unMaxScriptLength] = { 0 };
                 SNPRINTF(szVarSysPath, unMaxScriptLength, "%s", PyBytes_AS_STRING(pTempBytes2));
                 std::string strVarSysPath(szVarSysPath);
@@ -444,7 +444,7 @@ bool CAction::DoScript(const tagFrameContext &stFramectx, tagUIState &stSrcUISta
         jsonScriptParams["width"] = oFrame.cols;
         jsonScriptParams["height"] = oFrame.rows;
         delete[]szBuff;
-        szBuff = NULL;
+        szBuff = nullptr;
 
         Json::FastWriter writer;
         std::string      strScriptParams = writer.write(jsonScriptParams);
@@ -452,8 +452,8 @@ bool CAction::DoScript(const tagFrameContext &stFramectx, tagUIState &stSrcUISta
         PyObject *pArgs = PyTuple_New(1);
         PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", strScriptParams.c_str()));
 
-        PyObject *pResult = NULL;
-        char     *pszResult = NULL;
+        PyObject *pResult = nullptr;
+        char     *pszResult = nullptr;
 
         // call python function and get result
         pResult = PyEval_CallObject(pFunc, pArgs);
@@ -464,7 +464,7 @@ bool CAction::DoScript(const tagFrameContext &stFramectx, tagUIState &stSrcUISta
 
         if (PyUnicode_Check(pResult)) {
             PyObject *pTempBytes = PyUnicode_AsEncodedString(pResult, "UTF-8", "strict");
-            if (pTempBytes != NULL) {
+            if (pTempBytes != nullptr) {
                 pszResult = PyBytes_AS_STRING(pTempBytes);
                 pszResult = strdup(pszResult);
                 Py_DECREF(pTempBytes);
@@ -476,7 +476,7 @@ bool CAction::DoScript(const tagFrameContext &stFramectx, tagUIState &stSrcUISta
                 }
 
                 free(pszResult);
-                pszResult = NULL;
+                pszResult = nullptr;
             } else {
                 LOGE("run script failed %s", stSrcUIState.strScriptPath);
             }

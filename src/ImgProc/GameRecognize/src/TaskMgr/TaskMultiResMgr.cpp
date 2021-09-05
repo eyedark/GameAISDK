@@ -52,7 +52,7 @@ bool CMutiResMgr::LoadReferElement(std::map<int, CTaskParam> *pmpTaskParam,
 // load and parser referfile
 bool CMutiResMgr::LoadReferConfFile(std::map<int, CTaskParam> *pmpTaskParam,
     const std::string &strReferConfName) {
-    if (pmpTaskParam == NULL) {
+    if (pmpTaskParam == nullptr) {
         LOGE("pmpTaskParam is NULL");
         return false;
     }
@@ -158,7 +158,7 @@ bool GetObjElements(const Json::Value &oTask, Json::Value &objElement) {
 // read parameters from Json value to CLocationRegParam
 bool CMutiResMgr::LocationReferTask(CLocationRegParam *pLocationParam,
     int nTaskID, const Json::Value &oTask) {
-    if (pLocationParam == NULL) {
+    if (pLocationParam == nullptr) {
         LOGE("pLocationParam is NULL");
         return false;
     }
@@ -244,7 +244,7 @@ bool CMutiResMgr::LocationReferTask(CLocationRegParam *pLocationParam,
 // read parameters from Json value to CBloodLengthRegParam
 bool CMutiResMgr::BloodReferTask(CBloodLengthRegParam *pBloodLenParam, int nTaskID,
     const Json::Value &oTask) {
-    if (pBloodLenParam == NULL) {
+    if (pBloodLenParam == nullptr) {
         LOGE("pBloodLenParam is NULL");
         return false;
     }
@@ -298,7 +298,7 @@ bool CMutiResMgr::BloodReferTask(CBloodLengthRegParam *pBloodLenParam, int nTask
 
 // read objElements List (Json value) and put value in pnVecObjElements
 bool CMutiResMgr::ObjElements(tagTaskElementArray *pnVecObjElements, const Json::Value &oElements) {
-    if (pnVecObjElements == NULL) {
+    if (pnVecObjElements == nullptr) {
         LOGE("pnVecObjElements is NULL");
         return false;
     }
@@ -314,7 +314,7 @@ bool CMutiResMgr::ObjElements(tagTaskElementArray *pnVecObjElements, const Json:
 
 // read oRectValue (Json value) and put value in poRect
 bool CMutiResMgr::RectParam(cv::Rect *poRect, const Json::Value &oRectValue) {
-    if (poRect == NULL) {
+    if (poRect == nullptr) {
         LOGE("poVecRect is null");
         return false;
     }
@@ -328,7 +328,7 @@ bool CMutiResMgr::RectParam(cv::Rect *poRect, const Json::Value &oRectValue) {
 
 // read oVecRectValue (Json value) and put value in poVecRect
 bool CMutiResMgr::VecRectParam(std::vector<cv::Rect> *poVecRect, const Json::Value &oVecRectValue) {
-    if (poVecRect == NULL) {
+    if (poVecRect == nullptr) {
         LOGE("poVecRect is null");
         return false;
     }
@@ -351,7 +351,7 @@ bool CMutiResMgr::VecRectParam(std::vector<cv::Rect> *poVecRect, const Json::Val
 
 // read oVecTmplValue (Json value) and put value in poVecTmpl
 bool CMutiResMgr::VecTmplParam(std::vector<tagTmpl> *poVecTmpl, const Json::Value &oVecTmplValue) {
-    if (poVecTmpl == NULL) {
+    if (poVecTmpl == nullptr) {
         LOGE("poVecTmpl is null");
         return false;
     }
@@ -390,7 +390,7 @@ bool CMutiResMgr::GetReferTaskID(int nObjTaskID, std::vector<int> *pVecResTaskID
 // update task state(pmpTaskCtx) with recognizer results(stFrameResult)
 bool CMutiResMgr::UpdateGameTask(std::map<int, TaskContext> *pmpTaskCtx,
     const tagFrameResult &stFrameResult) {
-    if (pmpTaskCtx == NULL) {
+    if (pmpTaskCtx == nullptr) {
         LOGE("pmpTaskCtx is null");
         return false;
     }
@@ -623,12 +623,12 @@ void UpdateSGBloodRegParam(IRegParam *pParam, cv::Rect *pRect, const int nRectSi
 // update object task parameters with refer task results(pRect, nRectSize, fScale)
 bool CMutiResMgr::UpdateGameTaskParam(int nTaskID, CTaskParam *pTaskParam, cv::Rect *pRect,
     int nRectSize, float fScale) {
-    if (pTaskParam == NULL) {
+    if (pTaskParam == nullptr) {
         LOGE("pRegResult is null");
         return false;
     }
 
-    if (pRect == NULL) {
+    if (pRect == nullptr) {
         LOGE("pRect is null");
         return false;
     }
@@ -735,7 +735,7 @@ bool CMutiResMgr::UpdateGameTaskParam(int nTaskID, CTaskParam *pTaskParam, cv::R
 // update task parameters(pmpTaskCtx) with  Location results(pRegResult)
 bool CMutiResMgr::UpdateLocationParam(int nTaskID, std::map<int, TaskContext> *pmpTaskCtx,
     IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pRegResult is null");
         return false;
     }
@@ -805,12 +805,12 @@ void CMutiResMgr::UpdateTaskByReferTask(int nTaskID, int nObjTaskID,
 // update task parameters(pmpTaskCtx) with  Blood results(pRegResult)
 bool CMutiResMgr::UpdateBloodRegParam(int nTaskID, std::map<int, TaskContext> *pmpTaskCtx,
     IRegResult *pRegResult) {
-    if (pRegResult == NULL) {
+    if (pRegResult == nullptr) {
         LOGE("pRegResult is null");
         return false;
     }
 
-    if (pmpTaskCtx == NULL) {
+    if (pmpTaskCtx == nullptr) {
         LOGE("pmpTaskCtx is null");
         return false;
     }

@@ -7,7 +7,7 @@
   * Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 */
 
-#ifdef LINUX
+#ifdef __linux__
 #include <unistd.h>
 #elif WINDOWS
 #include <io.h>
@@ -65,15 +65,15 @@ void RunMsgThread(void *pArgs) {
 }
 
 CUIFrameWork::CUIFrameWork() {
-    m_pDataMgr = NULL;
-    m_pMsgMgr = NULL;
-    m_pmsgThreadID = NULL;
+    m_pDataMgr = nullptr;
+    m_pMsgMgr = nullptr;
+    m_pmsgThreadID = nullptr;
 
     m_eSrcType = DATA_SRC_TBUS;
     m_eDstType = DATA_SRC_TBUS;
     memset(m_szVideoPath, 0, sizeof(m_szVideoPath));
 
-    m_poCtx = NULL;
+    m_poCtx = nullptr;
     m_nFrameCnt = -1;
     // 默认为运行AI SDK模式
     m_eRunMode = SDK_TEST;
@@ -87,7 +87,7 @@ CUIFrameWork::~CUIFrameWork() {
 
     if (NULL != m_poCtx) {
         delete m_poCtx;
-        m_poCtx = NULL;
+        m_poCtx = nullptr;
     }
 }
 
@@ -222,7 +222,7 @@ void CUIFrameWork::SetTestMode(ETestMode eTestMode) {
 
 bool CUIFrameWork::InitDataMgr() {
     // 检查输入参数的合法性
-    if (m_pDataMgr == NULL) {
+    if (m_pDataMgr == nullptr) {
         LOGE("There is invalid pointer of pData");
         return false;
     }
@@ -402,7 +402,7 @@ bool CUIFrameWork::ReadTbusCfgFile(std::string strConfigFileName,
         if (bFind == true) {
             char *str = strstr(szOneLine, "=");
 
-            if (str != NULL) {
+            if (str != nullptr) {
                 char *snext = str + 1;
                 *str = '\0';
                 strncpy(szKey, szOneLine, LINE_BUFFER_LEN);
@@ -445,7 +445,7 @@ bool CUIFrameWork::SetMsgMgr(CPBMsgManager *pMsgMgr) {
 bool CUIFrameWork::RegisterToMC() {
     // 检查输入参数的合法性
 #if !NO_TBUS
-    if (m_pMsgMgr == NULL) {
+    if (m_pMsgMgr == nullptr) {
         LOGE("There is no msg manager.");
         return false;
     }
@@ -596,7 +596,7 @@ bool CUIFrameWork::LoadDebugCfg(CIniConfig *poCfg) {
             }
 
             int nRst = -1;
-#ifdef LINUX
+#ifdef __linux__
             nRst = access(pTestVideo, 0);
 #elif WINDOWS
             nRst = _access(pTestVideo, 0);
@@ -714,7 +714,7 @@ bool CUIFrameWork::LoadTaskConfig(const char *pszRootPath) {
     if (!IsFileExist(szPath)) {
         LOGE("file %s is not exist", szPath);
         delete pConfig;
-        pConfig = NULL;
+        pConfig = nullptr;
         return false;
     }
 
@@ -723,7 +723,7 @@ bool CUIFrameWork::LoadTaskConfig(const char *pszRootPath) {
     if (!bRst) {
         LOGE("Load file %s failed", szPath);
         delete pConfig;
-        pConfig = NULL;
+        pConfig = nullptr;
         return false;
     }
 
@@ -740,7 +740,7 @@ bool CUIFrameWork::LoadTaskConfig(const char *pszRootPath) {
     }
 
     delete pConfig;
-    pConfig = NULL;
+    pConfig = nullptr;
 
     return true;
 }

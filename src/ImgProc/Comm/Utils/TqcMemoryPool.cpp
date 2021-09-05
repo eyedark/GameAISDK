@@ -67,16 +67,16 @@ size_t CheckAlignSize(size_t size) {
 /* 以下是链表相关操作 */
 /************************************************************************/
 memory_chunk* CreateList(memory_chunk* pool, size_t count) {
-    memory_chunk* head = NULL;
+    memory_chunk* head = nullptr;
 
     if (!pool) {
         return NULL;
     }
 
     for (size_t i = 0; i < count; i++) {
-        pool->pre = NULL;
+        pool->pre = nullptr;
         pool->next = head;
-        if (head != NULL) {
+        if (head != nullptr) {
             head->pre = pool;
         }
         head = pool;
@@ -92,12 +92,12 @@ memory_chunk* front_pop(memory_chunk*& pool) {
     }
     memory_chunk* tmp = pool;
     pool = tmp->next;
-    pool->pre = NULL;
+    pool->pre = nullptr;
     return  tmp;
 }
 
 void push_back(memory_chunk*& head, memory_chunk* element) {
-    if (head == NULL) {
+    if (head == nullptr) {
         head = element;
         head->pre = element;
         head->next = element;
@@ -111,10 +111,10 @@ void push_back(memory_chunk*& head, memory_chunk* element) {
 }
 
 void push_front(memory_chunk*& head, memory_chunk* element) {
-    element->pre = NULL;
+    element->pre = nullptr;
     element->next = head;
 
-    if (head != NULL) {
+    if (head != nullptr) {
         head->pre = element;
     }
 
@@ -123,12 +123,12 @@ void push_front(memory_chunk*& head, memory_chunk* element) {
 
 void delete_chunk(memory_chunk*& head, memory_chunk* element) {
     // 在双循环链表中删除元素
-    if (element == NULL) {
+    if (element == nullptr) {
         return;
     } else if (element == head) {
         // 链表只有一个元素
         if (head->pre == head) {
-            head = NULL;
+            head = nullptr;
         } else {
             head = element->next;
             head->pre = element->pre;
@@ -142,8 +142,8 @@ void delete_chunk(memory_chunk*& head, memory_chunk* element) {
         element->next->pre = element->pre;
     }
 
-    element->pre = NULL;
-    element->next = NULL;
+    element->pre = nullptr;
+    element->next = nullptr;
 }
 
 /************************************************************************/
@@ -188,7 +188,7 @@ PMEMORYPOOL CreateMemoryPool(void* pBuf, size_t sBufSize) {
     memory_chunk* tmp = front_pop(mem_pool->pfree_mem_chunk_pool);
     tmp->pre = tmp;
     tmp->next = tmp;
-    tmp->pfree_mem_addr = NULL;
+    tmp->pfree_mem_addr = nullptr;
     mem_pool->mem_map_pool_count--;
 
     // 初始化 pmem_map
@@ -222,7 +222,7 @@ void* GetMemory(size_t sMemorySize, PMEMORYPOOL pMem) {
     memory_chunk* tmp = pMem->pfree_mem_chunk;
 
     for (index = 0; index < pMem->free_mem_chunk_count; index++) {
-        if (tmp == NULL) {
+        if (tmp == nullptr) {
             return NULL;
         }
 
@@ -238,7 +238,7 @@ void* GetMemory(size_t sMemorySize, PMEMORYPOOL pMem) {
     }
 
     pMem->mem_used_size += sMemorySize;
-    if (tmp == NULL) {
+    if (tmp == nullptr) {
         return NULL;
     }
 
@@ -246,7 +246,7 @@ void* GetMemory(size_t sMemorySize, PMEMORYPOOL pMem) {
         // 当要分配的内存大小与当前chunk中的内存大小相同时，从pfree_mem_chunk链表中删除此chunk
         size_t current_index = (tmp->pfree_mem_addr - pMem->pmem_map);
         delete_chunk(pMem->pfree_mem_chunk, tmp);
-        tmp->pfree_mem_addr->pmem_chunk = NULL;
+        tmp->pfree_mem_addr->pmem_chunk = nullptr;
 
         push_front(pMem->pfree_mem_chunk_pool, tmp);
         pMem->free_mem_chunk_count--;
@@ -265,7 +265,7 @@ void* GetMemory(size_t sMemorySize, PMEMORYPOOL pMem) {
         current_block->count = sMemorySize / MINUNITSIZE;
         size_t current_index = (current_block - pMem->pmem_map);
         pMem->pmem_map[current_index + current_block->count - 1].start = current_index;
-        current_block->pmem_chunk = NULL;  // NULL表示当前内存块已被分配
+        current_block->pmem_chunk = nullptr;  // NULL表示当前内存块已被分配
         // 当前block被一分为二，更新第二个block中的内容
         pMem->pmem_map[current_index + current_block->count].count = copy.count - current_block->count;
         pMem->pmem_map[current_index + current_block->count].pmem_chunk = copy.pmem_chunk;
@@ -288,8 +288,8 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
     size_t size = pMem->pmem_map[current_index].count * MINUNITSIZE;
 
     // 判断与当前释放的内存块相邻的内存块是否可以与当前释放的内存块合并
-    memory_block* pre_block = NULL;
-    memory_block* next_block = NULL;
+    memory_block* pre_block = nullptr;
+    memory_block* next_block = nullptr;
     memory_block* current_block = &(pMem->pmem_map[current_index]);
 
     // 第一个
@@ -297,13 +297,13 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
         if (current_block->count < pMem->mem_block_count) {
             next_block = &(pMem->pmem_map[current_index + current_block->count]);
             // 如果后一个内存块是空闲的，合并
-            if (next_block->pmem_chunk != NULL) {
+            if (next_block->pmem_chunk != nullptr) {
                 next_block->pmem_chunk->pfree_mem_addr = current_block;
                 pMem->pmem_map[current_index + current_block->count
                     + next_block->count - 1].start = current_index;
                 current_block->count += next_block->count;
                 current_block->pmem_chunk = next_block->pmem_chunk;
-                next_block->pmem_chunk = NULL;
+                next_block->pmem_chunk = nullptr;
             } else {
                 memory_chunk* new_chunk = front_pop(pMem->pfree_mem_chunk_pool);
                 new_chunk->pfree_mem_addr = current_block;
@@ -327,11 +327,11 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
             pre_block = &(pMem->pmem_map[index]);
 
             // 如果前一个内存块是空闲的，合并
-            if (pre_block->pmem_chunk != NULL) {
+            if (pre_block->pmem_chunk != nullptr) {
                 pMem->pmem_map[current_index + current_block->count - 1].start
                     = current_index - pre_block->count;
                 pre_block->count += current_block->count;
-                current_block->pmem_chunk = NULL;
+                current_block->pmem_chunk = nullptr;
             } else {
                 memory_chunk* new_chunk = front_pop(pMem->pfree_mem_chunk_pool);
                 new_chunk->pfree_mem_addr = current_block;
@@ -355,7 +355,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
         pre_block = &(pMem->pmem_map[index]);
         bool is_back_merge = false;
 
-        if (next_block->pmem_chunk == NULL && pre_block->pmem_chunk == NULL) {
+        if (next_block->pmem_chunk == nullptr && pre_block->pmem_chunk == nullptr) {
             memory_chunk* new_chunk = front_pop(pMem->pfree_mem_chunk_pool);
             new_chunk->pfree_mem_addr = current_block;
             current_block->pmem_chunk = new_chunk;
@@ -365,18 +365,18 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
         }
 
         // 后一个内存块
-        if (next_block->pmem_chunk != NULL) {
+        if (next_block->pmem_chunk != nullptr) {
             next_block->pmem_chunk->pfree_mem_addr = current_block;
             pMem->pmem_map[current_index + current_block->count
                 + next_block->count - 1].start = current_index;
             current_block->count += next_block->count;
             current_block->pmem_chunk = next_block->pmem_chunk;
-            next_block->pmem_chunk = NULL;
+            next_block->pmem_chunk = nullptr;
             is_back_merge = true;
         }
 
         // 前一个内存块
-        if (pre_block->pmem_chunk != NULL) {
+        if (pre_block->pmem_chunk != nullptr) {
             pMem->pmem_map[current_index + current_block->count - 1].start
                 = current_index - pre_block->count;
             pre_block->count += current_block->count;
@@ -386,7 +386,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
                 pMem->free_mem_chunk_count--;
                 pMem->mem_map_pool_count++;
             }
-            current_block->pmem_chunk = NULL;
+            current_block->pmem_chunk = nullptr;
         }
     }
     pMem->mem_used_size -= size;
@@ -613,7 +613,7 @@ void* GetMemory(size_t sMemorySize, PMEMORYPOOL pMem) {
         current_block->count = sMemorySize / MINUNITSIZE;
         size_t current_index = (current_block - pMem->pmem_map);
         pMem->pmem_map[current_index + current_block->count - 1].start = current_index;
-        current_block->pmem_chunk = NULL;  // NULL表示当前内存块已被分配
+        current_block->pmem_chunk = nullptr;  // NULL表示当前内存块已被分配
         // 当前block被一分为二，更新第二个block中的内容
         memory_chunk* pos = decrease_element_value(max_chunk, &(pMem->heap), current_block->count);
         pMem->pmem_map[current_index + current_block->count].count
@@ -636,15 +636,15 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
     size_t current_index = addr2index(pMem, ptrMemoryBlock);
     size_t size = pMem->pmem_map[current_index].count * MINUNITSIZE;
     // 判断与当前释放的内存块相邻的内存块是否可以与当前释放的内存块合并
-    memory_block* pre_block = NULL;
-    memory_block* next_block = NULL;
+    memory_block* pre_block = nullptr;
+    memory_block* next_block = nullptr;
     memory_block* current_block = &(pMem->pmem_map[current_index]);
     // 第一个
     if (current_index == 0) {
         if (current_block->count < pMem->mem_block_count) {
             next_block = &(pMem->pmem_map[current_index + current_block->count]);
             // 如果后一个内存块是空闲的，合并
-            if (next_block->pmem_chunk != NULL) {
+            if (next_block->pmem_chunk != nullptr) {
                 memory_chunk* pos = increase_element_value(next_block->pmem_chunk, &(pMem->heap),
                     current_block->count);
                 pos->pfree_mem_addr = current_block;
@@ -652,7 +652,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
                     = current_index;
                 current_block->count += next_block->count;
                 current_block->pmem_chunk = pos;
-                next_block->pmem_chunk = NULL;
+                next_block->pmem_chunk = nullptr;
             } else {
                 memory_chunk new_chunk;
                 new_chunk.chunk_size = current_block->count;
@@ -674,14 +674,14 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
             pre_block = &(pMem->pmem_map[index]);
 
             // 如果前一个内存块是空闲的，合并
-            if (pre_block->pmem_chunk != NULL) {
+            if (pre_block->pmem_chunk != nullptr) {
                 memory_chunk* pos = increase_element_value(pre_block->pmem_chunk, &(pMem->heap),
                     current_block->count);
                 pre_block->pmem_chunk = pos;
                 pMem->pmem_map[current_index + current_block->count - 1].start
                     = current_index - pre_block->count;
                 pre_block->count += current_block->count;
-                current_block->pmem_chunk = NULL;
+                current_block->pmem_chunk = nullptr;
             } else {
                 memory_chunk new_chunk;
                 new_chunk.chunk_size = current_block->count;
@@ -702,7 +702,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
         size_t index = pre_block->start;
         pre_block = &(pMem->pmem_map[index]);
         bool is_back_merge = false;
-        if (next_block->pmem_chunk == NULL && pre_block->pmem_chunk == NULL) {
+        if (next_block->pmem_chunk == nullptr && pre_block->pmem_chunk == nullptr) {
             memory_chunk new_chunk;
             new_chunk.chunk_size = current_block->count;
             new_chunk.pfree_mem_addr = current_block;
@@ -710,7 +710,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
             current_block->pmem_chunk = pos;
         }
         // 后一个内存块
-        if (next_block->pmem_chunk != NULL) {
+        if (next_block->pmem_chunk != nullptr) {
             memory_chunk* pos = increase_element_value(next_block->pmem_chunk, &(pMem->heap),
                 current_block->count);
             pos->pfree_mem_addr = current_block;
@@ -718,11 +718,11 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
                 = current_index;
             current_block->count += next_block->count;
             current_block->pmem_chunk = pos;
-            next_block->pmem_chunk = NULL;
+            next_block->pmem_chunk = nullptr;
             is_back_merge = true;
         }
         // 前一个内存块
-        if (pre_block->pmem_chunk != NULL) {
+        if (pre_block->pmem_chunk != nullptr) {
             pMem->pmem_map[current_index + current_block->count - 1].start
                 = current_index - pre_block->count;
             pre_block->count += current_block->count;
@@ -733,7 +733,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
             if (is_back_merge) {
                 remove_element(current_block->pmem_chunk, &(pMem->heap));
             }
-            current_block->pmem_chunk = NULL;
+            current_block->pmem_chunk = nullptr;
         }
     }
     pMem->mem_used_size -= size;
@@ -743,7 +743,7 @@ void FreeMemory(void *ptrMemoryBlock, PMEMORYPOOL pMem) {
 
 CGameRegMemPool::CGameRegMemPool() {
     uCount = 0;
-    m_pMemPool = NULL;
+    m_pMemPool = nullptr;
     m_MemPoolLock = TqcOsCreateMutex();
 }
 
@@ -754,7 +754,7 @@ CGameRegMemPool::~CGameRegMemPool() {
 int CGameRegMemPool::CreateMemPool(size_t sBufSize) {
     void *pBuf = malloc(sBufSize);
 
-    if (pBuf == NULL) {
+    if (pBuf == nullptr) {
         return -1;
     } else {
         m_pMemPool = CreateMemoryPool(pBuf, sBufSize);

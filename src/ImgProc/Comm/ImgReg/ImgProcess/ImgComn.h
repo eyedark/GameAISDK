@@ -30,7 +30,7 @@
 #include "Comm/Utils/TqcLog.h"
 
 
-#ifdef LINUX
+#ifdef __linux__
 #include <dirent.h>
 #endif
 

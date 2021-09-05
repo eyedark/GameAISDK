@@ -8,6 +8,7 @@
 */
 
 #include "Comm/ImgReg/ImgProcess/CYOLOAPI.h"
+#include <stdexcept>
 
 extern int g_nMaxResultSize;
 
@@ -57,7 +58,7 @@ static int MaxIndex(float *pScores, int nCount) {
 // **************************************************************************************
 
 CYOLO::CYOLO() {
-    m_pszNames = NULL;
+    m_pszNames = nullptr;
     m_fThreshold = 0.5f;  // detection threshold
 }
 
@@ -110,41 +111,42 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
     }
 #endif
 
-#ifdef LINUX
+#ifdef __linux__
+    // MaX pool number of runs depends on the amount of GPU RAM
+    // For yolov4 image size 416 it consumes about 1.8G per pool -> nIdx < 1
     for (int nIdx = 0; nIdx < 1; ++nIdx) {
         tagYoloNetWork stYoloNetWork;
 
         stYoloNetWork.Mutex = TqcOsCreateMutex();
 
         // load config
-        printf("LINUX Debug call max is");
-        stYoloNetWork.pNet = parse_network_cfg(pszCfgPath);
-        if (stYoloNetWork.pNet.workspace == NULL) {
+        stYoloNetWork.pNet = new network(parse_network_cfg(pszCfgPath));
+        if (stYoloNetWork.pNet == nullptr) {
             std::string strCfgPath = std::string(pszCfgPath);
             LOGE("load cfg of yolo failed: %s", strCfgPath.c_str());
             return -1;
         }
 
-        /// load weights
-        load_weights(&stYoloNetWork.pNet, pszWeightPath);
+        // load weights
+        load_weights(stYoloNetWork.pNet, pszWeightPath);
+        //     free_network(*stYoloNetWork.pNet);
+        //     std::string strWeightPath = std::string(pszWeightPath);
+        //     LOGE("load weight of yolo failed: %s", strWeightPath.c_str());
+        //     return -1;
+        // }
 
         // set batch size to 1
-        set_batch_network(&stYoloNetWork.pNet, 1);
+        set_batch_network(stYoloNetWork.pNet, 1);
 
         m_oVecNets.push_back(stYoloNetWork);
     }
-
-    // #ifdef NNPACK
-    //      nnp_initialize();
-    //      m_pNet->threadpool = pthreadpool_create(4);
-    // #endif
 #endif
 
     srand(time(0));
 
     // load class names
     m_pszNames = get_labels(pszNameFile);
-    if (m_pszNames == NULL) {
+    if (m_pszNames == nullptr) {
         std::string strNameFile = std::string(pszNameFile);
         LOGE("load name of yolo failed: %s", strNameFile.c_str());
         return -1;
@@ -207,42 +209,45 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
     m_oVecNets[nIdx].SetFree();
 #endif
 
-#ifdef LINUX
-    network pNet;
-    pNet.n = 0;
+#ifdef __linux__
+    network *pFreeNet = nullptr;
 
     // select free network
     int nIdx = 0;
     while (true) {
         for (; nIdx < g_nMaxResultSize; ++nIdx) {
+            printf("Detect free worker");
             if (m_oVecNets[nIdx].IsFree()) {
-                pNet = m_oVecNets[nIdx].pNet;
+                pFreeNet = m_oVecNets[nIdx].pNet;
                 break;
             }
         }
 
-        if (pNet.n != 0) {
+        if (pFreeNet != nullptr) {
             break;
         }
     }
 
     // convert cv::Mat to Image
     cv::Mat oImg;
-    cv::resize(oSrcImg, oImg, cv::Size(pNet.w, pNet.h));
+    printf("Net size w: %d, h: %d\n", pFreeNet->w, pFreeNet->h);
+    cv::resize(oSrcImg, oImg, cv::Size(pFreeNet->w, pFreeNet->h));
     cv::cvtColor(oImg, oImg, CV_BGR2RGB);
     image stImg = make_image(oImg.cols, oImg.rows, oImg.channels());
     Mat2Image(oImg, stImg);
 
     // resize image
-    image stImgResize = resize_image(stImg, pNet.w, pNet.h);
+    image stImgResize = letterbox_image(stImg, pFreeNet->w, pFreeNet->h);
 
     // run inference in network
-    network_predict(pNet, stImgResize.data);
+    float *pDatas = stImgResize.data;
+    network_predict_ptr(pFreeNet, pDatas);
 
     // get detection results
-    detection *pDetResults = get_network_boxes(&pNet, oSrcImg.cols, oSrcImg.rows,
-        m_fThreshold, .5, 0, 1, &nBoxes, 0);
-    layer     stLayer = pNet.layers[pNet.n - 1];
+    detection *pDetResults = get_network_boxes(pFreeNet, oSrcImg.cols, oSrcImg.rows,
+        m_fThreshold, .5, 0, 1, &nBoxes,0);
+    layer     stLayer = pFreeNet->layers[pFreeNet->n - 1];
+    // printf("nBoxes %d\n", nBoxes);
 
     // set used network unwork
     m_oVecNets[nIdx].SetFree();
@@ -308,10 +313,13 @@ int CYOLO::Release() {
     }
 #endif
 
-#ifdef LINUX
-    for (size_t nIdx = 0; nIdx < m_oVecNets.size(); ++nIdx) {
-        free_network(m_oVecNets[nIdx].pNet);
-        TqcOsDeleteMutex(m_oVecNets[nIdx].Mutex);
+#ifdef __linux__
+     for (size_t nIdx = 0; nIdx < m_oVecNets.size(); ++nIdx) {
+        if (m_oVecNets[nIdx].pNet != nullptr) {
+            free_network_ptr(m_oVecNets[nIdx].pNet);
+            m_oVecNets[nIdx].pNet = nullptr;
+            TqcOsDeleteMutex(m_oVecNets[nIdx].Mutex);
+        }
     }
 #endif
 

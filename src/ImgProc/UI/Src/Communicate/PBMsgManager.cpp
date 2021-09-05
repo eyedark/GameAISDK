@@ -105,8 +105,8 @@ void CPBMsgManager::UnlockTbus() {
 bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr) {
     int  nPeerAddr = -1;
     int  nRet = 0;
-    char *pszRecvBuff = NULL;
-    char *pBuf = NULL;
+    char *pszRecvBuff = nullptr;
+    char *pBuf = nullptr;
 
 #ifdef UI_PROCESS
     tagMessage msg;
@@ -115,7 +115,7 @@ bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr
 #endif
 
     // 检查输入参数的合法性
-    if (strAddr == NULL) {
+    if (strAddr == nullptr) {
         LOGE("There is no address.");
         return false;
     }
@@ -139,7 +139,7 @@ bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr
         if (IsExit()) {
             if (pBuf) {
                 free(pBuf);
-                pBuf = NULL;
+                pBuf = nullptr;
             }
 
             LOGI("Msg manager exited.");
@@ -163,7 +163,7 @@ bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr
 #endif
         if (pBuf) {
             free(pBuf);
-            pBuf = NULL;
+            pBuf = nullptr;
         }
 
         if (nRet > 0) {
@@ -177,7 +177,7 @@ bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr
     // if (pBuf)
     // {
     //     free(pBuf);
-    //     pBuf = NULL;
+    //     pBuf = nullptr;
     // }
 
     return true;
@@ -187,7 +187,7 @@ bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr
     //     if (pBuf)
     //     {
     //         free(pBuf);
-    //         pBuf = NULL;
+    //         pBuf = nullptr;
     //     }
 
     //     return false;
@@ -196,7 +196,7 @@ bool CPBMsgManager::ReceiveMsg(MSG_HANDLER_ROUTINE pHandler, const char *strAddr
     // if (pBuf)
     // {
     //     free(pBuf);
-    //     pBuf = NULL;
+    //     pBuf = nullptr;
     // }
 
     // return true;
@@ -221,7 +221,7 @@ bool CPBMsgManager::IsExit() {
 
 int CPBMsgManager::GetPeerAddr(const char *name) {
     // 检查输入的合法性
-    if (name == NULL) {
+    if (name == nullptr) {
         LOGE("The Peer name is NULL.");
         return -1;
     }

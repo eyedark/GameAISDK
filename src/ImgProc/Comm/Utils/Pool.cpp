@@ -22,27 +22,27 @@ CMemoryPool::CMemoryPool() {
     bool          bTmp  = false;
 
     m_pIntPool = new boost::pool<>(sizeof(nTmp));
-    if (m_pIntPool == NULL) {
+    if (m_pIntPool == nullptr) {
         LOGE("Cannot create int pool");
     }
 
     m_pBoolPool = new boost::pool<>(sizeof(bTmp));
-    if (m_pBoolPool == NULL) {
+    if (m_pBoolPool == nullptr) {
         LOGE("Cannot create bool pool");
     }
 
     m_pUIntPool = new boost::pool<>(sizeof(uTmp));
-    if (m_pUIntPool == NULL) {
+    if (m_pUIntPool == nullptr) {
         LOGE("Cannot create unsigned int pool");
     }
 
     m_pUCharPool = new boost::pool<>(sizeof(ucTmp));
-    if (m_pUCharPool == NULL) {
+    if (m_pUCharPool == nullptr) {
         LOGE("Cannot create unsigned char pool");
     }
 
     m_pCharPool = new boost::pool<>(sizeof(cTmp));
-    if (m_pCharPool == NULL) {
+    if (m_pCharPool == nullptr) {
         LOGE("Cannot create char pool");
     }
 }

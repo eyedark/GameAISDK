@@ -172,7 +172,7 @@ unsigned int TqcOsGetMicroSeconds(void) {
 // }
 
 bool TqcOsReadFileList(std::string strPathName, std::vector<std::string> *poVecFileName) {
-    if (poVecFileName == NULL) {
+    if (poVecFileName == nullptr) {
         return false;
     }
 
@@ -211,7 +211,7 @@ bool TqcOsStartProcess(const char *strWorkPath, const char *args) {
 }
 
 bool  TqcOsGetCWD(char *buff, int nMaxLen) {
-    if (buff == NULL || nMaxLen <= 0) {
+    if (buff == nullptr || nMaxLen <= 0) {
         return false;
     }
 

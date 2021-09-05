@@ -22,7 +22,7 @@
 #include "GameRecognize/src/SerializeProtobuf.h"
 #include "GameRecognize/src/TaskMgr/TaskManager.h"
 
-#ifdef LINUX
+#ifdef __linux__
 #include "Modules/tbus/libtbus/include/bus.h"
 #else
 #include "Modules/tbus/tbusdll/busdll/bus.h"

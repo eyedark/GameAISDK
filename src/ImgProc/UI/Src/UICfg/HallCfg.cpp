@@ -32,9 +32,9 @@ bool CHallCfg::Initialize(const char *pszRootDir, const char *pszCftPath) {
     // 初始化失败，直接返回
     if (!bRst) {
         LOGE("load hall config failed");
-        if (pConfig != NULL) {
+        if (pConfig != nullptr) {
             delete pConfig;
-            pConfig = NULL;
+            pConfig = nullptr;
         }
 
         return false;

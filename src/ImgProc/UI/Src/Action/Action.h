@@ -130,7 +130,7 @@ class CAction : public TSingleton<CAction> {
 
 // bool SendScriptUIAction(char *pszPkgBuff);
 extern "C" {
-#ifdef LINUX
+#ifdef __linux__
 bool  SendScriptUIAction(char *pszPkgBuff);
 bool  PyLOGD(char *pszLogContent);
 bool  PyLOGI(char *pszLogContent);

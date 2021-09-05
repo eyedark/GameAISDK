@@ -115,7 +115,7 @@ int PostProcess(const char *pszDefaultStr, char *pszRetValue, const int nRetLen,
         return nRetLen - ntmp - 2;
     } else {
         // 返回默认值
-        if (pszDefaultStr == NULL) {
+        if (pszDefaultStr == nullptr) {
             pszRetValue[0] = '\0';
             return 0;
         } else {
@@ -131,22 +131,22 @@ int GetOperateNum(const char *pszSectionName, const char *pszKeyName) {
     int operate = 0;
 
     // 如果App和Key全部为空，则返回所有的Section，用'\0'分隔，最后一个用两个'\0'标识
-    if (pszSectionName == NULL && pszKeyName == NULL) {
+    if (pszSectionName == nullptr && pszKeyName == nullptr) {
         operate = 1;
     }
 
     // 如果Key为空，App不空，则返回所有的Section下的Key值，用'\0'分隔，最后一个用两个'\0'标识
-    if (pszSectionName != NULL && pszKeyName == NULL) {
+    if (pszSectionName != nullptr && pszKeyName == nullptr) {
         operate = 2;
     }
 
     // App为空，Key不为空,则检查所有的Key，将第一个匹配的键值返回
-    if (pszSectionName == NULL && pszKeyName != NULL) {
+    if (pszSectionName == nullptr && pszKeyName != nullptr) {
         operate = 3;
     }
 
     // App，Key部不为空，这返回App，Key都匹配的键值
-    if (pszSectionName != NULL && pszKeyName != NULL) {
+    if (pszSectionName != nullptr && pszKeyName != nullptr) {
         operate = 4;
     }
 
@@ -232,7 +232,7 @@ int CIniConfig::ProcessOperateTwo(const char *pszDefaultStr, char *pszRetValue, 
         if (bApp == true) {
             char *str = strstr(pszOneLine, "=");
 
-            if (str != NULL) {
+            if (str != nullptr) {
                 strncpy(pstrtmp, pszOneLine, ntmp - 1);
                 // 添加结束符
                 *(pstrtmp + strlen(pstrtmp)) = '\0';
@@ -281,7 +281,7 @@ int CIniConfig::ProcessOperateThree(const char *pszDefaultStr, char *pszRetValue
 
         char *str = strstr(pszOneLine, "=");
 
-        if (str != NULL) {
+        if (str != nullptr) {
             char *snext = str + 1;
             *str = '\0';
             strncpy(pszKey, pszOneLine, nBufLen);
@@ -302,7 +302,7 @@ int CIniConfig::ProcessOperateThree(const char *pszDefaultStr, char *pszRetValue
     delete[]pszString;
 
     // 返回默认值
-    if (pszDefaultStr == NULL) {
+    if (pszDefaultStr == nullptr) {
         *pszRetValue = '\0';
         return 0;
     } else {
@@ -341,7 +341,7 @@ int CIniConfig::ProcessOperateFour(const char *pszSectionName, const char *pszKe
             // 已经找到下一个Section,没有发现相关的Key，返回默认值
             if (bApp == true) {
                 // 返回默认值
-                if (pszDefaultStr == NULL) {
+                if (pszDefaultStr == nullptr) {
                     *pszRetValue = '\0';
                     delete[]pszKey;
                     delete[]pszString;
@@ -371,7 +371,7 @@ int CIniConfig::ProcessOperateFour(const char *pszSectionName, const char *pszKe
         if (bApp == true) {
             char *str = strstr(pszOneLine, "=");
 
-            if (str != NULL) {
+            if (str != nullptr) {
                 char *snext = str + 1;
                 *str = '\0';
                 strncpy(pszKey, pszOneLine, nBufLen);
@@ -394,7 +394,7 @@ int CIniConfig::ProcessOperateFour(const char *pszSectionName, const char *pszKe
     delete[]pszKey;
     delete[]pszString;
     //
-    if (pszDefaultStr == NULL) {
+    if (pszDefaultStr == nullptr) {
         *pszRetValue = '\0';
         return 0;
     } else {
@@ -424,7 +424,7 @@ int CIniConfig::getPrivateProfileString(const char *pszSectionName, const char *
     szKey[LINE_BUFFER_LEN] = '\0';
     szString[LINE_BUFFER_LEN] = '\0';
 
-    char *pstrtmp = NULL;
+    char *pstrtmp = nullptr;
     int  ntmp;
     bool bApp;
     if (operate == 1 || operate == 2) {

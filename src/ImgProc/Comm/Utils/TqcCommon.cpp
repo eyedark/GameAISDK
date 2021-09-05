@@ -22,7 +22,7 @@ int g_logLevel = FACE_INFO;
 #include <Windows.h>
 #endif
 
-#ifdef LINUX
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -199,7 +199,7 @@ void CreateDir(const char *strSavedPath) {
 #endif
     /* WINDOWS */
 
-#ifdef LINUX
+#ifdef __linux__
     if (0 != access(strSavedPath, 0)) {
         if (-1 == mkdir(strSavedPath, S_IRWXU)) {
             printf("mkdir %s failed \n", strSavedPath);
@@ -226,11 +226,11 @@ void ReadCsvFile(FILE *pFile, const char cSplitter, char *output, int nLen) {
     int  nRead = 0;
     char c;
 
-    if (output == NULL || nLen == 0) {
+    if (output == nullptr || nLen == 0) {
         return;
     }
 
-    if (pFile == NULL) {
+    if (pFile == nullptr) {
         return;
     }
 
@@ -338,7 +338,7 @@ char* CurTimeStamp(char *pszTimeBuff, int nTimeBuffLen, TIME_STRING_FORMAT eForm
     GetLocalTime(&wtm);
 
     struct tm stTm;
-    struct tm *pstTm = NULL;
+    struct tm *pstTm = nullptr;
 
     stTm.tm_year = wtm.wYear - 1900;
     stTm.tm_mon = wtm.wMonth - 1;

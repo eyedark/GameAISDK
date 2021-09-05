@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#ifdef LINUX
+#ifdef __linux__
 #include <boost/thread/mutex.hpp>
 #include "Comm/ImgReg/ImgProcess/CObjDet.h"
 #include "Comm/Os/TqcOs.h"
@@ -48,17 +48,17 @@ struct tagYoloNetWork {
     network stNet;
 #endif
 
-#ifdef LINUX
-    network      pNet;
+#ifdef __linux__
+    network *pNet;
 #endif
     LockerHandle Mutex;
 
     tagYoloNetWork() {
-#ifdef LINUX
-        // pNet = NULL;
+#ifdef __linux__
+        pNet = nullptr;
 #endif
         bState = true;
-        Mutex = NULL;
+        Mutex = nullptr;
     }
 
     ~tagYoloNetWork() {

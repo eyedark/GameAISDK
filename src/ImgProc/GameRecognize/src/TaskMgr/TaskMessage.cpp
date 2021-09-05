@@ -13,7 +13,7 @@
 using namespace std;
 
 CTaskMessage::CTaskMessage() {
-    m_pCmdMsg = NULL;
+    m_pCmdMsg = nullptr;
     m_EAgentMsgID = MSG_RECV_BEGIN;
 }
 
@@ -22,10 +22,10 @@ CTaskMessage::~CTaskMessage() {
 
 // 释放资源
 void CTaskMessage::Release() {
-    if (m_pCmdMsg != NULL) {
+    if (m_pCmdMsg != nullptr) {
         m_pCmdMsg->Release();
         delete m_pCmdMsg;
-        m_pCmdMsg = NULL;
+        m_pCmdMsg = nullptr;
     }
 }
 

@@ -17,7 +17,7 @@
 // =========================================================================
 
 CTaskResult::CTaskResult() {
-    m_pRegRst = NULL;
+    m_pRegRst = nullptr;
     m_eType = TYPE_BEGIN;
     m_nTaskID = -1;
 }
@@ -28,9 +28,9 @@ CTaskResult::~CTaskResult() {
 // 释放资源
 // 使用内存池的FreePoolMemory接口
 void CTaskResult::Release() {
-    if (m_pRegRst != NULL) {
+    if (m_pRegRst != nullptr) {
         CGameRegMemPool::getInstance()->FreePoolMemory<IRegResult>(m_pRegRst);
-        m_pRegRst = NULL;
+        m_pRegRst = nullptr;
     }
 }
 

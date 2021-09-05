@@ -7,7 +7,7 @@
   * Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 */
 
-#ifdef LINUX
+#ifdef __linux__
 
 #include <dirent.h>
 #include <pthread.h>
@@ -145,7 +145,7 @@ unsigned int TqcOsGetMicroSeconds(void) {
 //     if (NULL != (stCapScreen->m_pToHandle))
 //     {
 //         delete (reinterpret_cast<Window*>(stCapScreen->m_pToHandle));
-//         stCapScreen->m_pToHandle = NULL;
+//         stCapScreen->m_pToHandle = nullptr;
 //     }
 
 //     return true;
@@ -176,7 +176,7 @@ unsigned int TqcOsGetMicroSeconds(void) {
 // }
 
 bool TqcOsReadFileList(std::string strPathName, std::vector<std::string> *poVecFileName) {
-    if (poVecFileName == NULL) {
+    if (poVecFileName == nullptr) {
         return false;
     }
 
@@ -185,10 +185,10 @@ bool TqcOsReadFileList(std::string strPathName, std::vector<std::string> *poVecF
     }
 
     DIR           *dir;
-    struct dirent *ptr = NULL;
+    struct dirent *ptr = nullptr;
     char          base[1000];
 
-    if ((dir = opendir(strPathName.c_str())) == NULL) {
+    if ((dir = opendir(strPathName.c_str())) == nullptr) {
         perror("Open dir error...");
         return false;
     }
@@ -196,7 +196,7 @@ bool TqcOsReadFileList(std::string strPathName, std::vector<std::string> *poVecF
     char          szName[256] = {0};
     struct dirent stEntry;
 
-    while ((!readdir_r(dir, &stEntry, &ptr)) && (ptr != NULL)) {
+    while ((!readdir_r(dir, &stEntry, &ptr)) && (ptr != nullptr)) {
         if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0) {
             continue;
         } else if (ptr->d_type == 8) {
@@ -227,17 +227,17 @@ bool TqcOsStartProcess(const char *strWorkPath, const char *args) {
         memset(buf, 0, 256);
         memcpy(buf, args, strlen(args));
         std::vector<std::string> resultVec;
-        char                     *outerPtr = NULL;
+        char                     *outerPtr = nullptr;
         char                     *tmpStr   = strtok_r(buf, " ", &outerPtr);
 
-        while (tmpStr != NULL) {
+        while (tmpStr != nullptr) {
             resultVec.push_back(std::string(tmpStr));
             tmpStr = strtok_r(NULL, " ", &outerPtr);
         }
 
         int  size   = resultVec.size();
         char **argv = reinterpret_cast<char**>(malloc(sizeof(tmpStr) * (size + 1)));
-        if (argv == NULL) {
+        if (argv == nullptr) {
             return false;
         }
 
@@ -249,7 +249,7 @@ bool TqcOsStartProcess(const char *strWorkPath, const char *args) {
             printf("%s\n", argv[i]);
         }
 
-        argv[size] = NULL;
+        argv[size] = nullptr;
 
         int err = execv(argv[0], argv);
         free(argv);
@@ -260,7 +260,7 @@ bool TqcOsStartProcess(const char *strWorkPath, const char *args) {
 }
 
 bool  TqcOsGetCWD(char *buff, int nMaxLen) {
-    if (buff == NULL || nMaxLen <= 0) {
+    if (buff == nullptr || nMaxLen <= 0) {
         return false;
     }
 

@@ -24,7 +24,7 @@ CTaskManager::CTaskManager() {
     m_bShowSrcImage = false;
     m_bShowResult = false;
     m_nOutTimeMS = INT_MAX;
-    m_pThreadPoolMgr = NULL;
+    m_pThreadPoolMgr = nullptr;
     m_nLastTimeMS = -1;
     m_nMaxResSize = -1;
     m_bMultiResolution = true;
@@ -163,7 +163,7 @@ void CTaskManager::SetTestMode(bool bDebug, ETestMode eTestMode) {
 }
 
 ESendTaskReportToMC CTaskManager::UpdateTaskInfo(const std::vector<CTaskMessage> *pVecTaskMsg) {
-    if (pVecTaskMsg == NULL) {
+    if (pVecTaskMsg == nullptr) {
         LOGE("pVecTaskMsg is NULL");
         return SEND_NO;
     }

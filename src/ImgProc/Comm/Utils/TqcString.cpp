@@ -13,7 +13,7 @@
 #define _CRT_RAND_S 1
 #include <stdlib.h>
 
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -38,7 +38,7 @@ void StrCpy(char *pszDest, const char *pszSrc, int iLen) {
 // Change string to ip address.
 //
 void ChgStrToIP(char *szIpStr, int *iIpID) {
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
     inet_aton(szIpStr, (struct in_addr*)iIpID);
 #else
     // iIpID = inet_addr(szIpStr);
@@ -58,7 +58,7 @@ char* randstr(char *buffer, int len) {
 
     for (i = 0; i < len; i++) {
         unsigned int nSeed = TqcOsGetMicroSeconds();
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
         buffer[i] = chars[static_cast<int>(static_cast<float>(chars_len) * \
             rand_r(&nSeed) / (RAND_MAX + 1.0))];
 #elif defined(WINDOWS)
@@ -75,26 +75,26 @@ char* randstr(char *buffer, int len) {
 // 把字符串str按照seq分隔，以字符串的格式保存到outVct
 //
 void token(const char *pszSource, const char *seq, std::vector<std::string> *poutVct) {
-    if (!pszSource || seq == NULL || poutVct == NULL)
+    if (!pszSource || seq == nullptr || poutVct == nullptr)
         return;
 
     char str[4096] = { 0 };
     memcpy(str, pszSource, strlen(pszSource));
-    char *token = NULL;
+    char *token = nullptr;
     char buf[4096];
     buf[0] = '\0';
     char *p = buf;
 
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
     token = strtok_r(reinterpret_cast<char*>(str), seq, &p);
 #else
     token = strtok_s(reinterpret_cast<char*>(str), seq, &p);
 #endif
 
-    while (token != NULL) {
+    while (token != nullptr) {
         poutVct->push_back(token);
-#if defined(LINUX) || defined(__APPLE__)
-        token = strtok_r(NULL, seq, &p);
+#if defined(__linux__) || defined(__APPLE__)
+        token = strtok_r(nullptr, seq, &p);
 #else
         token = strtok_s(NULL, seq, &p);
 #endif
@@ -105,7 +105,7 @@ void token(const char *pszSource, const char *seq, std::vector<std::string> *pou
 // 把字符串str按照seq分隔，以int的格式保存到outVct
 //
 void token(const char *str, const char *seq, std::vector<int> *poutVct) {
-    if (poutVct == NULL) {
+    if (poutVct == nullptr) {
         return;
     }
 

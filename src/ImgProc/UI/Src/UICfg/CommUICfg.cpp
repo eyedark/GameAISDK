@@ -20,7 +20,7 @@ CCommUICfg::~CCommUICfg() {
 
 bool CCommUICfg::Initialize(const char *pszRootDir, const char *pszCftPath, CJsonConfig *pConfig) {
     // check parameters
-    if (pConfig == NULL) {
+    if (pConfig == nullptr) {
         LOGE("Cannot create json config parser.");
         return false;
     }

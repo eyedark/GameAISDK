@@ -125,7 +125,8 @@ int LoadTemplate(const int nTaskID, const std::vector<tagTmpl> &oVecSrcTmpls,
                     nTaskID, nCols, nRows, fScale);
                 continue;
             }
-
+            // LOGI("task ID %d: template size (cols: %d, rows: %d) scale is %f",
+            //         nTaskID, nCols, nRows, fScale);
             cv::resize(stSrcTmpl.oTmplImg, stDstTmpl.oTmplImg, cv::Size(nCols, nRows));
 
             if (!stSrcTmpl.oMaskImg.empty()) {
@@ -412,7 +413,7 @@ int GetPath(const int nTaskID, const std::string strPath,
 }
 #endif
 
-#ifdef LINUX
+#ifdef __linux__
 int GetPath(const int nTaskID, const std::string strPath,
     std::vector<std::string> *pVecPaths, std::vector<std::string> *pVecNames) {
     pVecPaths->clear();
@@ -421,7 +422,7 @@ int GetPath(const int nTaskID, const std::string strPath,
     std::string strDirectory = strPath.substr(0, strPath.length() - 5);
     std::string strSuffix = strPath.substr(strPath.length() - 3, 3);
 
-    DIR *pDir = NULL;
+    DIR *pDir = nullptr;
     if (!(pDir = opendir(strDirectory.c_str()))) {
         LOGE("task ID %d: template directory %s is invalid, please check",
             nTaskID, strDirectory.c_str());
@@ -429,9 +430,9 @@ int GetPath(const int nTaskID, const std::string strPath,
     }
 
     struct dirent stEntry;
-    struct dirent *pResult = NULL;
+    struct dirent *pResult = nullptr;
 
-    while (!readdir_r(pDir, &stEntry, &pResult) && pResult != NULL) {
+    while (!readdir_r(pDir, &stEntry, &pResult) && pResult != nullptr) {
         if (0 == strcmp(stEntry.d_name, ".") || 0 == strcmp(stEntry.d_name, "..")) {
             continue;
         }
@@ -659,6 +660,7 @@ int AddMask(const int nTaskID, const cv::Mat &oSrcImg, const cv::Mat &oMaskImg,
 
     // resize mask image according to source image
     cv::Mat oResizeMaskImg;
+    LOGI("task ID %d: Img size (cols: %d, rows: %d)",nTaskID,oSrcImg.rows,oSrcImg.cols);
     cv::resize(oMaskImg, oResizeMaskImg, cv::Size(oSrcImg.cols, oSrcImg.rows));
 
     // get unmasked region from source image
@@ -696,7 +698,7 @@ int ConvertImgTo720P(const int nTaskID, const cv::Mat &oSrcImg, cv::Mat &oDstImg
         fRatio = static_cast<float>(nLongSide) / static_cast<float>(IMAGE_LONG_SIDE);
         int nRows = static_cast<int>(oSrcImg.rows / fRatio);
         int nCols = static_cast<int>(oSrcImg.cols / fRatio);
-
+        LOGI("task ID %d: Img size (cols: %d, rows: %d)",nTaskID,oSrcImg.rows,oSrcImg.cols);
         cv::resize(oSrcImg, oDstImg, cv::Size(nCols, nRows));
     }
 

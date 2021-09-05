@@ -15,7 +15,7 @@
 #define GAME_DEBUG_DUMP_UI 1
 #endif  // GAME_DEBUG_DUMP_UI
 
-#ifdef LINUX
+#ifdef __linux__
 #define GAME_UI_SAMPLE_DATA_PATH "data/sample/"
 #else
 #define GAME_UI_SAMPLE_DATA_PATH "../../../Data/"

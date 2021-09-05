@@ -214,7 +214,7 @@ int CFixObjReg::Release() {
 
         int nState = m_pVecMethods[i]->Release();
         delete m_pVecMethods[i];
-        m_pVecMethods[i] = NULL;
+        m_pVecMethods[i] = nullptr;
 
         if (1 != nState) {
             LOGE("task ID %d: CFixObjReg -- %s release failed, please check",
@@ -243,7 +243,7 @@ int CFixObjReg::InitColorMatch(const tagFixObjRegElement &stParam) {
     if (1 != nState) {
         LOGE("task ID %d: CFixObjReg -- CColorMatch fill param failed, please check", m_nTaskID);
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -254,7 +254,7 @@ int CFixObjReg::InitColorMatch(const tagFixObjRegElement &stParam) {
             m_nTaskID);
         pMethod->Release();
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -275,7 +275,7 @@ int CFixObjReg::InitGradMatch(const tagFixObjRegElement &stParam) {
     if (1 != nState) {
         LOGE("task ID %d: CFixObjReg -- CGradMatch fill param failed, please check", m_nTaskID);
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -285,7 +285,7 @@ int CFixObjReg::InitGradMatch(const tagFixObjRegElement &stParam) {
         LOGE("task ID %d: CFixObjReg -- CGradMatch initialization failed, please check", m_nTaskID);
         pMethod->Release();
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -306,7 +306,7 @@ int CFixObjReg::InitEdgeMatch(const tagFixObjRegElement &stParam) {
     if (1 != nState) {
         LOGE("task ID %d: CFixObjReg -- CEdgeMatch fill param failed, please check", m_nTaskID);
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -316,7 +316,7 @@ int CFixObjReg::InitEdgeMatch(const tagFixObjRegElement &stParam) {
         LOGE("task ID %d: CFixObjReg -- CEdgeMatch initialization failed, please check", m_nTaskID);
         pMethod->Release();
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -337,7 +337,7 @@ int CFixObjReg::InitORBMatch(const tagFixObjRegElement &stParam) {
     if (1 != nState) {
         LOGE("task ID %d: CFixObjReg -- CORBMatch fill param failed, please check", m_nTaskID);
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
@@ -347,7 +347,7 @@ int CFixObjReg::InitORBMatch(const tagFixObjRegElement &stParam) {
         LOGE("task ID %d: CFixObjReg -- CORBMatch initialization failed, please check", m_nTaskID);
         pMethod->Release();
         delete pMethod;
-        pMethod = NULL;
+        pMethod = nullptr;
         return nState;
     }
 
