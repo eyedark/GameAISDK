@@ -50,7 +50,7 @@ void Help(const char *strProgName) {
 
 // 输出参数解析
 bool ParseArg(int argc, char *argv[]) {
-    if (NULL == gs_poFramework) {
+    if (nullptr == gs_poFramework) {
         LOGE("gs_poFramework is NULL, please check");
         return false;
     }
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     LOGI("root dir:%s", g_strBaseDir.data());
 
     gs_poFramework = new CGameRegFrameWork();
-    if (NULL == gs_poFramework) {
+    if (nullptr == gs_poFramework) {
         LOGE("new GameRegFrameWork failed");
     }
 

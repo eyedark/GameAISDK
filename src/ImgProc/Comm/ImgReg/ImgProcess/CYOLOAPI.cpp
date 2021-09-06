@@ -67,17 +67,17 @@ CYOLO::~CYOLO() {
 
 int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, float fThreshold) {
     // check parameters
-    if (NULL == pszCfgPath) {
+    if (nullptr == pszCfgPath) {
         printf("cfg file is NULL, please check\n");
         return -1;
     }
 
-    if (NULL == pszWeightPath) {
+    if (nullptr == pszWeightPath) {
         printf("weight file is NULL, please check\n");
         return -1;
     }
 
-    if (NULL == pszNameFile) {
+    if (nullptr == pszNameFile) {
         printf("name file is NULL, please check\n");
         return -1;
     }
@@ -89,7 +89,7 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
 
     // initialize networks
 #ifdef WINDOWS
-    for (int i = 0; i < g_nMaxResultSize; i++) {
+    for (int i = 0; i < max_pool_worker; i++) {
         tagYoloNetWork stYoloNetWork;
 
         stYoloNetWork.Mutex = TqcOsCreateMutex();
@@ -114,7 +114,8 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
 #ifdef __linux__
     // MaX pool number of runs depends on the amount of GPU RAM
     // For yolov4 image size 416 it consumes about 1.8G per pool -> nIdx < 1
-    for (int nIdx = 0; nIdx < 1; ++nIdx) {
+    // max_pool_worker in GameReg.ini -> selection THREAD MaxResultQueueSize
+    for (int nIdx = 0; nIdx < max_pool_worker; ++nIdx) {
         tagYoloNetWork stYoloNetWork;
 
         stYoloNetWork.Mutex = TqcOsCreateMutex();
@@ -175,7 +176,7 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
     // select free network
     int nIdx = 0;
     while (true) {
-        for (; nIdx < g_nMaxResultSize; ++nIdx) {
+        for (; nIdx < max_pool_worker; ++nIdx) {
             if (m_oVecNets[nIdx].IsFree()) {
                 stNet = m_oVecNets[nIdx].stNet;
                 break;
@@ -215,7 +216,7 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
     // select free network
     int nIdx = 0;
     while (true) {
-        for (; nIdx < g_nMaxResultSize; ++nIdx) {
+        for (; nIdx < max_pool_worker; ++nIdx) {
             printf("Detect free worker");
             if (m_oVecNets[nIdx].IsFree()) {
                 pFreeNet = m_oVecNets[nIdx].pNet;

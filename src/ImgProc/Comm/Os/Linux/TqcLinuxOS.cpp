@@ -33,7 +33,7 @@ typedef void*(*pfnLinuxThreadDecl)(void *pThreadData);
 void* TqcOsCreateThread(void *threadMain, void *pThread) {
     pthread_t ThreadID;
 
-    pthread_create(&ThreadID, NULL, (pfnLinuxThreadDecl)threadMain, reinterpret_cast<void*>(pThread));
+    pthread_create(&ThreadID, nullptr, (pfnLinuxThreadDecl)threadMain, reinterpret_cast<void*>(pThread));
     return reinterpret_cast<void*>(ThreadID);
 }
 
@@ -41,13 +41,13 @@ void* TqcOsCreateThread(void *threadMain, void *pThread) {
 // Wait for thread exit.
 //
 bool TqcCloseThread(PTHREDID ThreadID) {
-    if (NULL == ThreadID) {
+    if (nullptr == ThreadID) {
         return false;
     }
 
     pthread_t *pThreadID = reinterpret_cast<pthread_t*>(ThreadID);
     // sleep(3);
-    pthread_join((*pThreadID), NULL);
+    pthread_join((*pThreadID), nullptr);
     return true;
 }
 // Sleep
@@ -59,7 +59,7 @@ void TqcOsSleep(int millisecond) {
 LockerHandle TqcOsCreateMutex() {
     pthread_mutex_t *mutex = new pthread_mutex_t;
 
-    if (pthread_mutex_init(mutex, NULL) != 0) {
+    if (pthread_mutex_init(mutex, nullptr) != 0) {
         return 0;
     }
 
@@ -68,7 +68,7 @@ LockerHandle TqcOsCreateMutex() {
 
 // Delete Mutex
 void TqcOsDeleteMutex(LockerHandle handle) {
-    if (NULL == handle) {
+    if (nullptr == handle) {
         return;
     }
 
@@ -80,7 +80,7 @@ void TqcOsDeleteMutex(LockerHandle handle) {
 // Request mutex
 //
 bool TqcOsAcquireMutex(LockerHandle handle) {
-    if (NULL == handle) {
+    if (nullptr == handle) {
         return false;
     }
 
@@ -92,7 +92,7 @@ bool TqcOsAcquireMutex(LockerHandle handle) {
 // Release mutex
 //
 void TqcOsReleaseMutex(LockerHandle handle) {
-    if (NULL == handle) {
+    if (nullptr == handle) {
         return;
     }
 
@@ -232,7 +232,7 @@ bool TqcOsStartProcess(const char *strWorkPath, const char *args) {
 
         while (tmpStr != nullptr) {
             resultVec.push_back(std::string(tmpStr));
-            tmpStr = strtok_r(NULL, " ", &outerPtr);
+            tmpStr = strtok_r(nullptr, " ", &outerPtr);
         }
 
         int  size   = resultVec.size();

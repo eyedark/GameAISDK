@@ -102,6 +102,7 @@ class CYOLO {
   private:
     char                        **m_pszNames;
     float                       m_fThreshold;
+    int max_pool_worker = 1; //only one thread on gpu
     std::vector<tagYoloNetWork> m_oVecNets;
 };
 
