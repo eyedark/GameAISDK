@@ -8,7 +8,7 @@
 # Size of source mod 2**32: 12768 bytes
 import sys, json, logging, os, traceback
 from .config import Platform, DeviceType, IniConfigParser
-from ..tools.SDKTool.src.WrappedDeviceAPI.deviceAdapter import DeviceAdapter
+from WrappedDeviceAPI.deviceAdapter import DeviceAdapter
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.dirname(os.path.dirname(__dir__))
 DEVICE_CFG_PATH = os.path.join(WORK_DIR, 'cfg/device_cfg/device.ini')

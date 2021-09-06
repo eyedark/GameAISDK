@@ -16,7 +16,7 @@
 
 char* g_rootDataPath = nullptr;
 char* g_userCfgPath = nullptr;
-int          g_nMaxResultSize = 1;
+int          g_nMaxResultSize = 5;
 CUIFrameWork *g_poFramework = nullptr;
 bool         g_bExit = false;
 

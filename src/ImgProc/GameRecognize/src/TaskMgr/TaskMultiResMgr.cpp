@@ -64,7 +64,7 @@ bool CMutiResMgr::LoadReferConfFile(std::map<int, CTaskParam> *pmpTaskParam,
     // read and open file reference file
     std::ifstream iFile(strReferConfName);
     if (!iFile.is_open()) {
-        LOGE("can not open : %s", strReferConfName.c_str());
+        LOGE("can not open refer config : %s", strReferConfName.c_str());
         return false;
     }
 

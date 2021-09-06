@@ -44,19 +44,11 @@ extern "C" {
 
 struct tagYoloNetWork {
     bool         bState;
-#ifdef WINDOWS
     network stNet;
-#endif
 
-#ifdef __linux__
-    network *pNet;
-#endif
     LockerHandle Mutex;
 
     tagYoloNetWork() {
-#ifdef __linux__
-        pNet = nullptr;
-#endif
         bState = true;
         Mutex = nullptr;
     }
@@ -104,6 +96,8 @@ class CYOLO {
     float                       m_fThreshold;
     int max_pool_worker = 1; //only one thread on gpu
     std::vector<tagYoloNetWork> m_oVecNets;
+
+    image *stImg;
 };
 
 // **************************************************************************************
@@ -133,6 +127,7 @@ class CYOLOAPIParam {
     std::string m_strWeightPath;
     std::string m_strNamePath;
     std::string m_strMaskPath;
+
 };
 
 // **************************************************************************************

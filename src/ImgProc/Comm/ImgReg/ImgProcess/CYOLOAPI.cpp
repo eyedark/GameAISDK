@@ -9,6 +9,7 @@
 
 #include "Comm/ImgReg/ImgProcess/CYOLOAPI.h"
 #include <stdexcept>
+#include <bits/stdc++.h>
 
 extern int g_nMaxResultSize;
 
@@ -88,7 +89,6 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
     }
 
     // initialize networks
-#ifdef WINDOWS
     for (int i = 0; i < max_pool_worker; i++) {
         tagYoloNetWork stYoloNetWork;
 
@@ -109,39 +109,6 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
 
         m_oVecNets.push_back(stYoloNetWork);
     }
-#endif
-
-#ifdef __linux__
-    // MaX pool number of runs depends on the amount of GPU RAM
-    // For yolov4 image size 416 it consumes about 1.8G per pool -> nIdx < 1
-    // max_pool_worker in GameReg.ini -> selection THREAD MaxResultQueueSize
-    for (int nIdx = 0; nIdx < max_pool_worker; ++nIdx) {
-        tagYoloNetWork stYoloNetWork;
-
-        stYoloNetWork.Mutex = TqcOsCreateMutex();
-
-        // load config
-        stYoloNetWork.pNet = new network(parse_network_cfg(pszCfgPath));
-        if (stYoloNetWork.pNet == nullptr) {
-            std::string strCfgPath = std::string(pszCfgPath);
-            LOGE("load cfg of yolo failed: %s", strCfgPath.c_str());
-            return -1;
-        }
-
-        // load weights
-        load_weights(stYoloNetWork.pNet, pszWeightPath);
-        //     free_network(*stYoloNetWork.pNet);
-        //     std::string strWeightPath = std::string(pszWeightPath);
-        //     LOGE("load weight of yolo failed: %s", strWeightPath.c_str());
-        //     return -1;
-        // }
-
-        // set batch size to 1
-        set_batch_network(stYoloNetWork.pNet, 1);
-
-        m_oVecNets.push_back(stYoloNetWork);
-    }
-#endif
 
     srand(time(0));
 
@@ -155,11 +122,16 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
 
     // copy parameters
     m_fThreshold = fThreshold;
+    if(m_oVecNets.size() > 0){
+       stImg = new image(make_image(m_oVecNets[0].stNet.w , m_oVecNets[0].stNet.h, 3));//optizime
+    }
 
     return 1;
 }
 
 int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
+//    clock_t start, end, find_worker_free, convert_img;
+//    start = clock();
     // check parameters
     if (oSrcImg.empty()) {
         printf("source image is empty, please check\n");
@@ -169,7 +141,6 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
     oVecBBoxes.clear();
 
     int nBoxes = 0;
-#ifdef WINDOWS
     network stNet;
     stNet.n = 0;
 
@@ -186,20 +157,21 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
         if (stNet.n != 0) {
             break;
         }
+        usleep(5);
     }
+//    find_worker_free = clock();
 
-    // convert cv::Mat to Image
+    // convert cv::Mat  to Image
     cv::Mat oImg;
     cv::resize(oSrcImg, oImg, cv::Size(stNet.w, stNet.h));
     cv::cvtColor(oImg, oImg, CV_BGR2RGB);
-    image stImg = make_image(oImg.cols, oImg.rows, oImg.channels());
-    Mat2Image(oImg, stImg);
+//    image *stImg = new image(make_image(oImg.cols, oImg.rows, oImg.channels()));
+    Mat2Image(oImg, *stImg);
 
-    // resize image
-    image stImgResize = resize_image(stImg, stNet.w, stNet.h);
 
+//    convert_img = clock();
     // run inference in network
-    network_predict(stNet, stImgResize.data);
+    network_predict(stNet, stImg->data);
 
     // get detection results
     detection *pDetResults = get_network_boxes(&stNet, oSrcImg.cols, oSrcImg.rows,
@@ -208,51 +180,7 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
 
     // set used network unwork
     m_oVecNets[nIdx].SetFree();
-#endif
 
-#ifdef __linux__
-    network *pFreeNet = nullptr;
-
-    // select free network
-    int nIdx = 0;
-    while (true) {
-        for (; nIdx < max_pool_worker; ++nIdx) {
-            printf("Detect free worker");
-            if (m_oVecNets[nIdx].IsFree()) {
-                pFreeNet = m_oVecNets[nIdx].pNet;
-                break;
-            }
-        }
-
-        if (pFreeNet != nullptr) {
-            break;
-        }
-    }
-
-    // convert cv::Mat to Image
-    cv::Mat oImg;
-    printf("Net size w: %d, h: %d\n", pFreeNet->w, pFreeNet->h);
-    cv::resize(oSrcImg, oImg, cv::Size(pFreeNet->w, pFreeNet->h));
-    cv::cvtColor(oImg, oImg, CV_BGR2RGB);
-    image stImg = make_image(oImg.cols, oImg.rows, oImg.channels());
-    Mat2Image(oImg, stImg);
-
-    // resize image
-    image stImgResize = letterbox_image(stImg, pFreeNet->w, pFreeNet->h);
-
-    // run inference in network
-    float *pDatas = stImgResize.data;
-    network_predict_ptr(pFreeNet, pDatas);
-
-    // get detection results
-    detection *pDetResults = get_network_boxes(pFreeNet, oSrcImg.cols, oSrcImg.rows,
-        m_fThreshold, .5, 0, 1, &nBoxes,0);
-    layer     stLayer = pFreeNet->layers[pFreeNet->n - 1];
-    // printf("nBoxes %d\n", nBoxes);
-
-    // set used network unwork
-    m_oVecNets[nIdx].SetFree();
-#endif
 
     // nms
     int nClasses = stLayer.classes;
@@ -299,31 +227,28 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
 
     // release pointers and structures
     free_detections(pDetResults, nBoxes);
-    free_image(stImg);
-    free_image(stImgResize);
-
+//    free_image(*stImg);
+//    free_image(stImgResize);
+    /* Print Measure speed **
+    end = clock();
+    double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
+    double time_taken_find_worker_free = double(find_worker_free - start) / double(CLOCKS_PER_SEC);
+    double time_taken_convert_img = double(convert_img - find_worker_free) / double(CLOCKS_PER_SEC);
+    std::cout << "Time taken by program is : " << time_taken << " time_taken_find_worker_free: "
+         << time_taken_find_worker_free << " time_taken_convert_img: " <<time_taken_convert_img<< std::setprecision(5);
+    std::cout << " sec " << std::endl;
+    */
     return 1;
 }
 
 int CYOLO::Release() {
     // release networks
-#ifdef WINDOWS
     for (size_t nIdx = 0; nIdx < m_oVecNets.size(); ++nIdx) {
         free_network(m_oVecNets[nIdx].stNet);
         TqcOsDeleteMutex(m_oVecNets[nIdx].Mutex);
     }
-#endif
-
-#ifdef __linux__
-     for (size_t nIdx = 0; nIdx < m_oVecNets.size(); ++nIdx) {
-        if (m_oVecNets[nIdx].pNet != nullptr) {
-            free_network_ptr(m_oVecNets[nIdx].pNet);
-            m_oVecNets[nIdx].pNet = nullptr;
-            TqcOsDeleteMutex(m_oVecNets[nIdx].Mutex);
-        }
-    }
-#endif
-
+    free_image(*stImg);
+    delete stImg;
     return 1;
 }
 
