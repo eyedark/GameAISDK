@@ -493,7 +493,7 @@ int AnalyzeTmplPath(const int nTaskID, const std::vector<tagTmpl> &oVecSrcTmpls,
 int AnalyzeFileName(const int nTaskID, const std::string &strFileName,
     std::string &strTmplName, int &nClassID) {
     // find _ in file name
-    size_t nLoc = strFileName.find("_");
+    std::size_t nLoc = strFileName.find("_");
 
     if (-1 == nLoc) {
         strTmplName = strFileName;

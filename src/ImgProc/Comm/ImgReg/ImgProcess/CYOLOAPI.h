@@ -127,7 +127,6 @@ class CYOLOAPIParam {
     std::string m_strWeightPath;
     std::string m_strNamePath;
     std::string m_strMaskPath;
-
 };
 
 // **************************************************************************************

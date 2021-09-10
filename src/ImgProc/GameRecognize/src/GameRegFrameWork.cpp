@@ -180,7 +180,7 @@ void CGameRegFrameWork::manageTask(int netRet, tagFrameResult &stFrameResult, st
 
     // 任务管理模块更新
     int updateRet = UpdateTask(stSrcImageInfo, oVecTaskMsg, &stFrameResult, eSendTaskReportToMC);
-    for (size_t idx = 0; idx < oVecTaskMsg.size(); ++idx) {
+    for (std::size_t idx = 0; idx < oVecTaskMsg.size(); ++idx) {
         oVecTaskMsg[idx].Release();
     }
 
@@ -193,7 +193,7 @@ void CGameRegFrameWork::manageTask(int netRet, tagFrameResult &stFrameResult, st
 void CGameRegFrameWork::releaseResource(tagFrameResult &stFrameResult, std::vector<CTaskMessage> oVecTaskMsg) {
     stFrameResult.Release();
 
-    for (size_t idx = 0; idx < oVecTaskMsg.size(); ++idx) {
+    for (std::size_t idx = 0; idx < oVecTaskMsg.size(); ++idx) {
         oVecTaskMsg[idx].Release();
     }
 }

@@ -41,8 +41,8 @@ T*TSingleton<T>::getInstance() {
     std::shared_ptr<T> &rInstance = instance();
 
     // Double-checked
-    if (NULL == rInstance.get()) {
-        if (NULL == rInstance.get()) {
+    if (nullptr == rInstance.get()) {
+        if (nullptr == rInstance.get()) {
             // 不使用instance().reset(new T),防止在编译器优化的情况下
             // 出现先将智能指针赋值，再进行构造
             std::shared_ptr<T> _au(new T);

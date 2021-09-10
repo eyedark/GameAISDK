@@ -5,6 +5,7 @@ from collections import deque
 import gym
 from gym import spaces
 import cv2
+from numpy.core.fromnumeric import shape
 
 
 class NoopResetEnv(gym.Wrapper):
@@ -194,6 +195,7 @@ class FrameStack(gym.Wrapper):
         self.k = k
         self.frames = deque([], maxlen=k)
         shp = env.observation_space.shape
+        self.shape = shp
         self.observation_space = spaces.Box(low=0, high=255, shape=(shp[:-1] + (shp[-1] * k,)), dtype=env.observation_space.dtype)
 
     def reset(self):
@@ -209,7 +211,8 @@ class FrameStack(gym.Wrapper):
 
     def _get_ob(self):
         assert len(self.frames) == self.k
-        return LazyFrames(list(self.frames))
+        return LazyFrames(list(self.frames),self.shape)
+    
 
 class ScaledFloatFrame(gym.ObservationWrapper):
     def __init__(self, env):
@@ -222,7 +225,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         return np.array(observation).astype(np.float32) / 255.0
 
 class LazyFrames(object):
-    def __init__(self, frames):
+    def __init__(self, frames,shape):
         """This object ensures that common frames between the observations are only stored once.
         It exists purely to optimize memory usage which can be huge for DQN's 1M frames replay
         buffers.
@@ -230,6 +233,7 @@ class LazyFrames(object):
         You'd not believe how complex the previous solution was."""
         self._frames = frames
         self._out = None
+        self.shape = shape
 
     def _force(self):
         if self._out is None:

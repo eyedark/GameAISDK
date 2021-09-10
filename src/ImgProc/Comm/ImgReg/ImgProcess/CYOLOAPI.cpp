@@ -89,7 +89,7 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
     }
 
     // initialize networks
-    for (int i = 0; i < max_pool_worker; i++) {
+    for (int i = 0; i < g_nMaxResultSize; i++) {
         tagYoloNetWork stYoloNetWork;
 
         stYoloNetWork.Mutex = TqcOsCreateMutex();
@@ -147,7 +147,7 @@ int CYOLO::Predict(const cv::Mat &oSrcImg, std::vector<tagBBox> &oVecBBoxes) {
     // select free network
     int nIdx = 0;
     while (true) {
-        for (; nIdx < max_pool_worker; ++nIdx) {
+        for (; nIdx < g_nMaxResultSize; ++nIdx) {
             if (m_oVecNets[nIdx].IsFree()) {
                 stNet = m_oVecNets[nIdx].stNet;
                 break;
