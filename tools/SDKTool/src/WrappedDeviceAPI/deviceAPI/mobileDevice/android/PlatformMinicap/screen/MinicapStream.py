@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys
 try:
   import Queue
 except ImportError:
@@ -19,6 +19,7 @@ import math
 import logging
 import cv2
 import numpy as np
+from pathlib import Path
 
 from APIDefine import *
 
@@ -32,6 +33,7 @@ DECODE_LOOP_SLEEP_TIME = 1./DECODE_LOOP_RATE
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 MINICAP_BASE_DIR = __dir__ + '/../vendor/minicap/'
+VECTOR_ISSUS_DEVICES=['android-xiaomi']
 
 # self.__logger = logging.getLogger('deviceapi')
 
@@ -81,15 +83,28 @@ class MinicapStream(object):
             self.logger.info("Retrive device information ...")
             abi = self.raw_cmd('shell', 'getprop', 'ro.product.cpu.abi').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
             sdk = self.raw_cmd('shell', 'getprop', 'ro.build.version.sdk').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
-    
-            # push minicap so file
-            target_path = MINICAP_BASE_DIR + "jni/minicap-shared/aosp/libs/android-" \
+            vendor_manufacturer = self.raw_cmd('shell', 'getprop', 'ro.com.google.clientidbase').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
+            if int(sdk) >=29:
+                # permission for minitouch
+                self.open_stf_services()
+            if vendor_manufacturer == 'android-xiaomi':
+                target_path = MINICAP_BASE_DIR + "jni/Xiaomi_Vector_issue/Xiaomi/android-" \
+                          + sdk + "/" + abi + "/minicap.so"
+            else:
+                # push minicap so file
+                target_path = MINICAP_BASE_DIR + "jni/minicap-shared/aosp/libs/android-" \
                           + sdk + "/" + abi + "/minicap.so"
             self.logger.info("Push minicap.so to device ....")
+            miniscap_so_file = Path(target_path)
+            if not miniscap_so_file.is_file():
+                raise "minicap.so file not found on host please build and put to {}".format(target_path)
             self.raw_cmd('push', target_path, '/data/local/tmp').communicate()
     
             # push minicap shell file
-            target_path = MINICAP_BASE_DIR + "libs/" + abi + "/minicap"
+            if vendor_manufacturer == 'android-xiaomi':
+                target_path = MINICAP_BASE_DIR + "libs32/" + abi + "/minicap"
+            else:
+                target_path = MINICAP_BASE_DIR + "libs/" + abi + "/minicap"
             self.logger.info("Push minicap to device ....")
             self.raw_cmd('push', target_path, '/data/local/tmp').communicate()
             # self.raw_cmd('shell', 'chmod', '0755', '/data/local/tmp/minicap')
@@ -390,3 +405,81 @@ class MinicapStream(object):
 
     def GetCaptureResolution(self):
         return self.__captureHeight, self.__captureWidth
+
+    __stf_services_process = None
+
+    def open_stf_services(self):
+        package_name = 'jp.co.cyberagent.stf'
+        out = self.raw_cmd('shell', 'pm', 'list', 'packages', stdout=subprocess.PIPE).communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
+        if package_name not in out:
+            apkpath = os.path.join(__dir__, '..', 'vendor', 'stf_services.apk')
+            self.logger.info('install stf_services... {0}'.format(apkpath))
+            ret = self.raw_cmd('install', '-r', '-t', apkpath).communicate()
+            successflag = ret[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
+            if successflag.startswith('Success') is False:
+                self.logger.error('install stf_services failed.')
+                raise Exception("install stf_services failed")
+
+        if self.__stf_services_process is not None:
+            self.__stf_services_process.kill()
+
+        tmpdir = tempfile.mkdtemp()
+        filename = os.path.join(tmpdir, 'myfifo')
+        f1 = open(filename, 'w')
+        f2 = open(filename, 'r')
+
+        out = self.raw_cmd('shell', 'pm', 'path', package_name, stdout=subprocess.PIPE).communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
+        path = out.strip().split(':')[-1]
+        p = self.raw_cmd('shell',
+            'CLASSPATH="%s"' % path, 
+            'app_process',
+            '/system/bin',
+            'jp.co.cyberagent.stf.Agent', 
+            stdout=f1)
+        self.__stf_services_process = p
+        if p.poll() is not None:
+            self.logger.error('stf_services stopped')
+            raise Exception("stf_services stopped")
+        # queue = Queue.Queue()
+
+        # def _pull():
+        #     while True:
+        #         time.sleep(0.05)
+        #         line = f2.readline().strip()
+        #         if not line:
+        #             if p.poll() is not None:
+        #                 self.logger.error('stf_services stopped')
+        #                 break
+        #             continue
+        #         queue.put(line)
+
+        # t = threading.Thread(target=_pull)
+        # t.setDaemon(True)
+        # t.start()
+
+        # def listener(value):
+        #     try:
+        #         self.__rotation = int(value)/90
+        #     except:
+        #         return
+        #     if callable(on_rotation_change):
+        #         on_rotation_change(self.__rotation)
+
+        # def _listen():
+        #     while True:
+        #         try:
+        #             time.sleep(0.05)
+        #             line = queue.get_nowait()
+        #             listener(line)
+        #         except Queue.Empty:
+        #             if p.poll() is not None:
+        #                 self.logger.error('stf_services stopped')
+        #                 break
+        #             continue
+        #         except:
+        #             self.logger.error('stf_services stopped')
+        #             traceback.print_exc()
+
+        # t = threading.Thread(target=_listen)
+        # t.setDaemon(True)
+        # t.start()
