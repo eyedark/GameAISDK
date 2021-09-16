@@ -1111,3 +1111,5 @@ tools/SDKTool/src/WrappedDeviceAPI/deviceAPI/mobileDevice/android/PlatformMinica
 tools/SDKTool/src/WrappedDeviceAPI/deviceAPI/mobileDevice/android/PlatformMinicap/adb/Linux/adb
 *.avi
 *.tar.gz
+tools/SDKTool/src/WrappedDeviceAPI/deviceAPI/mobileDevice/android/PlatformMinicap/vendor/minicap/libs*
+tools/SDKTool/src/WrappedDeviceAPI/deviceAPI/mobileDevice/android/PlatformMinicap/vendor/minitouch/libs/*
