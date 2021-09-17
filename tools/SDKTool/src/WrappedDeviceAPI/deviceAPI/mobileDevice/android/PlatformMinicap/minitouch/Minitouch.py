@@ -6,6 +6,7 @@ Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
 """
 
 import os
+from platform import node
 import queue
 import re
 import socket
@@ -17,6 +18,7 @@ import shutil
 import tempfile
 # from WrappedDeviceAPI.devicePlatform.IPlatformProxy import IPlatformProxy, DeviceInfo
 from PlatformMinicap.screen.ScreenMinicap import ScreenMinicap
+__dir__ = os.path.dirname(os.path.abspath(__file__))
 
 from APIDefine import *
 # from .MinitouchInstall import *
@@ -36,6 +38,8 @@ class MinitouchAction():
         self.rotation = 0
         self.__configOri = UI_SCREEN_ORI_LANDSCAPE
         self.__currentScreenFrame = None
+        self.__pid_on_device = None
+        self.__stf_services_process = None
         
     def init(self, serial=None, device=None, width=None, height=None, showscreen=True, minitouchPort=None):
         self.__minitouchPort = minitouchPort
@@ -160,7 +164,11 @@ class MinitouchAction():
     def _OpenMinitouchStream(self):
         if self.__touch_queue is None:
             self.__touch_queue = queue.Queue()
-
+        
+        sdk = self.raw_cmd('shell', 'getprop', 'ro.build.version.sdk').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
+        if int(sdk) >= 29:
+            self.open_stf_services()
+            time.sleep(2)
         # ensure minicap installed
         self.__InstallMinitouch()
 
@@ -175,6 +183,7 @@ class MinitouchAction():
         if len(out) > 1:
             idx = out[0].split().index('PID')
             pid = out[1].split()[idx]
+            self.__pid_on_device = pid
             self.raw_cmd('shell', 'kill', '-9', pid).wait()
         else:
             out = self.raw_cmd('shell', 'ps', '-C', 'minitouch',
@@ -183,6 +192,7 @@ class MinitouchAction():
             if len(out) > 1:
                 idx = out[0].split().index('PID')
                 pid = out[1].split()[idx]
+                self.__pid_on_device = pid
                 self.raw_cmd('shell', 'kill', '-9', pid).wait()
 
         self.__minitouch_process = self.raw_cmd('shell', '/data/local/tmp/minitouch')
@@ -191,7 +201,7 @@ class MinitouchAction():
         time.sleep(1)
 
         if self.__minitouch_process.poll() is not None:
-            print('start minitouch failed.')
+            print('start minitouch failed. '+ out)
             return
 
         # adb forward to tcp port
@@ -302,4 +312,87 @@ class MinitouchAction():
             ny = py * self.__deviceWidthScale
         return int(nx), int(ny)
 
+    def closeMinitouch(self):
+        self.__socket.close()
+        if self.__minitouchPort is not None:
+            self.raw_cmd('forward', '--remove', 'tcp:%s' % self.__minitouchPort).wait()
+        if self.__pid_on_device is not None:
+            self.raw_cmd('shell', 'kill', '-9', self.__pid_on_device).wait()
+        if self.__minitouch_process is not None:
+            self.__minitouch_process.kill() 
 
+    def open_stf_services(self):
+        package_name = 'jp.co.cyberagent.stf'
+        out = self.raw_cmd('shell', 'pm', 'list', 'packages', stdout=subprocess.PIPE).communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
+        if package_name not in out:
+            apkpath = os.path.join(__dir__, '..', 'vendor', 'stf_services.apk')
+            self.logger.info('install stf_services... {0}'.format(apkpath))
+            ret = self.raw_cmd('install', '-r', '-t', apkpath).communicate()
+            successflag = ret[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
+            if successflag.startswith('Success') is False:
+                self.logger.error('install stf_services failed.')
+                raise Exception("install stf_services failed")
+
+        if self.__stf_services_process is not None:
+            self.__stf_services_process.kill()
+
+        tmpdir = tempfile.mkdtemp()
+        filename = os.path.join(tmpdir, 'myfifo')
+        f1 = open(filename, 'w')
+        f2 = open(filename, 'r')
+
+        out = self.raw_cmd('shell', 'pm', 'path', package_name, stdout=subprocess.PIPE).communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
+        path = out.strip().split(':')[-1]
+        p = self.raw_cmd('shell',
+            'CLASSPATH="%s"' % path, 
+            'app_process',
+            '/system/bin',
+            'jp.co.cyberagent.stf.Agent', 
+            stdout=f1)
+        self.__stf_services_process = p
+        if p.poll() is not None:
+            self.logger.error('stf_services stopped')
+            raise Exception("stf_services stopped")
+        # queue = Queue.Queue()
+
+        # def _pull():
+        #     while True:
+        #         time.sleep(0.05)
+        #         line = f2.readline().strip()
+        #         if not line:
+        #             if p.poll() is not None:
+        #                 self.logger.error('stf_services stopped')
+        #                 break
+        #             continue
+        #         queue.put(line)
+
+        # t = threading.Thread(target=_pull)
+        # t.setDaemon(True)
+        # t.start()
+
+        # def listener(value):
+        #     try:
+        #         self.__rotation = int(value)/90
+        #     except:
+        #         return
+        #     if callable(on_rotation_change):
+        #         on_rotation_change(self.__rotation)
+
+        # def _listen():
+        #     while True:
+        #         try:
+        #             time.sleep(0.05)
+        #             line = queue.get_nowait()
+        #             listener(line)
+        #         except Queue.Empty:
+        #             if p.poll() is not None:
+        #                 self.logger.error('stf_services stopped')
+        #                 break
+        #             continue
+        #         except:
+        #             self.logger.error('stf_services stopped')
+        #             traceback.print_exc()
+
+        # t = threading.Thread(target=_listen)
+        # t.setDaemon(True)
+        # t.start()

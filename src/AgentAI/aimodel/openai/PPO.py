@@ -2,7 +2,7 @@ import os
 import time
 import gym
 import json
-
+import torch
 from stable_baselines3 import PPO
 
 import numpy as np
@@ -12,7 +12,15 @@ from util import util
 from aimodel.AIModel import AIModel
 from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
 from .retro_wrappers import StochasticFrameSkip,RewardScaler
-from .atari_wrappers import WarpFrame, FrameStack
+import torch as th
+from torch import nn
+
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor,NatureCNN
+from stable_baselines3.common.type_aliases import TensorDict
+from stable_baselines3.common.preprocessing import get_flattened_obs_dim, is_image_space
+from gym.wrappers.frame_stack import FrameStack
+from gym.wrappers import FilterObservation, FlattenObservation
+from stable_baselines3.common.torch_layers import FlattenExtractor,CombinedExtractor
 
 LEARN_CFG_FILE = 'cfg/task/agent/OpenAIPPOLearning.json'
 class PPOModel(AIModel):
@@ -53,13 +61,21 @@ class PPOModel(AIModel):
         #     env = WarpFrame(env,width=self.getArgs()['input_img_width'],height=self.getArgs()['input_img_height']) #,grayscale=False
         stack = 4
         if stack:
+            env = FlattenObservation(FilterObservation(env,agentEnv.observation_space.spaces.keys()))
             env = FrameStack(env, stack)
         
         self.agentEnv = env
         self.actionSpace = self.agentEnv.GetActionSpace()
 
-        self.aiModel = PPO("MlpPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv ,ent_coef=0.003)
+        policy_kwargs = dict(activation_fn=th.nn.ReLU,
+                     net_arch=[dict(pi=[256, 128,256], vf=[256, 128,256])],
+            features_extractor_class=FlattenExtractor,
+            features_extractor_kwargs=dict()
+        )
+
+        self.aiModel = PPO("CnnPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv ,ent_coef=0.0003, policy_kwargs=policy_kwargs)
         return True
+
 
     def Finish(self):
         """
@@ -220,7 +236,7 @@ class PPOModel(AIModel):
         #find last file data train
         
         if lastTrainFile != None:
-            self.aiModel.load(lastTrainFile)
+            self.aiModel = PPO.load(lastTrainFile,self.agentEnv)        
         self.aiModel.learn(total_timesteps=10000000, callback=hookCallback)
         
     def setMSGID(self,msgid):
@@ -233,3 +249,45 @@ class PPOModel(AIModel):
 # env = make_vec_env("CartPole-v1", n_envs=4)   
 
 # model = PPO("MlpPolicy", env, verbose=1)
+
+
+
+class CustomCombinedExtractor(BaseFeaturesExtractor):
+    """
+    Combined feature extractor for Dict observation spaces.
+    Builds a feature extractor for each key of the space. Input from each space
+    is fed through a separate submodule (CNN or MLP, depending on input shape),
+    the output features are concatenated and fed through additional MLP network ("combined").
+
+    :param observation_space:
+    :param cnn_output_dim: Number of features to output from each CNN submodule(s). Defaults to
+        256 to avoid exploding network sizes.
+    """
+
+    def __init__(self, observation_space: gym.spaces.Dict, cnn_output_dim: int = 257):
+        # TODO we do not know features-dim here before going over all the items, so put something there. This is dirty!
+        super(CustomCombinedExtractor, self).__init__(observation_space, features_dim=1)
+
+        extractors = {}
+
+        total_concat_size = 0
+        for key, subspace in observation_space.spaces.items():
+            if key == "image":
+                extractors[key] = NatureCNN(subspace, features_dim=cnn_output_dim)
+                total_concat_size += cnn_output_dim
+            else:
+                # The observation key is a vector, flatten it if needed
+                extractors[key] = nn.Flatten()
+                total_concat_size += get_flattened_obs_dim(subspace)
+
+        self.extractors = nn.ModuleDict(extractors)
+
+        # Update the features dim manually
+        self._features_dim = total_concat_size
+
+    def forward(self, observations: TensorDict) -> th.Tensor:
+        encoded_tensor_list = []
+
+        for key, extractor in self.extractors.items():
+            encoded_tensor_list.append(extractor(observations[key]))
+        return th.cat(encoded_tensor_list, dim=1)

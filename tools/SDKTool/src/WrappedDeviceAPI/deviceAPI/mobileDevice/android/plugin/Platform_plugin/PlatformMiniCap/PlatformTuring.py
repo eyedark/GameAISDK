@@ -2,7 +2,9 @@ from devicePlatform.IPlatformProxy import *
 from PlatformMinicap.minitouch.Minitouch import MinitouchAction
 from PlatformMinicap.screen.ScreenMinicap import ScreenMinicap
 from PlatformMinicap.adbkit.ADBClient import ADBClient
+import cv2
 from APIDefine import *
+
 
 class PlatformTuring(IPlatformProxy):
     def __init__(self):
@@ -17,10 +19,11 @@ class PlatformTuring(IPlatformProxy):
         self.__convertRate = 1.
         self.__height = -1
         self.__width = -1
+        self.__orientation = 0
 
     def init(self, serial=None, is_portrait=True, long_edge=720, **kwargs):
         if serial is None:
-            self.__logger = logging.getLogger(LOG_DEFAULT)
+            self.__logger = logging.getLogger("MinicapPlatform")
         else:
             self.__logger = logging.getLogger(serial)
         adb = ADBClient()
@@ -61,18 +64,38 @@ class PlatformTuring(IPlatformProxy):
         return True, str()
     
     def deinit(self):
+        self.__minicap.closeMinicapStream()
+        self.__minitouch.closeMinitouch()
         return True
     
     def get_image(self):
-        ScreenImg = self.__minicap.GetScreen()
-        return PP_RET_OK, ScreenImg
+        image = self.__minicap.GetScreen()
+        self.__orientation = self.__minicap.GetRotation()
+        if image is None:
+            return PP_RET_ERR, None
+        else:
+            # return image as real orientation
+            if self.__orientation  == 0:
+                return 0, image
+            elif self.__orientation == 1:
+                return 0, cv2.flip(cv2.transpose(image), 0)
+            elif self.__orientation == 2:
+                # FIXME
+                return 0, cv2.flip(cv2.transpose(image), 0)
+            elif self.__orientation == 3:
+                return 0, cv2.flip(cv2.transpose(image), 1)
+        return PP_RET_OK, image
 
     def touch_up(self, contact=0):
         self.__minitouch.touch_up(contact=contact)
         self.__logger.info('touch up, contact:{}'.format(contact))
 
     def touch_down(self, px, py, contact=0, pressure=50):
-        self.__minitouch.touch_down(px=px, py=py, contact=contact, pressure=pressure)
+        # _x, _y = self.__trans_xy(px, py)
+        if self.__orientation == 0:
+            self.__minitouch.touch_down(px=px, py=py, contact=contact, pressure=pressure)
+        else:
+            self.__minitouch.touch_down(px=py, py=px, contact=contact, pressure=pressure)
         self.__logger.info('touch down, x:{}, y:{}, contact:{}'.format(px, py, contact))
 
     def touch_move(self, px, py, contact=0, pressure=50):
@@ -198,3 +221,40 @@ class PlatformTuring(IPlatformProxy):
             return defaultValue
         else:
             return kwargs[key]
+    
+    def __trans_xy2(self, x, y):
+        if self.__game_width > self.__game_height:
+            nx, ny = self.__game_height - y, x
+            return int(self.__game_height), int(self.__game_width), int(nx), int(ny)
+        else:
+            nx, ny = x, y
+            return int(self.__game_width), int(self.__game_height), int(nx), int(ny)
+
+    def __trans_xy(self, x, y):
+
+       
+        # if get orientation failed, rotation with game_width/game_height
+
+        if self.__orientation == 0:
+            nx, ny = x, y
+        elif self.__orientation  == 1:   # counter-clockwise 90
+            # nx, ny = self.__game_height - y, x
+            nx, ny = self.__width - y, x
+        elif self.__orientation  == 2:
+            nx, ny = self._width - y, x
+        elif self.__orientation  == 3:  # clockwise 90
+            nx, ny = y, self.__width - x
+        else:
+            nx, ny = x, y
+
+        # _x, _y = int(nx / self.__scale), int(ny / self.__scale)
+        # print("game size", self.__game_height, self.__game_width)
+        if self.__width > self.__height:
+            _touch_scale_x = nx / self.__height
+            _touch_scale_y = ny / self.__width
+        else:
+            _touch_scale_x = nx / self.__width
+            _touch_scale_y = ny / self.__height
+        _x = int(self.__deviceInfo.touch_width * _touch_scale_x)
+        _y = int(self.__deviceInfo.touch_height * _touch_scale_y)
+        return _x, _y

@@ -35,7 +35,6 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 MINICAP_BASE_DIR = __dir__ + '/../vendor/minicap/'
 VECTOR_ISSUS_DEVICES=['android-xiaomi']
 
-# self.__logger = logging.getLogger('deviceapi')
 
 def str2img(jpgstr, orientation=None):
     arr = np.fromstring(jpgstr, np.uint8)
@@ -49,9 +48,12 @@ def str2img(jpgstr, orientation=None):
 class MinicapStream(object):
     def __init__(self, device=None, isShow=False, serial=None):
         if serial is None:
-            self.logger = logging.getLogger(LOG_DEFAULT)
+            self.logger = logging.getLogger("MinicapStream")
+            self.logger.setLevel(logging.WARNING)
         else:
             self.logger = logging.getLogger(serial)
+            self.logger.setLevel(logging.WARNING)
+            
         self.__dev = device
         self.__isShow = isShow
         self.__screen = None
@@ -63,8 +65,11 @@ class MinicapStream(object):
         self.__captureWidth = -1
         self.__captureHeight = -1
         self.__orient = SCREEN_ORI_PORTRAIT
+        self.__stf_services_process = None
+        self.__port = None
         # ensure minicap installed
         self.__InstallMinicap()
+        
 
     def __InstallMinicap(self):
         # if self.__dev is None:
@@ -84,9 +89,6 @@ class MinicapStream(object):
             abi = self.raw_cmd('shell', 'getprop', 'ro.product.cpu.abi').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
             sdk = self.raw_cmd('shell', 'getprop', 'ro.build.version.sdk').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
             vendor_manufacturer = self.raw_cmd('shell', 'getprop', 'ro.com.google.clientidbase').communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n').strip()
-            if int(sdk) >=29:
-                # permission for minitouch
-                self.open_stf_services()
             if vendor_manufacturer == 'android-xiaomi':
                 target_path = MINICAP_BASE_DIR + "jni/Xiaomi_Vector_issue/Xiaomi/android-" \
                           + sdk + "/" + abi + "/minicap.so"
@@ -101,10 +103,7 @@ class MinicapStream(object):
             self.raw_cmd('push', target_path, '/data/local/tmp').communicate()
     
             # push minicap shell file
-            if vendor_manufacturer == 'android-xiaomi':
-                target_path = MINICAP_BASE_DIR + "libs32/" + abi + "/minicap"
-            else:
-                target_path = MINICAP_BASE_DIR + "libs/" + abi + "/minicap"
+            target_path = MINICAP_BASE_DIR + "libs/" + abi + "/minicap"
             self.logger.info("Push minicap to device ....")
             self.raw_cmd('push', target_path, '/data/local/tmp').communicate()
             # self.raw_cmd('shell', 'chmod', '0755', '/data/local/tmp/minicap')
@@ -231,6 +230,7 @@ class MinicapStream(object):
 
         # adb forward to tcp port
         self.raw_cmd('forward', 'tcp:%s' % port, 'localabstract:minicap').wait()
+        self.__port = port
         self.logger.info('OpenMinicapStream')
         # data recv buffer
         recvQueue = Queue.Queue()
@@ -276,6 +276,7 @@ class MinicapStream(object):
                             headerTrunks.append(buf)
                             headerRecvdSize += bufSize
                     headerBuf = b''.join(headerTrunks)
+                    
 
                     # Parse the header
                     bodySize = struct.unpack("<I", headerBuf)[0]
@@ -406,80 +407,10 @@ class MinicapStream(object):
     def GetCaptureResolution(self):
         return self.__captureHeight, self.__captureWidth
 
-    __stf_services_process = None
 
-    def open_stf_services(self):
-        package_name = 'jp.co.cyberagent.stf'
-        out = self.raw_cmd('shell', 'pm', 'list', 'packages', stdout=subprocess.PIPE).communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
-        if package_name not in out:
-            apkpath = os.path.join(__dir__, '..', 'vendor', 'stf_services.apk')
-            self.logger.info('install stf_services... {0}'.format(apkpath))
-            ret = self.raw_cmd('install', '-r', '-t', apkpath).communicate()
-            successflag = ret[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
-            if successflag.startswith('Success') is False:
-                self.logger.error('install stf_services failed.')
-                raise Exception("install stf_services failed")
-
-        if self.__stf_services_process is not None:
-            self.__stf_services_process.kill()
-
-        tmpdir = tempfile.mkdtemp()
-        filename = os.path.join(tmpdir, 'myfifo')
-        f1 = open(filename, 'w')
-        f2 = open(filename, 'r')
-
-        out = self.raw_cmd('shell', 'pm', 'path', package_name, stdout=subprocess.PIPE).communicate()[0].decode('utf-8', 'ignore').replace('\r\n', '\n')
-        path = out.strip().split(':')[-1]
-        p = self.raw_cmd('shell',
-            'CLASSPATH="%s"' % path, 
-            'app_process',
-            '/system/bin',
-            'jp.co.cyberagent.stf.Agent', 
-            stdout=f1)
-        self.__stf_services_process = p
-        if p.poll() is not None:
-            self.logger.error('stf_services stopped')
-            raise Exception("stf_services stopped")
-        # queue = Queue.Queue()
-
-        # def _pull():
-        #     while True:
-        #         time.sleep(0.05)
-        #         line = f2.readline().strip()
-        #         if not line:
-        #             if p.poll() is not None:
-        #                 self.logger.error('stf_services stopped')
-        #                 break
-        #             continue
-        #         queue.put(line)
-
-        # t = threading.Thread(target=_pull)
-        # t.setDaemon(True)
-        # t.start()
-
-        # def listener(value):
-        #     try:
-        #         self.__rotation = int(value)/90
-        #     except:
-        #         return
-        #     if callable(on_rotation_change):
-        #         on_rotation_change(self.__rotation)
-
-        # def _listen():
-        #     while True:
-        #         try:
-        #             time.sleep(0.05)
-        #             line = queue.get_nowait()
-        #             listener(line)
-        #         except Queue.Empty:
-        #             if p.poll() is not None:
-        #                 self.logger.error('stf_services stopped')
-        #                 break
-        #             continue
-        #         except:
-        #             self.logger.error('stf_services stopped')
-        #             traceback.print_exc()
-
-        # t = threading.Thread(target=_listen)
-        # t.setDaemon(True)
-        # t.start()
+    def closeMinicapStream(self):
+        if self.__port is not None:
+            self.raw_cmd('forward', '--remove', 'tcp:%s' % self.__port).wait()
+        if self.__minicap_process is not None:
+            self.__minicap_process.kill()
+        # if self.__watcher_process u

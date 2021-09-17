@@ -75,7 +75,7 @@ class MsgHandler(object):
             # Call message handler function
             handleFunc = self.__msgDict.get(msg.eMsgID)
             if handleFunc is not None:
-                LOG.warning('MsgID[{0}], addr:{1}, handle function{2}'.format(msg.eMsgID, addr, handleFunc))
+                # LOG.warning('MsgID[{0}], addr:{1}, handle function{2}'.format(msg.eMsgID, addr, handleFunc))
                 handleFunc(msg, addr)
             else:
                 LOG.warning('Unhandled MsgID[{0}]'.format(msg.eMsgID))

@@ -9,9 +9,9 @@ import cv2
 import time
 import os, sys
 from .MinicapStream import MinicapStream
-# from .RotationWatcher import RotationWatcher
+from .RotationWatcher import RotationWatcher
 
-class ScreenMinicap(MinicapStream):
+class ScreenMinicap(MinicapStream,RotationWatcher):
     def __init__(self, device=None, isShow=False, serial=None):
         super(self.__class__, self).__init__(device, isShow, serial)
 
@@ -19,9 +19,9 @@ class ScreenMinicap(MinicapStream):
         # self.__InstallMinicap()
         self.InitVMSize(capHeight, capWidth)
         #ignore becauce new minicap has rotation properties
-        # self.open_rotation_watcher(on_rotation_change=lambda v: self.OpenMinicapStream(capHeight, capWidth, minicapPort))
+        self.open_rotation_watcher(on_rotation_change=lambda v: self.OpenMinicapStream(capHeight, capWidth, minicapPort))
 
-        self.OpenMinicapStream(capHeight, capWidth,minicapPort)
+        # self.OpenMinicapStream(capHeight, capWidth,minicapPort)
         return True
 
 if __name__ == '__main__':

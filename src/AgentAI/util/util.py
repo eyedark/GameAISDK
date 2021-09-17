@@ -31,6 +31,7 @@ def get_configure(file_path):
 
 
 def get_button_state(result_dict, task_id):
+    #fixed object
     state = False
     px = -1
     py = -1

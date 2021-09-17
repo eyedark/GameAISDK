@@ -87,7 +87,7 @@ class PlatformWrapper(object):
             self.__logger.error('get platform class failed')
             return False, "get platform class failed"
 
-        self.__logger.info('get platform class succeed')
+        self.__logger.info('get platform class succeed, clound screen')
 
         ret, err_info = self.__platformInstance.init(serial, True, long_edge, **kwargs)
         if not ret:

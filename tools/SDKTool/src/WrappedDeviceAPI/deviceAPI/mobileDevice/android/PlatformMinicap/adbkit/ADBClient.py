@@ -32,26 +32,25 @@ class ADBClient(object):
     @classmethod
     def adb_path(cls):
         """return adb binary full path"""
-        # if cls.__adb_cmd is None:
-        #     if "ANDROID_HOME" in os.environ:
-        #         filename = "adb"
-        #         adb_dir = os.path.join(os.environ["ANDROID_HOME"], "platform-tools")
-        #         adb_cmd = os.path.join(adb_dir, filename)
-        #         if not os.path.exists(adb_cmd):
-        #             raise EnvironmentError(
-        #                 "Adb not found in $ANDROID_HOME/platform-tools path: %s." % adb_dir)
-        #     else:
-        #         import distutils
-        #         if "spawn" not in dir(distutils):
-        #             import distutils.spawn
-        #         adb_cmd = distutils.spawn.find_executable("adb")
-        #         if adb_cmd:
-        #             adb_cmd = os.path.realpath(adb_cmd)
-        #         else:
-        #             raise EnvironmentError("$ANDROID_HOME environment not set.")
-        #     cls.__adb_cmd = adb_cmd
-        # __dir__ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        cls.__adb_cmd = ADB_CMD
+        if cls.__adb_cmd is None:
+            if "ANDROID_SDK_ROOT" in os.environ:
+                filename = "adb"
+                adb_dir = os.path.join(os.environ["ANDROID_SDK_ROOT"], "platform-tools")
+                adb_cmd = os.path.join(adb_dir, filename)
+                if not os.path.exists(adb_cmd):
+                    raise EnvironmentError(
+                        "Adb not found in $ANDROID_SDK_ROOT/platform-tools path: %s." % adb_dir)
+            else:
+                import distutils
+                if "spawn" not in dir(distutils):
+                    import distutils.spawn
+                adb_cmd = distutils.spawn.find_executable("adb")
+                if adb_cmd:
+                    adb_cmd = os.path.realpath(adb_cmd)
+                else:
+                    raise EnvironmentError("$ANDROID_SDK_ROOT environment not set.")
+            cls.__adb_cmd = adb_cmd
+        __dir__ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return cls.__adb_cmd
 
     @property    
@@ -99,7 +98,7 @@ class ADBClient(object):
     def get_serial(self):
         devices = self.devices()
         if devices:
-            if len(devices) is 1:
+            if len(devices) == 1:
                 serial = list(devices.keys())[0]
             else:
                 raise EnvironmentError("Multiple devices attached but default android serial not set.")
@@ -116,7 +115,7 @@ class ADBClient(object):
         devices = self.devices()
         if not serial:
             if devices:
-                if len(devices) is 1:
+                if len(devices) == 1:
                     serial = list(devices.keys())[0]
                 else:
                     raise EnvironmentError("Multiple devices attached but default android serial not set.")

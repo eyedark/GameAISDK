@@ -22,29 +22,29 @@ exceptionQueue = queue.Queue()
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-WINDOWS_ADB = __dir__ + '/platformdefult/adb/Windows/adb'
-LINUX_ADB = __dir__ + '/platformdefult/adb/Linux/adb'
+# WINDOWS_ADB = __dir__ + '/PlatformMinicap/adb/Windows/adb'
+# LINUX_ADB = __dir__ + '/mobileDevice/android/PlatformMinicap/adb/Linux/adb'
 
-ADB_CMD = LINUX_ADB
+# ADB_CMD = LINUX_ADB
 
-if platform.system() == 'Linux':
-    os.system('chmod +x ' + LINUX_ADB)
-elif platform.system() == 'Windows':
-    ADB_CMD = WINDOWS_ADB
+# if platform.system() == 'Linux':
+#     os.system('chmod +x ' + LINUX_ADB)
+# elif platform.system() == 'Windows':
+#     ADB_CMD = WINDOWS_ADB
 
-if "ANDROID_HOME" in os.environ:
-    filename = "adb"
-    adb_dir = os.path.join(os.environ["ANDROID_HOME"], "platform-tools")
-    adb_cmd = os.path.join(adb_dir, filename)
-    if os.path.exists(adb_cmd):
-        ADB_CMD = adb_cmd
-else:
-    import distutils
-    if "spawn" not in dir(distutils):
-        import distutils.spawn
-    adb_cmd = distutils.spawn.find_executable("adb")
-    if adb_cmd:
-        ADB_CMD = os.path.realpath(adb_cmd)
+# if "ANDROID_HOME" in os.environ:
+#     filename = "adb"
+#     adb_dir = os.path.join(os.environ["ANDROID_HOME"], "platform-tools")
+#     adb_cmd = os.path.join(adb_dir, filename)
+#     if os.path.exists(adb_cmd):
+#         ADB_CMD = adb_cmd
+# else:
+#     import distutils
+#     if "spawn" not in dir(distutils):
+#         import distutils.spawn
+#     adb_cmd = distutils.spawn.find_executable("adb")
+#     if adb_cmd:
+#         ADB_CMD = os.path.realpath(adb_cmd)
 
 
 LOG_FORMAT = '[%(asctime)s][%(pathname)s:%(lineno)d][%(levelname)s] : %(message)s'

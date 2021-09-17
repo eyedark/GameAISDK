@@ -13,7 +13,6 @@ import traceback
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, __dir__)
 
-from platformdefult.adbkit.ADBClient import ADBClient
 from devicePlatform.IPlatformProxy import *
 from gamedevice.AndroidGameDevice import *
 from APIDefine import *
