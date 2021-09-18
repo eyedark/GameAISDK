@@ -41,29 +41,19 @@ class AdbTool(object):
         '''adb command, add -s serial by default. return the subprocess.Popen object.'''
         serial = self.device_serial()
 
-        if serial:
-            if " " in serial:  # TODO how to include special chars on command line
-                serial = "'%s'" % serial
-
-            if False:
-                return self.raw_cmd(*["-s", serial] + list(args))
-            else:
-                return self.raw_cmd(*args)
+        if serial is not None:
+            return self.raw_cmd(*["-s", serial] + list(args))
         else:
             return self.raw_cmd(*args)
 
     def cmd_wait(self, *args):
-        # serial = self.device_serial()
-        # cmd = None
-        # if serial:
-        #     if " " in serial:  # TODO how to include special chars on command line
-        #         serial = "'%s'" % serial
-        #         cmd = self.raw_cmd(*["-s", serial] + list(args))
-        #     else:
-        #         cmd = self.raw_cmd(*args)
-        # else:
-        #     cmd = self.raw_cmd(*args)
-        cmd = self.raw_cmd(*args)
+        serial = self.device_serial()
+        cmd = None
+        if serial is not None:
+            serial = "'%s'" % serial
+            cmd = self.raw_cmd(*["-s", serial] + list(args))
+        else:
+            cmd = self.raw_cmd(*args)
         cmd.wait()
         erro, out = cmd.communicate()
         print(erro, out)
@@ -80,7 +70,7 @@ class AdbTool(object):
 
     def device_serial(self):
 
-        if not self.default_serial:
+        if self.default_serial is None:
             devices = self.devices()
             if devices:
                 if len(devices) == 1:

@@ -60,6 +60,16 @@ class PlatformTuring(IPlatformProxy):
         self.__deviceInfo.display_width, self.__deviceInfo.display_height = self.__minicap.GetVMSize()
         self.__deviceInfo.touch_width, self.__deviceInfo.touch_height = self.__minitouch.GetVMSize()
         self.__deviceInfo.touch_slot_number = self.__minitouch.GetMaxContacts()
+
+        self.__scale = long_edge * 1.0 / self.__deviceInfo.display_height
+
+        if is_portrait:
+            self.__game_width = self.__deviceInfo.display_width * self.__scale
+            self.__game_height = long_edge
+        else:
+            self.__game_width = long_edge
+            self.__game_height = self.__deviceInfo.display_width * self.__scale
+        self.__regular_height = long_edge
         
         return True, str()
     
@@ -71,19 +81,21 @@ class PlatformTuring(IPlatformProxy):
     def get_image(self):
         image = self.__minicap.GetScreen()
         self.__orientation = self.__minicap.GetRotation()
-        if image is None:
-            return PP_RET_ERR, None
-        else:
-            # return image as real orientation
-            if self.__orientation  == 0:
-                return 0, image
-            elif self.__orientation == 1:
-                return 0, cv2.flip(cv2.transpose(image), 0)
-            elif self.__orientation == 2:
-                # FIXME
-                return 0, cv2.flip(cv2.transpose(image), 0)
-            elif self.__orientation == 3:
-                return 0, cv2.flip(cv2.transpose(image), 1)
+        self.__minitouch.ChangeRotation(self.__orientation)
+        
+        # if image is None:
+        #     return PP_RET_ERR, None
+        # else:
+        #     # return image as real orientation
+        #     if self.__orientation  == 0:
+        #         return 0, image
+        #     elif self.__orientation == 1:
+        #         return 0, cv2.flip(cv2.transpose(image), 0)
+        #     elif self.__orientation == 2:
+        #         # FIXME
+        #         return 0, cv2.flip(cv2.transpose(image), 0)
+        #     elif self.__orientation == 3:
+        #         return 0, cv2.flip(cv2.transpose(image), 1)
         return PP_RET_OK, image
 
     def touch_up(self, contact=0):
@@ -92,10 +104,11 @@ class PlatformTuring(IPlatformProxy):
 
     def touch_down(self, px, py, contact=0, pressure=50):
         # _x, _y = self.__trans_xy(px, py)
-        if self.__orientation == 0:
-            self.__minitouch.touch_down(px=px, py=py, contact=contact, pressure=pressure)
-        else:
-            self.__minitouch.touch_down(px=py, py=px, contact=contact, pressure=pressure)
+        # if self.__orientation == 0:
+        #     self.__minitouch.touch_down(px=px, py=py, contact=contact, pressure=pressure)
+        # else:
+        #     self.__minitouch.touch_down(px=py, py=px, contact=contact, pressure=pressure)
+        self.__minitouch.touch_down(px=px, py=py, contact=contact, pressure=pressure)
         self.__logger.info('touch down, x:{}, y:{}, contact:{}'.format(px, py, contact))
 
     def touch_move(self, px, py, contact=0, pressure=50):
@@ -231,30 +244,28 @@ class PlatformTuring(IPlatformProxy):
             return int(self.__game_width), int(self.__game_height), int(nx), int(ny)
 
     def __trans_xy(self, x, y):
+        orientation = self.__orientation
 
-       
-        # if get orientation failed, rotation with game_width/game_height
-
-        if self.__orientation == 0:
+        if orientation == 0:
             nx, ny = x, y
-        elif self.__orientation  == 1:   # counter-clockwise 90
+        elif orientation == 1:   # counter-clockwise 90
             # nx, ny = self.__game_height - y, x
-            nx, ny = self.__width - y, x
-        elif self.__orientation  == 2:
-            nx, ny = self._width - y, x
-        elif self.__orientation  == 3:  # clockwise 90
-            nx, ny = y, self.__width - x
+            nx, ny = self.__game_width - y, x
+        elif orientation == 2:
+            nx, ny = self.__game_width - y, x
+        elif orientation == 3:  # clockwise 90
+            nx, ny = y, self.__game_width - x
         else:
             nx, ny = x, y
 
         # _x, _y = int(nx / self.__scale), int(ny / self.__scale)
         # print("game size", self.__game_height, self.__game_width)
-        if self.__width > self.__height:
-            _touch_scale_x = nx / self.__height
-            _touch_scale_y = ny / self.__width
+        if self.__game_width > self.__game_height:
+            _touch_scale_x = nx / self.__game_height
+            _touch_scale_y = ny / self.__game_width
         else:
-            _touch_scale_x = nx / self.__width
-            _touch_scale_y = ny / self.__height
+            _touch_scale_x = nx / self.__game_width
+            _touch_scale_y = ny / self.__game_height
         _x = int(self.__deviceInfo.touch_width * _touch_scale_x)
         _y = int(self.__deviceInfo.touch_height * _touch_scale_y)
         return _x, _y

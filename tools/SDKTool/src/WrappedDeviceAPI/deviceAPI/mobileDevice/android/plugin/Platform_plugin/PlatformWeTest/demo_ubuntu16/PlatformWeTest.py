@@ -72,7 +72,7 @@ class PlatformWeTest(IPlatformProxy):
         standalone = kwargs["standalone"] if "standalone" in kwargs else True
 
         __dir__ = os.path.dirname(os.path.abspath(__file__))
-        initializer = Initializer(resource_dir=os.path.join(__dir__, ".."))
+        initializer = Initializer(resource_dir=os.path.join(__dir__, ".."),serial=serial)
         initializer.setup(standalone)
 
         # start touch thread
