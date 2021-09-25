@@ -165,11 +165,7 @@ class AIFrameWork(object):
             cb = CustomCallback(self)
             # Save a checkpoint
             learnParam = self.__aiModel.getArgs()
-            if os.environ.get('AI_SDK_PROJECT_FULL_PATH') is not None:
-                project_path = os.getenv('AI_SDK_PROJECT_FULL_PATH')
-            else:
-                raise "AI_SDK_PROJECT_FULL_PATH not set"
-            trained_file_location = os.path.join(project_path,learnParam['checkpoint_path'])
+            trained_file_location = util.ConvertToProjectFilePath(learnParam['checkpoint_path'])
             name_prefix = 'rl_model_ppo'
             checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=trained_file_location,
                                             name_prefix=name_prefix)
@@ -316,6 +312,9 @@ class AIFrameWork(object):
     def set_msgid_callback(self):
         msgid = self._HandleMsg()
         self.__aiModel.setMSGID(msgid)
+    
+    def stop_action_update_policy(self):
+        self.__agentEnv.StopAction()
 
 class CustomCallback(BaseCallback):
     """
@@ -376,6 +375,8 @@ class CustomCallback(BaseCallback):
         """
         This event is triggered before updating the policy.
         """
+        #stop action 
+        self.ai_framework.stop_action_update_policy()
         # self.ai_framework.wait_for_end()
         pass
 

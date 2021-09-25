@@ -53,8 +53,8 @@ class PPOModel(AIModel):
         skip_prob = 0.0
         stochastic_frame_skip = 4
         env = StochasticFrameSkip(agentEnv,stochastic_frame_skip,skip_prob)
-        scale_reward = 0.01
-        env = RewardScaler(env,scale=scale_reward)
+        # scale_reward = 0.01
+        # env = RewardScaler(env,scale=scale_reward)#dont use this because reward has normarlise
         # if clip_rewards:
         #     env = ClipRewardEnv(env)
         # if warp_frame:
@@ -68,12 +68,17 @@ class PPOModel(AIModel):
         self.actionSpace = self.agentEnv.GetActionSpace()
 
         policy_kwargs = dict(activation_fn=th.nn.ReLU,
-                     net_arch=[dict(pi=[256, 128,256], vf=[256, 128,256])],
+                     net_arch=[dict(pi=[256, 128,64], vf=[256, 128,64])],
             features_extractor_class=FlattenExtractor,
             features_extractor_kwargs=dict()
         )
+        # policy_kwargs = dict(
+        #     features_extractor_class=FlattenExtractor,
+        #     features_extractor_kwargs=dict()
+        # )
+        log_tensorboard_path = util.ConvertToProjectFilePath(self.getArgs()['tensorboard_log'])
 
-        self.aiModel = PPO("CnnPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv ,ent_coef=0.0003, policy_kwargs=policy_kwargs)
+        self.aiModel = PPO("CnnPolicy",learning_rate=self._learnArgs[1]['learn_rate'], env=self.agentEnv ,ent_coef=0.0003,tensorboard_log=log_tensorboard_path, policy_kwargs=policy_kwargs)
         return True
 
 
@@ -117,6 +122,7 @@ class PPOModel(AIModel):
             learnArgs['checkpoint_path'] = config['network']['checkPointPath']
             learnArgs['train_frame_rate'] = config['network']['trainFrameRate']
             learnArgs['run_type'] = config['network']['runType']
+            learnArgs['tensorboard_log'] = config['excitationFunction']['tensorboard_log']
 
             self.logger.info("the learnArgs is {0}".format(learnArgs))
 

@@ -365,13 +365,13 @@ CKingGloryBloodReg::~CKingGloryBloodReg() {
 
 int CKingGloryBloodReg::Initialize(IRegParam *pParam) {
     // check parameters
-    if (NULL == pParam) {
+    if (nullptr == pParam) {
         LOGE("CKGBloodReg -- IRegParam pointer is NULL, please check");
         return -1;
     }
 
     CKingGloryBloodRegParam *pP = dynamic_cast<CKingGloryBloodRegParam*>(pParam);
-    if (NULL == pP) {
+    if (nullptr == pP) {
         LOGE("CKGBloodReg -- CKingGloryBloodRegParam pointer is NULL, please check");
         return -1;
     }

@@ -404,7 +404,7 @@ bool CTaskManager::ProcessGroupMsg(tagCmdMsg *pCmdMsg) {
     // release previous task recognizers
     ReleaseGameTaskReger();
     tagAgentMsg *pMsg = dynamic_cast<tagAgentMsg*>(pCmdMsg);
-    if (NULL == pMsg) {
+    if (nullptr == pMsg) {
         LOGE("pMsg is NULL");
         return false;
     }

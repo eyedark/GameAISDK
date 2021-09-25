@@ -20,14 +20,14 @@ CFixObjReg::~CFixObjReg() {
 
 int CFixObjReg::Initialize(IRegParam *pParam) {
     // check input pointer
-    if (NULL == pParam) {
+    if (nullptr == pParam) {
         LOGE("CFixObjReg -- IRegParam pointer is NULL, please check");
         return -1;
     }
 
     // convert IRegParam pointer to CFixObjRegParam pointer
     CFixObjRegParam *pP = dynamic_cast<CFixObjRegParam*>(pParam);
-    if (NULL == pP) {
+    if (nullptr == pP) {
         LOGE("CFixObjReg -- CFixObjRegParam pointer is NULL, please check");
         return -1;
     }
@@ -125,13 +125,13 @@ int CFixObjReg::Predict(const tagRegData &stData, IRegResult *pResult) {
         return -1;
     }
 
-    if (NULL == pResult) {
+    if (nullptr == pResult) {
         LOGE("task ID %d: CFixObjReg -- IRegResult pointer is NULL, please check", m_nTaskID);
         return -1;
     }
 
     CFixObjRegResult *pR = dynamic_cast<CFixObjRegResult*>(pResult);
-    if (NULL == pR) {
+    if (nullptr == pR) {
         LOGE("task ID %d: CFixObjReg -- CFixObjRegResult pointer is NULL, please check", m_nTaskID);
         return -1;
     }
@@ -140,7 +140,7 @@ int CFixObjReg::Predict(const tagRegData &stData, IRegResult *pResult) {
 
     // run methods
     for (int i = 0; i < static_cast<int>(m_pVecMethods.size()); i++) {
-        if (NULL == m_pVecMethods[i]) {
+        if (nullptr == m_pVecMethods[i]) {
             LOGE("task ID %d: CFixObjReg -- method pointer is NULL, please check", m_nTaskID);
             return -1;
         }
@@ -206,7 +206,7 @@ int CFixObjReg::Predict(const tagRegData &stData, IRegResult *pResult) {
 int CFixObjReg::Release() {
     // release methods
     for (int i = 0; i < static_cast<int>(m_pVecMethods.size()); i++) {
-        if (NULL == m_pVecMethods[i]) {
+        if (nullptr == m_pVecMethods[i]) {
             LOGE("task ID %d: CFixObjReg -- %s pointer is NULL, please check",
                 m_nTaskID, m_oVecParams[i].strMethod.c_str());
             continue;  // return -1 or continue

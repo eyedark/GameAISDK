@@ -96,7 +96,7 @@ int CYOLO::Initialize(char *pszCfgPath, char *pszWeightPath, char *pszNameFile, 
 
         // load config
         stYoloNetWork.stNet = parse_network_cfg(pszCfgPath);
-        if (NULL == stYoloNetWork.stNet.workspace) {
+        if (nullptr == stYoloNetWork.stNet.workspace) {
             LOGW("load cfg file %s failed", pszCfgPath);
             return -1;
         }
