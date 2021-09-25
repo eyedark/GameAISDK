@@ -1,0 +1,29 @@
+{
+    "actions":[
+        {
+            "id":2,
+            "name":"None",
+            "type":0
+        },
+        {
+            "id":0,
+            "name":"slip",
+            "type":3,
+            "startRectx":23,
+            "startRecty":266,
+            "width":73,
+            "height":67
+        },
+        {
+            "id":1,
+            "name":"jump",
+            "type":3,
+            "startRectx":542,
+            "startRecty":263,
+            "width":78,
+            "height":75
+        }
+    ],
+    "screenWidth":640,
+    "screenHeight":360
+}

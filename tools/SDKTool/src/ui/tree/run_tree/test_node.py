@@ -215,6 +215,7 @@ class TestNode(QObject):
         self.stop_test()
 
     def _start_multi_process(self):
+        #for Test AI
         text = ''
         run_programs = []
         # io
@@ -223,6 +224,8 @@ class TestNode(QObject):
 
         project_property_file = g_project_manager.get_project_property_file()
         # agent
+        #Tam thoi khong chạy agent, chạy agent bằng lệnh ngoài để gỡ lỗi
+
         run_program = "%s --mode=test --cfgpath=%s" % (AI_PROCESS_NAME, project_property_file)
         run_programs.append(run_program)
 
